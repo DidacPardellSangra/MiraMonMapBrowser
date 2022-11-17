@@ -270,6 +270,12 @@ var MessageLang={
 	Url:{"cat":"URL","spa":"URL","eng":"URL","fre":"URL"},
 	OutputParameter: {"cat":"Paràmetres de sortida","spa":"Parámetros de salida", "eng":"Output parameters", "fre":"Paramètres de sortie"},
 	Execute: {"cat":"Executar", "spa":"Ejecutar", "eng":"Execute", "fre":"Exécuter"},
+	UserConfiguration: {"cat":"Configuració d'usuari", "spa":"Configuración de usuario", "eng":"User configuration", "fre":"Configuration de l'utilisateur"},
+	SelectConfigLoad: {"cat":"Selecciona un fitxer de configuració a carregar", "spa":"Selecciona un fichero de configuración para cargar", "eng":"Select a config file to load", "fre":"Sélectionnez un fichier de configuration à charger"},
+	FileName: {"cat":"Nom del fitxer", "spa":"Nombre del fichero", "eng":"File name", "fre":"Nom du fichier"},
+	FileNameToSave: {"cat":"Nom del fitxer a guardar", "spa":"Nombre del fichero a guardar", "eng":"File name to save", "fre":"Nom du fichier à sauvegarder"},
+	WrongNumberElementsLine: {"cat": "Nombre d'elements incorrecte a la línia", "spa": "Número de elementos incorrecto en la línea", "eng": "Wrong number of elements in line", "fre": "Wrong number of elements in line"},
+	WrongFormatInLine: {"cat": "Format incorrecte a la línia", "spa": "Formato incorrecto en la línea", "eng": "Wrong values format in line", "fre": "Mauvais format en ligne"},
 	cntxmenu: {
 		ShareLayer: {"cat":"Compartir capa", "spa":"Compartir capa", "eng":"Share layer", "fre":"Partager couche"},
 		RemoveLayer: {"cat":"Esborrar capa", "spa":"Borrar capa", "eng":"Delete layer", "fre":"Effacer couche"},
@@ -293,6 +299,7 @@ var MessageLang={
 		ComputeQuality: {"cat":"Calcula la qualitat", "spa":"Calcula la calidad", "eng":"Compute the quality", "fre":"Calculer la qualité"},
 		toComputeTheQuality: {"cat":"de calcular la qualitat", "spa":"de calcular la calidad", "eng":"to compute the quality", "fre":"pour calculer la qualité"},
 		NewLayerAdded: {"cat":"La nova capa afegida", "spa":"La nueva capa añadida", "eng":"The new added layer", "fre":"La nouvelle couche ajoutée"},
+		ZoomToLayer: {"cat":"Zoom a capa", "spa": "Zoom a capa", "eng":"Zoom to layer", "fre":"Afficher en entier"},
 		WhyNotVisible: {"cat":"Perquè no visible", "spa":"Porque no visible", "eng":"Why not visible", "fre":"Pourquoi pas visible"},
 		notVisibleInCurrentZoom: {"cat":"no és visible al nivell de zoom actual del navegador", "spa":"no es visible al nivel de zoom actual del navegador", "eng":"is not visible in the current zoom level of the browser", "fre":"n'est pas visible au niveau du zoom actuel du navigateur"},
 		notVisibleInCurrentCRS: {"cat":"no és visible amb el CRS actual", "spa":"no es visible en el CRS actual", "eng":"is not visible in the current CRS", "fre":"n'est pas visible au CRS actuel"},
@@ -665,7 +672,7 @@ var MessageLang={
 		UpgradeCorrectly: {"cat": "Actualitza't correctament", "spa": "Actualicese correctamente", "eng": "Please, upgrade it correctly", "fre": "S'il vous plaît, actualisez vous correctement"},
 		ServerHasNewConfMap: {"cat": "El servidor incorpora una configuració del mapa més nova", "spa": "El servidor incorpora una configuración del mapa más nueva", "eng": "The server has a newer configuration for the map", "fre": "Le serveur intègre une configuration de carte plus récente"},
 		AcceptToAdopt: {"cat": "Acceptes adoptar-la?", "spa": "¿Acepta adoptarla?", "eng": "Do you accept to adopt it?", "fre": "Acceptez-vous de l'adopter"},
-		SavingStatusMapNotPossible: {"cat":"No serà possible guardar l'estat del map.",	"spa":"No será posible guardar el estado del mapa.",	"eng":"Saving the status of the map will not possible.",	"fre":"Il ne sera pas possible de sauvegarder le statut de la carte."},
+		SavingStatusMapNotPossible: {"cat":"No serà possible guardar l'estat del mapa",	"spa":"No será posible guardar el estado del mapa",	"eng":"Saving the status of the map will not possible",	"fre":"Il ne sera pas possible de sauvegarder le statut de la carte"},
 		CapaDigiNoLongerSupported: {"cat": "CapaDigi ja no se suporta",	"spa": "CapaDigi ya no se soporta",	"eng": "CapaDigi no longer supported",	"fre": "CapaDigi n'est plus pris en charge"},
 		UseLayerModelInstead: {"cat": "seu una \"capa\" amb \"model\": \"vector\"",	"spa": "Use una \"capa\" con \"model\": \"vector\"",	"eng": "Use a \"capa\" with \"model\": \"vector\" instead",	"fre": "Utilisez un \"capa\" avec le \"model\": \"vector\""},
 		ValueIgnoredAttributeShowable: {"cat": "El valor serà ignorat i l'atribut marcat com a mostrable", "spa": "El valor será ignorado y el atributo marcado como mostrable", "eng": "The value will be ignored and the attribute marked as showable", "fre": "La valeur sera ignorée et l'attribut marqué comme affichable"},
@@ -678,7 +685,10 @@ var MessageLang={
 		andIsInsteadSetOtherwise: {"cat": "i en canvi està definida d'una altra manera", "spa": "y en cambio está definido de otra manera", "eng": "and is set otherwise", "fre": "et est définie autrement"}
 	},
 	authens: {
-		LoginAccountFailed: {cat: "Error o cancel·lació de la identificació amb el compte de", spa: "Error o cancelación de la identificación en la cuenta de", eng: "Login in your account failed or cancelled in"}
+		Login: {"cat": "Iniciar sessió", "spa": "Iniciar sesión", "eng": "Login", "fre": "Se connecter"},
+		LoginAccountFailed: {"cat": "Error o cancel·lació de la identificació amb el compte de", "spa": "Error o cancelación de la identificación en la cuenta de", "eng": "Login in your account failed or cancelled in", "fre": "La connexion à votre compte a échoué ou a été annulée dans"},
+		ContinueWithoutAuthentication: {"cat": "Vols continuar sense autentificació", "spa": "Desea continuar sin autentificación", "eng": "Do you what to continue without authentication", "fre": "Faites-vous quoi continuer sans authentification"},
+		SessionsAlreadyStarted: {"cat": "Les sessions han estat ja iniciades", "spa": "Las sesiones han sido ya iniciadas", "eng": "The sessions were already started", "fre": "Les séances étaient déjà commencées"},
 	},
 	llinatge: {
 		Process: {"cat":"Procés", "spa":"Proceso", "eng":"Process", "fre":"Processus"},

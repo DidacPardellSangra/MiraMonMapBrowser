@@ -436,17 +436,9 @@ var cdns=[], cal_retorn=false;
 					else
 						cal_retorn=true;
 					cdns.push(DonaCadena(selector.desc), ": ",
-					          "<select id=\"selector-lleg-", i_capa, "-i_estil-", capa.i_estil, "-sltr-", i_sltr, "\" onChange=\"CanviaSelectorEstilCapa(this, "+i_capa+", "+capa.i_estil+", 0, " +i_sltr+ ");\">");
-					for (var i_cat=0; i_cat<selector.categories.length; i_cat++)
-					{
-						if (selector.categories[i_cat])
-						{
-							cdns.push("<option value=\"",i_cat,"\"",
-								((i_cat==selector.valorActual) ? " selected=\"selected\"" : "") ,
-								">", DonaTextCategoriaDesDeColor(selector.categories, selector.atributs, i_cat, true), "</option>");
-						}
-					}
-					cdns.push("</select>");
+					        "<select id=\"selector-lleg-", i_capa, "-i_estil-", capa.i_estil, "-sltr-", i_sltr, "\" onChange=\"CanviaSelectorEstilCapa(this, "+i_capa+", "+capa.i_estil+", 0, " +i_sltr+ ");\">",
+						DonaCadenaOpcionsCategories(selector.categories, selector.atributs, selector.valorActual, sortCategoriesValueAscendent),
+						"</select>");
 				}
 			}
 			else
@@ -488,6 +480,32 @@ var cdns=[], cal_retorn=false;
 	}
 	cdns.push(aspecte.PostDescItems);
 	return cdns.join("");
+}
+
+function CanviaDataDeCapaMultitime(i_capa, i_data)
+{
+var capa=ParamCtrl.capa[i_capa];
+
+	capa.i_data=i_data;
+	if (capa.model==model_vector)
+	{
+		for (var i_vista=0; i_vista<ParamCtrl.VistaPermanent.length; i_vista++)
+			OmpleVistaCapaDigi(ParamCtrl.VistaPermanent[i_vista].nom, ParamInternCtrl.vista, i_capa);
+	}
+	else
+	{
+		for (var i_vista=0; i_vista<ParamCtrl.VistaPermanent.length; i_vista++)
+			OmpleVistaCapa(ParamCtrl.VistaPermanent[i_vista].nom, ParamInternCtrl.vista, i_capa);
+	}
+}
+
+function CanviaValorDimensioExtraDeCapa(i_capa, i_dim, i_valor)
+{
+var dim=ParamCtrl.capa[i_capa].dimensioExtra[i_dim];
+
+	dim.i_valor=i_valor;
+	for (var i_vista=0; i_vista<ParamCtrl.VistaPermanent.length; i_vista++)
+		OmpleVistaCapa(ParamCtrl.VistaPermanent[i_vista].nom, ParamInternCtrl.vista, i_capa);
 }
 
 var LlegendaAmbControlDeCapes=0x01;
