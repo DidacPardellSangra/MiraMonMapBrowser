@@ -65,7 +65,7 @@ var MessageLang={
 	Save: {"cat":"Desar","spa":"Guardar","eng":"Save","fre":"Sauvegarder"},
 	close: {"cat":"tancar", "spa":"cerrar", "eng":"close", "fre":"quitter"},
 	Close: {"cat":"Tancar", "spa":"Cerrar", "eng":"Close", "fre":"Quitter"},
-	Print: {"cat":"imprimir", "spa":"imprimir", "eng":"print", "fre":"imprimer"},
+	print: {"cat":"imprimir", "spa":"imprimir", "eng":"print", "fre":"imprimer"},
 	indicates: {"cat":"indica", "spa":"indica", "eng": "indicates", "fre":"indique"},
 	show: {"cat":"mostrar", "spa":"mostrar", "eng":"show", "fre":"afficher"},
 	Show: {"cat":"Mostrar", "spa":"Mostrar", "eng":"Show", "fre":"Afficher"},
