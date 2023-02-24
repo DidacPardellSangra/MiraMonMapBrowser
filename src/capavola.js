@@ -1,4 +1,4 @@
-/*
+Ôªø/*
     This file is part of MiraMon Map Browser.
     MiraMon Map Browser is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -17,19 +17,19 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2021 Xavier Pons
+    Copyright 2001, 2023 Xavier Pons
 
-    Aquest codi JavaScript ha estat idea de Joan MasÛ Pau (joan maso at uab cat)
-    amb l'ajut de N˙ria Juli‡ (n julia at creaf uab cat)
-    dins del grup del MiraMon. MiraMon Ès un projecte del
-    CREAF que elabora programari de Sistema d'InformaciÛ Geogr‡fica
-    i de TeledetecciÛ per a la visualitzaciÛ, consulta, ediciÛ i an‡lisi
-    de mapes r‡sters i vectorials. Aquest programari inclou
-    aplicacions d'escriptori i tambÈ servidors i clients per Internet.
-    No tots aquests productes sÛn gratuÔts o de codi obert.
+    Aquest codi JavaScript ha estat idea de Joan Mas√≥ Pau (joan maso at uab cat)
+    amb l'ajut de N√∫ria Juli√† (n julia at creaf uab cat)
+    dins del grup del MiraMon. MiraMon √©s un projecte del
+    CREAF que elabora programari de Sistema d'Informaci√≥ Geogr√†fica
+    i de Teledetecci√≥ per a la visualitzaci√≥, consulta, edici√≥ i an√†lisi
+    de mapes r√†sters i vectorials. Aquest programari inclou
+    aplicacions d'escriptori i tamb√© servidors i clients per Internet.
+    No tots aquests productes s√≥n gratu√Øts o de codi obert.
 
     En particular, el Navegador de Mapes del MiraMon (client per Internet)
-    es distribueix sota els termes de la llicËncia GNU Affero General Public
+    es distribueix sota els termes de la llic√®ncia GNU Affero General Public
     License, mireu https://www.gnu.org/licenses/licenses.html#AGPL.
 
     El Navegador de Mapes del MiraMon es pot actualitzar des de
@@ -115,7 +115,42 @@ function CanviaEtiquetesAnarCoord(sel)
 	}
 }//Fi de CanviaEtiquetesAnarCoord()
 
+function AnarAObjVectorialTaula(longitud, latitud)
+{
+var d, punt_coord;
 
+	if(isNaN(longitud) || isNaN(latitud))
+	{
+  	   alert(GetMessage("CoordIncorrectFormat", "capavola") + ":\n" + GetMessage("NumericalValueMustBeIndicated", "capavola") + ".");
+	   return;
+	}
+	punt_coord=DonaCoordenadesCRS(longitud, latitud, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);	
+
+	if(!EsPuntDinsAmbitNavegacio(punt_coord))
+	{
+  	   alert(GetMessage("RequestedPointOutsideBrowserEnvelope", "capavola"));
+	   return;
+	}
+
+	//Dibuixo la icona per mostrar el punt consultat
+	if (typeof ParamCtrl.ICapaVolaAnarCoord !== "undefined")
+	{
+		var capa=ParamCtrl.capa[ParamCtrl.ICapaVolaAnarCoord];
+		capa.objectes.features[0].geometry.coordinates[0]=punt_coord.x;
+		capa.objectes.features[0].geometry.coordinates[1]=punt_coord.y;
+		//capa.objectes.features[0].properties.radius=d;
+		capa.visible="si";
+		CreaVistes();
+	}
+	// Constant a 1000m per a una bona visualitzaci√≥ del punt i dels voltants.
+	d=1000;
+	if (EsProjLongLat(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS))
+		d/=FactorGrausAMetres;
+	var env=DonaEnvDeXYAmpleAlt(punt_coord.x, punt_coord.y, d, d);
+	PortamAAmbit(env);
+	
+	//PortamAPunt(punt_coord.x,punt_coord.y);
+}
 
 function AnarACoordenada(form)
 {
@@ -131,7 +166,7 @@ var punt_coord={x: parseFloat(form.coordX.value), y: parseFloat(form.coordY.valu
 	FormAnarCoord.x=punt_coord.x;
 	FormAnarCoord.y=punt_coord.y;
 
-	//Ho transformo si cal de long/lat a les coordenades de la projecciÛ
+	//Ho transformo si cal de long/lat a les coordenades de la projecci√≥
 	if(form.proj[1].checked)
 	{
    	   crs_xy=DonaCoordenadesCRS(punt_coord.x,punt_coord.y,ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
@@ -268,11 +303,11 @@ function EliminaCapaVolatil(i_capa, param_ctrl)
 	if (param_ctrl.ICapaVolaGPS==i_capa)
 		delete param_ctrl.ICapaVolaGPS;
 	CanviaIndexosCapesSpliceCapa(-1, i_capa+1, -1, param_ctrl);  /* els indexos que apuntin a 'i_capa' ja no existeixen en absolut. Intentar moure'ls no sembla una bona idea i per tant uso i_capa+1.
-						No uso AvisaDeCapaAmbIndexosACapaEsborrada() (tal com recomana CanviaIndexosCapesSpliceCapa() perquË generalment les capes volatils sÛn desconegudes a l'usuari
-						i no hi hauria d'haver Ìndexos des de altres capes) */
+						No uso AvisaDeCapaAmbIndexosACapaEsborrada() (tal com recomana CanviaIndexosCapesSpliceCapa() perqu√® generalment les capes volatils s√≥n desconegudes a l'usuari
+						i no hi hauria d'haver √≠ndexos des de altres capes) */
 }
 
-//Generalment, aquesta funcio no resulta ˙til. Considereu usar CanviaIndexosCapesSpliceCapa() que canvia tots els Ìndexos a totes les capes i crida aquesta funciÛ al final.
+//Generalment, aquesta funcio no resulta √∫til. Considereu usar CanviaIndexosCapesSpliceCapa() que canvia tots els √≠ndexos a totes les capes i crida aquesta funci√≥ al final.
 function CanviaIndexosCapesVolatils(n_moviment, i_capa_ini, i_capa_fi_per_sota, param_ctrl)
 {
 	if (typeof i_capa_fi_per_sota==="undefined")
@@ -636,7 +671,7 @@ function TancaFinestra_editarVector()
 
 
 
-/* El dia 06-02-2018 descubreixo aquesta funciÛ perÚ no tinc idea de a que es refereix i la esborro. (JM)
+/* El dia 06-02-2018 descubreixo aquesta funci√≥ per√≤ no tinc idea de a que es refereix i la esborro. (JM)
 function MostraFinestraInserta()
 {
 	if (!ObreFinestra(window, "inserta", DonaCadenaLang({"cat":"d'inserir",
@@ -654,7 +689,7 @@ function IniciaPosicioGPS()
 	{
 		if("https:"!=location.protocol.toLowerCase())
 		{
-			// Decideixo no dir res perquË l'usuari final no en tÈ la culpa de que el navegador sigui http i no https
+			// Decideixo no dir res perqu√® l'usuari final no en t√© la culpa de que el navegador sigui http i no https
 			//alert("Geolocation is not supported by this browser.");
 			CancelaPosicioGPS();
 			return;
@@ -711,7 +746,7 @@ function CancelaPosicioGPS()
 {
 	if (typeof ParamCtrl.ICapaVolaGPS !== "undefined")
 	{
-		//Potser seria millor apagar la visualitzaciÛ de les capes i prou?
+		//Potser seria millor apagar la visualitzaci√≥ de les capes i prou?
 		EliminaCapaVolatil(ParamCtrl.ICapaVolaGPS, ParamCtrl);
 		ParamCtrl.MostraPosicioGPS=false;
 		if (IdPositionGPS)

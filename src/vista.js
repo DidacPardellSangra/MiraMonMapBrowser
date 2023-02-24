@@ -1,4 +1,4 @@
-/*
+Ôªø/*
     This file is part of MiraMon Map Browser.
     MiraMon Map Browser is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -17,19 +17,19 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2022 Xavier Pons
+    Copyright 2001, 2023 Xavier Pons
 
-    Aquest codi JavaScript ha estat idea de Joan MasÛ Pau (joan maso at uab cat)
-    amb l'ajut de N˙ria Juli‡ (n julia at creaf uab cat)
-    dins del grup del MiraMon. MiraMon Ès un projecte del
-    CREAF que elabora programari de Sistema d'InformaciÛ Geogr‡fica
-    i de TeledetecciÛ per a la visualitzaciÛ, consulta, ediciÛ i an‡lisi
-    de mapes r‡sters i vectorials. Aquest programari inclou
-    aplicacions d'escriptori i tambÈ servidors i clients per Internet.
-    No tots aquests productes sÛn gratuÔts o de codi obert.
+    Aquest codi JavaScript ha estat idea de Joan Mas√≥ Pau (joan maso at uab cat)
+    amb l'ajut de N√∫ria Juli√† (n julia at creaf uab cat)
+    dins del grup del MiraMon. MiraMon √©s un projecte del
+    CREAF que elabora programari de Sistema d'Informaci√≥ Geogr√†fica
+    i de Teledetecci√≥ per a la visualitzaci√≥, consulta, edici√≥ i an√†lisi
+    de mapes r√†sters i vectorials. Aquest programari inclou
+    aplicacions d'escriptori i tamb√© servidors i clients per Internet.
+    No tots aquests productes s√≥n gratu√Øts o de codi obert.
 
     En particular, el Navegador de Mapes del MiraMon (client per Internet)
-    es distribueix sota els termes de la llicËncia GNU Affero General Public
+    es distribueix sota els termes de la llic√®ncia GNU Affero General Public
     License, mireu https://www.gnu.org/licenses/licenses.html#AGPL.
 
     El Navegador de Mapes del MiraMon es pot actualitzar des de
@@ -44,7 +44,7 @@ var VistaImprimir={ "EnvActual": {"MinX": 0, "MaxX": 0, "MinY": 0, "MaxY": 0},
 				 "ncol": 0,
 				 "CostatZoomActual": 0,
 				 "i_vista": -2,
-				 "i_nova_vista": NovaVistaImprimir};  //El significat de "i_nova_vista" es pot trobar a la funciÛ PreparaParamInternCtrl()
+				 "i_nova_vista": NovaVistaImprimir};  //El significat de "i_nova_vista" es pot trobar a la funci√≥ PreparaParamInternCtrl()
 
 function CalculaNColNFilVistaImprimir(ncol,nfil)
 {
@@ -71,14 +71,14 @@ var i, capa;
 				DonaTipusServidorCapa(capa)!="TipusWMS" &&
 				DonaTipusServidorCapa(capa)!="TipusOAPI_Maps")
 			{
-				//Hi ha 1 capa (o mÈs) en WMTS. En aquest cas, es fixa un nivell de zoom superior al ambit que es vol demanar.
+				//Hi ha 1 capa (o m√©s) en WMTS. En aquest cas, es fixa un nivell de zoom superior al ambit que es vol demanar.
 				costat=(ParamInternCtrl.vista.EnvActual.MaxX-ParamInternCtrl.vista.EnvActual.MinX)/VistaImprimir.ncol;
 				//Buscar el costar de pixel que cumplim:
 				var i_zoom=DonaIndexNivellZoomCeil(costat);
 				if (i_zoom==-1)
 					i=ParamCtrl.capa.length;  //No ha ha cap costat que em serveixi.
 				else
-					costat=ParamCtrl.zoom[i_zoom].costat; //Ara amb el nou costat de pÌxel cal redefinir envolupant per excÈs donat que no la puc conservar totalment.
+					costat=ParamCtrl.zoom[i_zoom].costat; //Ara amb el nou costat de p√≠xel cal redefinir envolupant per exc√©s donat que no la puc conservar totalment.
 				break;
 			}
 	    }
@@ -108,46 +108,34 @@ function CreaVistaFullImprimir(win)
 }
 
 
-function DonaCadenaHTMLDibuixEscala(env)
+function DonaCadenaHTMLDibuixEscala(env, cal_desc_crs)
 {
 var cdns=[];
 
 	var escala=DonaNumeroArrodonit125((env.MaxX-env.MinX)*0.4);
-	cdns.push("<font face=arial size=1><img src=\"",
-			  AfegeixAdrecaBaseSRC("1tran.gif"),
-			  "\" width=1 height=3 border=0><br><img src=\"",
-			  AfegeixAdrecaBaseSRC("1negre.gif"),
-			  "\" width=", Math.round(escala/ParamInternCtrl.vista.CostatZoomActual),
-		  " height=2 border=0><br>", escala, DonaUnitatsCoordenadesProj(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS));
+	cdns.push("<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td align=\"middle\" width=\"1\" height=\"3\" border=\"0\"></td></tr>",
+			"<tr><td align=\"middle\" style=\"font-size: 1px;\"><img src=\"",
+			AfegeixAdrecaBaseSRC("1negre.gif"),
+			"\" width=\"", Math.round(escala/ParamInternCtrl.vista.CostatZoomActual),
+		  	"\" height=\"2\"></td></tr>",
+			"<tr><td align=\"middle\"><font face=\"arial\" size=\"1\">", escala, DonaUnitatsCoordenadesProj(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS));
 	if (EsProjLongLat(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS))
 	{
 		var d_escala=DonaDenominadorDeLEscalaArrodonit(escala*FactorGrausAMetres*Math.cos((env.MaxY+env.MinY)/2*FactorGrausARadiants))
 		cdns.push(" (", GetMessage("approx"), ". " , (d_escala>10000 ? d_escala/1000+" km" : d_escala+" m"), " " ,
-			GetMessage("atLat"), ". " , (OKStrOfNe((env.MaxY+env.MinY)/2,1)) , "∞)");
+			GetMessage("atLat"), ". " , (OKStrOfNe((env.MaxY+env.MinY)/2,1)) , "¬∞)");
 	}
 	else if (ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS.toUpperCase()=="AUTO2:MERCATOR,1,0,41.42")
-		cdns.push(" (" , (GetMessage("atLat")) , " 41∞ 25\')");
+		cdns.push(" (" , (GetMessage("atLat")) , " 41¬∞ 25\')");
 	else if (ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS.toUpperCase()=="AUTO2:MERCATOR,1,0,40.60")
-		cdns.push(" (" , (GetMessage("atLat")) , " 40∞ 36\')");
+		cdns.push(" (" , (GetMessage("atLat")) , " 40¬∞ 36\')");
 	else if (ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS.toUpperCase()=="AUTO2:MERCATOR,1,0,0.0" || ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS.toUpperCase()=="EPSG:3785")
-		cdns.push(" (" , (GetMessage("atLat")) , " 0∞ 0\')");
-	cdns.push("</font>");
-	return cdns.join("");
-}
-
-function DonaCadenaHTMLEscala(env)
-{
-var cdns=[];
-
-	cdns.push("<table border=0 cellspacing=0 cellpadding=0><tr><td align=middle>", DonaCadenaHTMLDibuixEscala(env) , "</td></tr></table>");
-	return cdns.join("");
-}
-
-function DonaCadenaHTMLEscalaImprimir(env)
-{
-var cdns=[];
-	cdns.push("<table border=0 cellspacing=0 cellpadding=0><tr><td align=middle>" , DonaCadenaHTMLDibuixEscala(env) , "</td><td><font face=arial size=2> &nbsp;",
-		DonaDescripcioCRS(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS),"</font></td></tr></table>");
+		cdns.push(" (" , (GetMessage("atLat")) , " 0¬∞ 0\')");
+	cdns.push("</font></td>");
+	if (cal_desc_crs)
+		cdns.push("<td><font face=\"arial\" size=\"2\"> &nbsp;",
+				DonaDescripcioCRS(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS),"</font></td>");
+	cdns.push("</tr></table>");
 	return cdns.join("");
 }
 
@@ -155,7 +143,7 @@ function CreaEscalaFullImprimir(win)
 {
     var elem=getLayer(win, "escala");
     if (isLayer(elem))
-		contentLayer(elem, DonaCadenaHTMLEscalaImprimir(VistaImprimir.EnvActual));
+		contentLayer(elem, DonaCadenaHTMLDibuixEscala(VistaImprimir.EnvActual, true));
 }
 
 var TriaFullWindow=null;
@@ -192,7 +180,7 @@ var e=ParamCtrl.zoom[i].costat*1000/MidaDePixelPantalla;
 	return DonaDenominadorDeLEscalaArrodonit(e);
 }
 
-//Aquesta funciÛ converteix un nom de vista en un index de l'array ParamCtrl.VistaPermanent. Noteu que no funciona per les "vistes noves" creades per l'usuari.
+//Aquesta funci√≥ converteix un nom de vista en un index de l'array ParamCtrl.VistaPermanent. Noteu que no funciona per les "vistes noves" creades per l'usuari.
 function DonaIVista(nom)
 {
 	for (var i_vista=0; i_vista<ParamCtrl.VistaPermanent.length; i_vista++)
@@ -207,9 +195,9 @@ var NRequestedCursor=0;
 
 //https://www.w3schools.com/cssref/pr_class_cursor.asp
 /*cursor pot ser
-	un cursor requerit (que cal cancelar mÈs tard)
+	un cursor requerit (que cal cancelar m√©s tard)
 	"auto" per cancelar un cursor requerit
-	null perque la funciÛ determini el cursor a partir del estats del botons (de fet de les variables que reflectexien l'estat dels botons)*/
+	null perque la funci√≥ determini el cursor a partir del estats del botons (de fet de les variables que reflectexien l'estat dels botons)*/
 function CanviaCursorSobreVista(requested_cursor)
 {
 var cursor="auto";
@@ -270,7 +258,7 @@ function MouLaVista(dx,dy)
 /*Mou la vista un finestra sencera en x, y especificant -1, 0 o 1 segons el sentit desitjat:
      sx: -1 per esquerra, 0 per res, 1 per dreta.
      sy: -1 per aball,    0 per res, 1 per adalt.
-  El moviment no salta una finetra sencera exactament sino que tÈ en compte el par‡metre psalt
+  El moviment no salta una finetra sencera exactament sino que t√© en compte el par√†metre psalt
   (percentatge de salt). Crida RepintaMapesIVistes() al final*/
 function MouLaVistaSalt(sx,sy)
 {
@@ -285,8 +273,8 @@ function MouLaVistaEventDeSalt(event, sx, sy) //Afegit JM 18/09/2016
 }
 
 
-/*Mou la vista per centrar-la a la posiciÛ x,y en coordenades mapa. Crida RepintaMapesIVistes()
-  al final. Aquesta funciÛ NO guarda la vista.*/
+/*Mou la vista per centrar-la a la posici√≥ x,y en coordenades mapa. Crida RepintaMapesIVistes()
+  al final. Aquesta funci√≥ NO guarda la vista.*/
 function CentraLaVista(x,y)
 {
     ParamInternCtrl.PuntOri.x=x;
@@ -827,7 +815,7 @@ function OmpleVistaCapa(nom_vista, vista, i)
 var tipus=DonaTipusServidorCapa(ParamCtrl.capa[i]);
 	if (tipus=="TipusWMS" || tipus=="TipusOAPI_Maps" || tipus=="TipusHTTP_GET")
 	{
-		//var image=eval("this.document." + nom_vista + "_i_raster"+i);  //AixÚ no funciona pel canvas.
+		//var image=eval("this.document." + nom_vista + "_i_raster"+i);  //Aix√≤ no funciona pel canvas.
 		var win=DonaWindowDesDeINovaVista(vista);
 		CanviaImatgeCapa(win.document.getElementById(nom_vista + "_i_raster"+i), vista, i, -1, null, null, null);
 	}
@@ -835,8 +823,8 @@ var tipus=DonaTipusServidorCapa(ParamCtrl.capa[i]);
 		CreaMatriuCapaTiled(nom_vista, vista, i);
 }
 
-//Aquesta funciÛ est‡ en des˙s i nomÈs es fa servir pel video. Useu DonaRequestGetMap() directament. 'estil' Ès el nom de l'estil o null per fer servir l'estiu predeterminat a l'estructura.
-// ∑$∑ potser ni pel vÌdeo
+//Aquesta funci√≥ est√† en des√∫s i nom√©s es fa servir pel video. Useu DonaRequestGetMap() directament. 'estil' √©s el nom de l'estil o null per fer servir l'estiu predeterminat a l'estructura.
+// ¬∑$¬∑ potser ni pel v√≠deo
 function DonaNomImatge(i_capa, vista, estil, pot_semitrans, i_data)
 {
 var i_estil, capa=ParamCtrl.capa[i_capa];
@@ -927,10 +915,10 @@ var capa=ParamCtrl.capa[i_capa];
 	}
 }
 
-/* No puc fer servir aquestas funciÛ donat que els PNG's progressius no es tornen a mostrar nomÈs fent un showLayer. Els torno a demanar sempre.
+/* No puc fer servir aquestas funci√≥ donat que els PNG's progressius no es tornen a mostrar nom√©s fent un showLayer. Els torno a demanar sempre.
 function CanviaImatgeCapaSiCal(imatge, i_capa)
 {
-	//AquÌ no faig servir DonaCadenaLang() expressament. Si es canvia l'idioma mentre es mostre un "espereu_???.gif", aquest no Ès canviat pel nou idioma. De fet, aixÚ es podria fer durant el canvi d'idioma perÚ Ès un detall massa insignificant.
+	//Aqu√≠ no faig servir DonaCadenaLang() expressament. Si es canvia l'idioma mentre es mostre un "espereu_???.gif", aquest no √©s canviat pel nou idioma. De fet, aix√≤ es podria fer durant el canvi d'idioma per√≤ √©s un detall massa insignificant.
 	if ((ParamCtrl.capa[i_capa].transparencia && ParamCtrl.capa[i_capa].transparencia=="semitransparent") ||
 		imatge.src.indexOf("espereu_cat.gif")!=-1 || imatge.src.indexOf("espereu_spa.gif")!=-1 || imatge.src.indexOf("espereu_eng.gif")!=-1|| imatge.src.indexOf("espereu_fre.gif")!=-1)
 	{
@@ -949,8 +937,8 @@ var atribut=capa_digi.atributs[i_atribut];
 
 	if (atribut.FormulaConsulta)
 	{
-		// AquÌ hem de pensar que passa si hi ha v[] perÚ encara no estan carregats.
-		// En aquest punt es demanes les capes v[] per fer servir mÈs tard una consulta per localitzaciÛ
+		// Aqu√≠ hem de pensar que passa si hi ha v[] per√≤ encara no estan carregats.
+		// En aquest punt es demanes les capes v[] per fer servir m√©s tard una consulta per localitzaci√≥
 		if (!param["v_carregat_"+i_atribut] && HiHaValorsNecessarisCapaFormulaconsulta(capa_digi, atribut.FormulaConsulta))
 		{
 			param["v_carregat_"+i_atribut]=true;
@@ -1038,7 +1026,7 @@ var lineString;
 			lineString=geometry.coordinates[c2];
 		else
 			lineString=geometry.coordinates;
-		//cal sumar sempre 0.5 perquË la linia es traÁa a la cantonada d'un pixel i no pel mig segons he llegit.
+		//cal sumar sempre 0.5 perqu√® la linia es tra√ßa a la cantonada d'un pixel i no pel mig segons he llegit.
 		ctx.moveTo(Math.round((lineString[0][0]-env.MinX)/(env.MaxX-env.MinX)*ncol)+0.5,
 			Math.round((env.MaxY-lineString[0][1])/(env.MaxY-env.MinY)*nfil)+0.5);
 		for (var c1=1; c1<lineString.length; c1++)
@@ -1075,21 +1063,21 @@ var polygon, lineString;
 
 async function loadVectorData(i_capa2, i_valor2, imatge, vista, i_capa, i_data2, i_estil2, i_valor, nom_funcio_ok, funcio_ok_param)
 {
-	//De moment aiÚ nomÈs est‡ ben implementat per capes vectorials que ja estan carregades.
+	//De moment ai√≤ nom√©s est√† ben implementat per capes vectorials que ja estan carregades.
 	//Cal pensar que passa si els objectes encara no s'han carregat. Cal cridar la carrega dels vectors de manera assincrona 
-	//aquÌ abans de cridar el dibuixat de la capa oculta amb un await.
+	//aqu√≠ abans de cridar el dibuixat de la capa oculta amb un await.
 	var objOculta = DonaObjCapaComABinaryArray(vista, i_capa2, ParamCtrl.capa[i_capa2].objectes);
 	ParamCtrl.capa[i_capa].valors[i_valor].datatype=objOculta.datatype;
 	ParamCtrl.capa[i_capa].valors[i_valor].nodata=[objOculta.nodata];
 	return {dades: objOculta.arrayBuffer, extra_param: {imatge: imatge, vista: vista, i_capa: i_capa, i_data: i_data2, i_estil: i_estil2, i_valor: i_valor, nom_funcio_ok: nom_funcio_ok, funcio_ok_param: funcio_ok_param}};
 }
 
-/*NomÈs dibuixa objectes de tipus polÌgon.
-ContÈ l'index de objectes.features representat (l'identificador gr‡fic). 
+/*Nom√©s dibuixa objectes de tipus pol√≠gon.
+Cont√© l'index de objectes.features representat (l'identificador gr√†fic). 
 El tipus de dades i el nodata depenen de objetes.features.length. 
-* Si Ès <256, es un Uint8 i el 255 Ès el nodata; 
-* si Ès <65536 es un Uint16 i el nodata Ès el 65535; 
-* i si Ès <16777216 Ès un Uint32 i el nodata Ès el 16777215.*/
+* Si √©s <256, es un Uint8 i el 255 √©s el nodata; 
+* si √©s <65536 es un Uint16 i el nodata √©s el 65535; 
+* i si √©s <16777216 √©s un Uint32 i el nodata √©s el 16777215.*/
 function DonaObjCapaComABinaryArray(vista, i_capa, objectes)
 {
 var env=vista.EnvActual;
@@ -1104,7 +1092,7 @@ var arrayBuffer, array_uint, datatype, nodata, mida=canvas_ocult.width*canvas_oc
 
 	if (objectes.features.length<256)
 	{
-		//Cal canviar aixÚ per el arraybuffer que hi ha a valors[i]
+		//Cal canviar aix√≤ per el arraybuffer que hi ha a valors[i]
 		arrayBuffer = new ArrayBuffer(canvas_ocult.width*canvas_ocult.height);
 		datatype = "uint8";
 		nodata = 255;
@@ -1129,7 +1117,7 @@ var arrayBuffer, array_uint, datatype, nodata, mida=canvas_ocult.width*canvas_oc
 	//for (var j=0; j<objectes.features.length-1; j++)
 	for (var j=objectes.features.length-1; j>=0; j--)
 	{
-		ctx_ocult.clearRect(0, 0, canvas_ocult.width, canvas_ocult.height);  //els 4 bytes a 0 incloent opacitat que ser‡ la meva marca de nodata.
+		ctx_ocult.clearRect(0, 0, canvas_ocult.width, canvas_ocult.height);  //els 4 bytes a 0 incloent opacitat que ser√† la meva marca de nodata.
 		feature=objectes.features[j];
 		geometry=DonaGeometryCRSActual(feature, capa.CRSgeometry);
 		if (geometry.type=="Polygon" || geometry.type=="MultiPolygon")
@@ -1162,7 +1150,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 	if (!objectes || !objectes.features || !estil)
 		return;
 		
-	// Primer fem la prec‡rrega dels valors dels atributs que necessitem per simbolitzar els objectes
+	// Primer fem la prec√†rrega dels valors dels atributs que necessitem per simbolitzar els objectes
 	if (estil.simbols && estil.simbols.length)
 	{
 		for (i_simb=0; i_simb<estil.simbols.length; i_simb++)
@@ -1170,7 +1158,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 			simbols=estil.simbols[i_simb];
 			if (simbols.NomCamp)
 			{
-				//Prec‡rrega de valors si hi ha referËncies r‡ster.
+				//Prec√†rrega de valors si hi ha refer√®ncies r√†ster.
 				i=DonaIAtributsDesDeNomAtribut(capa, atributs, simbols.NomCamp)
 				if (i==-1)
 				{
@@ -1182,7 +1170,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 			}
 			if (simbols.NomCampFEscala)
 			{
-				//Prec‡rrega de valors si hi ha referËncies r‡ster.
+				//Prec√†rrega de valors si hi ha refer√®ncies r√†ster.
 				i=DonaIAtributsDesDeNomAtribut(capa, atributs, simbols.NomCampFEscala)
 				if (i==-1)
 				{
@@ -1196,7 +1184,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 	}
 	if (estil.NomCampSel)
 	{
-		//Prec‡rrega de valors de la selecciÛ
+		//Prec√†rrega de valors de la selecci√≥
 		i_atri_sel=DonaIAtributsDesDeNomAtribut(capa, atributs, estil.NomCampSel)
 		if (i_atri_sel==-1)
 		{
@@ -1213,7 +1201,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 			forma=estil.formes[i_forma];
 			if (forma.interior && forma.interior.NomCamp)
 			{
-				//Prec‡rrega de valors si hi ha referËncies r‡ster.
+				//Prec√†rrega de valors si hi ha refer√®ncies r√†ster.
 				i_atri_interior[i_forma]=DonaIAtributsDesDeNomAtribut(capa, atributs, forma.interior.NomCamp)
 				if (i_atri_interior[i_forma]==-1)
 				{
@@ -1225,7 +1213,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 			}
 			if (forma.vora && forma.vora.NomCamp)
 			{
-				//Prec‡rrega de valors si hi ha referËncies r‡ster.
+				//Prec√†rrega de valors si hi ha refer√®ncies r√†ster.
 				i_atri_vora[i_forma]=DonaIAtributsDesDeNomAtribut(capa, atributs, forma.vora.NomCamp)
 				if (i_atri_vora[i_forma]==-1)
 				{
@@ -1240,7 +1228,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 	if (HiHaSimbolitzacioIndexadaPerPropietats(estil))
 	{
 		if (DescarregaPropietatsCapaDigiVistaSiCal(OmpleVistaCapaDigiIndirect, param))
-			return;  //ja es tornar‡ a cridar a si mateixa quan la crida assÌncrona acabi
+			return;  //ja es tornar√† a cridar a si mateixa quan la crida ass√≠ncrona acabi
 	}
 	
 	// Ja tenim tot el que necessitem i anem a dibuixar els objectes
@@ -1303,7 +1291,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 				for (i_forma=0; i_forma<estil.formes.length; i_forma++)
 				{
 					forma=estil.formes[i_forma];
-					if (vista.i_nova_vista!=NovaVistaImprimir && feature.seleccionat==true && forma.voraSel)  //Sistema que feiem servir per l'ediciÛ
+					if (vista.i_nova_vista!=NovaVistaImprimir && feature.seleccionat==true && forma.voraSel)  //Sistema que feiem servir per l'edici√≥
 					{
 						forma_vora=forma.voraSel;
 						un_a_vmin_ncol_vora=a_vmin_ncol_voraSel[i_forma];
@@ -1372,7 +1360,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 				for (i_forma=0; i_forma<estil.formes.length; i_forma++)
 				{
 					forma=estil.formes[i_forma];
-					if (vista.i_nova_vista!=NovaVistaImprimir && feature.seleccionat==true && (forma.voraSel || forma.interiorSel))  //Sistema que feiem servir per l'ediciÛ
+					if (vista.i_nova_vista!=NovaVistaImprimir && feature.seleccionat==true && (forma.voraSel || forma.interiorSel))  //Sistema que feiem servir per l'edici√≥
 					{
 						forma_vora=forma.voraSel ? forma.voraSel : forma.vora;
 						un_a_vmin_ncol_vora=forma.voraSel ? a_vmin_ncol_voraSel[i_forma] : a_vmin_ncol_vora[i_forma];
@@ -1489,7 +1477,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 
 							if (i_simbol!=-1)
 							{
-								if (vista.i_nova_vista!=NovaVistaImprimir && feature.seleccionat==true && simbol[i_simbol].IconaSel)  //Sistema que feiem servir per l'ediciÛ
+								if (vista.i_nova_vista!=NovaVistaImprimir && feature.seleccionat==true && simbol[i_simbol].IconaSel)  //Sistema que feiem servir per l'edici√≥
 									icona=simbol[i_simbol].IconaSel;
 								else if (estil.NomCampSel)
 								{
@@ -1516,8 +1504,8 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 										env_icona=DonaEnvIcona({x: coord[0],y: coord[1]}, icona);
 									if (icona.fescala>0 && EsEnvDinsEnvolupant(env_icona, env))
 									{
-										//la layer l_obj_digi tÈ les coordenades referides a la seva layer pare que Ès l_capa --> No he de considerar ni els marges de la vista ni els scrolls.
-										//la manera de fer aixÚ est‡ extreta de: http://stackoverflow.com/questions/6011378/how-to-add-image-to-canvas
+										//la layer l_obj_digi t√© les coordenades referides a la seva layer pare que √©s l_capa --> No he de considerar ni els marges de la vista ni els scrolls.
+										//la manera de fer aix√≤ est√† extreta de: http://stackoverflow.com/questions/6011378/how-to-add-image-to-canvas
 
 										if (Array.isArray(icona))
 										{
@@ -1532,7 +1520,7 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 											{
 												forma=estil.formes[i_forma];
 
-												if (vista.i_nova_vista!=NovaVistaImprimir && feature.seleccionat==true && (forma.voraSel || forma.interiorSel))  //Sistema que feiem servir per l'ediciÛ
+												if (vista.i_nova_vista!=NovaVistaImprimir && feature.seleccionat==true && (forma.voraSel || forma.interiorSel))  //Sistema que feiem servir per l'edici√≥
 												{
 													forma_vora=forma.voraSel ? forma.voraSel : forma.vora;
 													un_a_vmin_ncol_vora=forma.voraSel ? a_vmin_ncol_voraSel[i_forma] : a_vmin_ncol_vora[i_forma];
@@ -1634,10 +1622,10 @@ var i_simb, simbols, i_simbol, i_forma, forma;
 										}
 										else
 										{
-											//Hi ha un problem extrany al intentar dibuixar una imatge sobre un canvas que est‡ en un altre window. El problema ha estat analitzat aquÌ:
+											//Hi ha un problem extrany al intentar dibuixar una imatge sobre un canvas que est√† en un altre window. El problema ha estat analitzat aqu√≠:
 											//https://stackoverflow.com/questions/34402718/img-from-opener-is-not-img-type-for-canvas-drawimage-in-ie-causing-type-mismatch
 											//In IE there is a problem "img from opener is not img type for canvas drawImage (DispHTMLImg, being HTMLImageElement instead) in IE causing TYPE_MISMATCH_ERR"
-											//DesprÈs d'invertir dies, he estat incapaÁ de trobar una manera de resoldre aixÚ en IE i ha hagut de renunciar i fer un try an catch per sortir del pas. 2017-12-17 (JM)
+											//Despr√©s d'invertir dies, he estat incapa√ß de trobar una manera de resoldre aix√≤ en IE i ha hagut de renunciar i fer un try an catch per sortir del pas. 2017-12-17 (JM)
 											if (icona.img.sha_carregat==true)
 											{
 												try
@@ -1739,7 +1727,7 @@ var neteja_canvas=true;
 		if(DemanaTilesDeCapaDigitalitzadaSiCal(capa, env, OmpleVistaCapaDigiIndirect, param))
 			return;
 	}
-	// Si la capa Ès tessel∑lada, dibuixo l'array d'objectes numËrics (un objecte amb el nombre d'objectes que contÈ la tessel∑la si Ès superior al lÌmit indicat)
+	// Si la capa √©s tessel¬∑lada, dibuixo l'array d'objectes num√®rics (un objecte amb el nombre d'objectes que cont√© la tessel¬∑la si √©s superior al l√≠mit indicat)
 	if((typeof capa.objLimit !== "undefined") && capa.objLimit!=-1 &&
 		capa.tileMatrixSetGeometry && capa.tileMatrixSetGeometry.tileMatrix)
 	{	
@@ -1756,7 +1744,7 @@ var neteja_canvas=true;
 		DibuixaObjCapaDigiAVista(param, neteja_canvas, capa.atributs, capa.objectes, capa.estil[capa.i_estil]);
 }
 
-//Per la capa oculta cal cridar amb DonaNomCanvasCapaDigi(nom_vista, -i-1)  (l'index Ès negatiu i desplaÁat en 1)
+//Per la capa oculta cal cridar amb DonaNomCanvasCapaDigi(nom_vista, -i-1)  (l'index √©s negatiu i despla√ßat en 1)
 function DonaNomCanvasCapaDigi(nom_vista, i)
 {
 	if (i<0)
@@ -1846,14 +1834,12 @@ var cdns=[], vista_tiled=ParamCtrl.capa[i_capa].VistaCapaTiled;
 	var i_tile_matrix_set=DonaIndexTileMatrixSetCRS(i_capa, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
 	if (i_tile_matrix_set==-1)
 	{
-		//eval("window.document." + nom_vista + "_i_raster"+i_capa+".src=\""+AfegeixAdrecaBaseSRC("1tran.gif")+"\"");
 		window.document[nom_vista + "_i_raster"+i_capa].src=AfegeixAdrecaBaseSRC("1tran.gif");
 		return;
 	}
 	var i_tile_matrix=OmpleMatriuVistaCapaTiled(i_capa, vista, i_tile_matrix_set);
 	if(i_tile_matrix==-1)
 	{
-		//eval("window.document." + nom_vista + "_i_raster"+i_capa+".src=\""+AfegeixAdrecaBaseSRC("1tran.gif")+"\"");
 		window.document[nom_vista + "_i_raster"+i_capa].src=AfegeixAdrecaBaseSRC("1tran.gif");
 		return;
 	}
@@ -1886,7 +1872,7 @@ var cdns=[], vista_tiled=ParamCtrl.capa[i_capa].VistaCapaTiled;
 			if (DonaTipusServidorCapa(ParamCtrl.capa[i_capa])=="TipusWMTS_SOAP")
 			{
 				//if(j==vista_tiled.JTileMin && i==vista_tiled.ITileMin)
-				FesPeticioAjaxGetTileWMTS_SOAP(i_capa, null, i_tile_matrix_set, i_tile_matrix, j, i, null);  //NJ a JM: PerquË el estil i el i_data sempre sÛn null en el WMTS??
+				FesPeticioAjaxGetTileWMTS_SOAP(i_capa, null, i_tile_matrix_set, i_tile_matrix, j, i, null);  //NJ a JM: Perqu√® el estil i el i_data sempre s√≥n null en el WMTS??
 			}
 			else
 			{
@@ -1901,7 +1887,7 @@ function DonaTextMatriuCapaTiledImprimir(i_capa, ncol, nfil, env)
 {
 var cdns=[], tile_matrix;
 
-	//Donat que nomÈs Ès possible imprimir conservant la resoluciÛ.
+	//Donat que nom√©s √©s possible imprimir conservant la resoluci√≥.
 	var i_tile_matrix_set=DonaIndexTileMatrixSetCRS(i_capa, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
 
 	if (i_tile_matrix_set==-1)
@@ -1943,7 +1929,7 @@ var cdns=[], tile_matrix;
 	clipLayer(layer_vista, dx, dy, ncol, nfil);
 
 	//Genero la taula
-	//NJ a JM: cal fer alguna modificaciÛ aquÌ tambÈ perquË funcioni correctament la impressiÛ en SOAP
+	//NJ a JM: cal fer alguna modificaci√≥ aqu√≠ tamb√© perqu√® funcioni correctament la impressi√≥ en SOAP
 	cdns.push("<table border=0 cellspacing=0 cellpadding=0>");
 	for (var j=j_tile_min; j<=j_tile_max; j++)
 	{
@@ -2016,6 +2002,96 @@ function CancellaTimeOutCapaVista(nom_vista, i_crea_vista)
 	timeOutCapaVista[nom_vista+"_"+i_crea_vista]=null;
 }
 
+
+function OmpleSlider(vista)
+{
+var barra_slider=[];
+
+	if (( ParamCtrl.VistaBotonsBruixola || ParamCtrl.VistaBotonsZoom || ParamCtrl.VistaSliderZoom || ParamCtrl.VistaEscalaNumerica) &&
+		vista.i_nova_vista==NovaVistaPrincipal && !ParamCtrl.hideLayersOverVista)
+	{
+		barra_slider.push("<table class=\"", MobileAndTabletWebBrowser ? "finestra_superposada_opaca" : "finestra_superposada", "\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">");
+		if (ParamCtrl.VistaBotonsBruixola && (parseInt(document.getElementById("vista").style.height) >= 300))
+		{
+			barra_slider.push("<tr><td align='center'>");
+			barra_slider.push(CadenaBotoPolsable('boto_nw', 'nw', GetMessage("moveNorthWest", "miramon"), 'MouLaVistaEventDeSalt(event,-1,1)'));
+			barra_slider.push(CadenaBotoPolsable("boto_n", "n", GetMessage("moveNorth", "miramon"), "MouLaVistaEventDeSalt(event,0,1)"));
+			barra_slider.push(CadenaBotoPolsable("boto_ne", "ne", GetMessage("moveNorthEast", "miramon"), "MouLaVistaEventDeSalt(event,1,1)"));
+			barra_slider.push("<br/>");
+			barra_slider.push(CadenaBotoPolsable("boto_w", "w", GetMessage("moveWest", "miramon"), "MouLaVistaEventDeSalt(event,-1,0)"));
+			barra_slider.push(CadenaBotoPolsable("boto_zoomall", "zoomall", GetMessage("generalView", "barra"), "PortamAVistaGeneralEvent(event)"));
+			barra_slider.push(CadenaBotoPolsable("boto_e", "e", GetMessage("moveEast", "miramon"), "MouLaVistaEventDeSalt(event,1,0)"));
+			barra_slider.push("<br/>");
+			barra_slider.push(CadenaBotoPolsable("boto_sw", "sw", GetMessage("moveSouthWest", "miramon"), "MouLaVistaEventDeSalt(event,-1,-1)"));
+			barra_slider.push(CadenaBotoPolsable("boto_s", "s", GetMessage("moveSouth", "miramon"), "MouLaVistaEventDeSalt(event,0,-1)"));
+			barra_slider.push(CadenaBotoPolsable("boto_se", "se", GetMessage("moveSouthEast", "miramon"), "MouLaVistaEventDeSalt(event,1,-1)"));
+			barra_slider.push("</td></tr><tr><td height='15px'></td></tr>");
+		}
+		barra_slider.push("<tr><td align='center'>");
+		if (ParamCtrl.VistaBotonsZoom)
+		{
+			barra_slider.push(CadenaBotoPolsable("boto_zoom_in", "zoom_in", GetMessage("IncreaseZoomLevel", "miramon"), "PortamANivellDeZoomEvent(event, " + (DonaIndexNivellZoom(vista.CostatZoomActual)+1) + ")"));
+			barra_slider.push("<br>");
+		}
+		if (ParamCtrl.VistaSliderZoom && (parseInt(document.getElementById("vista").style.height) >= 500))
+		{
+			barra_slider.push("<input id='zoomSlider' type='range' step='1' min='0' max='", (ParamCtrl.zoom.length-1), "' value='", DonaIndexNivellZoom(vista.CostatZoomActual), "' style=';' orient='vertical' onchange='PortamANivellDeZoomEvent(event, this.value);' onclick='dontPropagateEvent(event);'><br>");
+		}
+		if (ParamCtrl.VistaBotonsZoom)
+		{
+			barra_slider.push(CadenaBotoPolsable("boto_zoom_out", "zoomout", GetMessage("ReduceZoomLevel", "miramon"), "PortamANivellDeZoomEvent(event, " + (DonaIndexNivellZoom(vista.CostatZoomActual)-1) + ")"));
+		}
+		barra_slider.push("</td></tr>");
+		if (ParamCtrl.VistaEscalaNumerica && (parseInt(document.getElementById("vista").style.height,10) >= 400))
+		{
+			barra_slider.push("<tr><td align='center'><span class=\"text_allus text_coord\" style='font-family: Verdana, Arial; font-size: 0.6em;'>", GetMessage("TitolLlistatNivellZoom", "miramon"), ":<br>", EscriuDescripcioNivellZoom(DonaIndexNivellZoom(vista.CostatZoomActual), ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS, true), "</span>");
+			barra_slider.push("<br>");
+			barra_slider.push(CadenaBotoPolsable("boto_zoomcoord", "zoomcoord", GetMessage("goToCoordinate", "barra"), "MostraFinestraAnarCoordenadaEvent(event)"));
+			barra_slider.push(CadenaBotoPolsable("boto_zoom_bk", "zoom_bk", GetMessage("previousView", "barra"), "RecuperaVistaPreviaEvent(event)"));
+			if (ParamCtrl.fullScreen)
+				barra_slider.push(CadenaBotoPolsable("boto_fullscreen", "exitfullscreen", GetMessage("exitFullScreen", "miramon"), "ExitFullScreenEvent(event)"));
+			else
+				barra_slider.push(CadenaBotoPolsable("boto_fullscreen", "fullscreen", GetMessage("fullScreen", "miramon"), "GoFullScreenEvent(event)"));
+
+			barra_slider.push("</td></tr>");
+		}
+		barra_slider.push("</table>");
+	}
+
+	if (ParamCtrl.VistaSliderData && ParamInternCtrl.millisegons.length &&
+		vista.i_nova_vista==NovaVistaPrincipal && !ParamCtrl.hideLayersOverVista)
+	{
+		barra_slider.push("<span style='position: absolute; bottom: 20px; right: 100px; font-family: Verdana, Arial; font-size: 0.6em;' class='text_allus ", MobileAndTabletWebBrowser ? "finestra_superposada_opaca" : "finestra_superposada", "'>",  DonaDataMillisegonsComATextBreu(ParamInternCtrl.FlagsData, ParamInternCtrl.millisegons[ParamInternCtrl.iMillisegonsActual]),
+				"<input type='button' value='<' onClick='PortamADataEvent(event, ", ParamInternCtrl.millisegons[(ParamInternCtrl.iMillisegonsActual ? ParamInternCtrl.iMillisegonsActual-1 : 0)], ");'", (ParamInternCtrl.iMillisegonsActual==0 ? " disabled='disabled'" : ""), ">",
+				"<input id='timeSlider' type='range' style='width: 300px;' step='1' min='", ParamInternCtrl.millisegons[0], "' max='", ParamInternCtrl.millisegons[ParamInternCtrl.millisegons.length-1], "' value='", ParamInternCtrl.millisegons[ParamInternCtrl.iMillisegonsActual], "' onchange='PortamADataEvent(event, this.value);' onclick='dontPropagateEvent(event);' list='timeticks'>",
+				"<input type='button' value='>' onClick='PortamADataEvent(event, ", ParamInternCtrl.millisegons[(ParamInternCtrl.iMillisegonsActual==ParamInternCtrl.millisegons.length-1 ? ParamInternCtrl.millisegons.length-1 : ParamInternCtrl.iMillisegonsActual+1)], ");'", (ParamInternCtrl.iMillisegonsActual==ParamInternCtrl.millisegons.length-1 ? " disabled='disabled'" : ""), ">");
+		if (ParamInternCtrl.millisegons.length<300/2)
+		{
+			barra_slider.push("<datalist id='timeticks'>");
+			for (var i=0; i<ParamInternCtrl.millisegons.length; i++)
+				barra_slider.push("<option value='", ParamInternCtrl.millisegons[i], "'></option>");
+			barra_slider.push("</datalist>");
+		}
+		barra_slider.push("</span>");
+	}
+
+	barra_slider.push("<span id='llegenda_situacio_coord' style='position: absolute; top: 4; right: 4;' class='", MobileAndTabletWebBrowser ? "finestra_superposada_opaca" : "finestra_superposada", "'>",
+		DonaCadenaBotonsVistaLlegendaSituacioCoord(),
+		"</span>");
+		
+	return barra_slider.join("");	
+}
+
+function ReOmpleSlider(nom_vista, vista)
+{
+	var elem=getLayer(window, nom_vista+SufixSliderZoom);
+	if(elem)
+	{
+		var cadena_barra_slider=OmpleSlider(vista); // Creem sempre l'element que cont√© la barra de l'slider per poder canviar el seu interior
+		contentLayer(elem, cadena_barra_slider);
+	}
+}
+
 function CreaVistaImmediata(win, nom_vista, vista)
 {
 var cdns=[], ll;
@@ -2027,16 +2103,16 @@ var estil_parella_coord=(vista.i_nova_vista==NovaVistaImprimir) ? true : false;
 var p, unitats_CRS;
 
 	if (ParamCtrl.CoordExtremes=="longlat_g")
-		unitats_CRS="∞";
+		unitats_CRS="¬∞";
 	else if (ParamCtrl.CoordExtremes=="proj")
 	{
 		p=DonaUnitatsCoordenadesProj(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
-		if (p=="∞")
+		if (p=="¬∞")
 			unitats_CRS=p;
 		else
 			unitats_CRS=" "+p;
 	}
-	else //if (ParamCtrl.CoordExtremes=="longlat_gms") -> tant pel cas gms (pq ja les tÈ) com pel cas desconegut no poso unitats
+	else //if (ParamCtrl.CoordExtremes=="longlat_gms") -> tant pel cas gms (pq ja les t√©) com pel cas desconegut no poso unitats
 		unitats_CRS="";
 
 	NCreaVista++;
@@ -2047,10 +2123,8 @@ var p, unitats_CRS;
 	if (vista.i_nova_vista==NovaVistaPrincipal)
 	{
 	    cdns.push("  <tr>",
-				"    <td rowspan=", (cal_vora ? (cal_coord ? 8 : 7) : (cal_coord ? 5 : 3)), "><img src=\"",
-				AfegeixAdrecaBaseSRC("1tran.gif"), "\" height=1 width=", ((ParamCtrl.MargeEsqVista && !ParamCtrl.fullScreen)?ParamCtrl.MargeEsqVista:0) , "></td>",
-				"    <td colspan=", (cal_vora ? (cal_coord ? 6 : 5) : (cal_coord ? 3 : 1)), "><img src=\"",
-				AfegeixAdrecaBaseSRC("1tran.gif"), "\" height=" , ((ParamCtrl.MargeSupVista && !ParamCtrl.fullScreen)?ParamCtrl.MargeSupVista:0) , " width=1></td>",
+				"    <td rowspan=", (cal_vora ? (cal_coord ? 8 : 7) : (cal_coord ? 5 : 3)), " height=\"1\" width=\"", ((ParamCtrl.MargeEsqVista && !ParamCtrl.fullScreen)?ParamCtrl.MargeEsqVista:0) , "\"></td>",
+				"    <td colspan=", (cal_vora ? (cal_coord ? 6 : 5) : (cal_coord ? 3 : 1)), " height=\"" , ((ParamCtrl.MargeSupVista && !ParamCtrl.fullScreen)?ParamCtrl.MargeSupVista:0) , "\" width=\"1\"></td>",
 				"  </tr>");
 	}
 
@@ -2060,7 +2134,7 @@ var p, unitats_CRS;
 		if (ParamCtrl.CoordExtremes=="longlat_g" || ParamCtrl.CoordExtremes=="longlat_gms")
 		    ll=DonaCoordenadesLongLat(vista.EnvActual.MinX,vista.EnvActual.MaxY,ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
 		if (cal_vora)
-			cdns.push("    <td><img src=\"", AfegeixAdrecaBaseSRC("1tran.gif"), "\" height=0 width=10></td>\n");
+			cdns.push("    <td height=\"0\" width=\"10\"></td>\n");
 		cdns.push("    <td align=left><font face=arial size=1>\n");
 		if (estil_parella_coord)
 		{
@@ -2109,9 +2183,8 @@ var p, unitats_CRS;
 		}
 		cdns.push("    </td>\n");
 		if (cal_vora)
-			cdns.push("    <td><img src=\"", AfegeixAdrecaBaseSRC("1tran.gif"), "\" height=0 width=10></td>\n");
-		cdns.push("    <td",(cal_vora ? " rowspan=\"2\"": "" ),"><img src=\"",AfegeixAdrecaBaseSRC("1tran.gif"),
-		   "\" height=" , AltTextCoordenada , "></td>\n",
+			cdns.push("    <td height=\"0\" width=\"10\"></td>\n");
+		cdns.push("    <td",(cal_vora ? " rowspan=\"2\"": "" )," height=\"" , AltTextCoordenada , "\"></td>\n",
 		   "  </tr>\n");
 	}
 
@@ -2138,8 +2211,7 @@ var p, unitats_CRS;
 		cdns.push("    <td><img src=\"", AfegeixAdrecaBaseSRC("1gris.gif"),
 	   		"\" width=",MidaFletxaInclinada," height=",Math.floor((vista.nfil-MidaFletxaPlana)/2),"></td>");
 	cdns.push(
-	   "    <td colspan=", ((cal_vora) ? 3 : (cal_coord? 2: 1)), " rowspan=", ((cal_vora) ? 3 : ((cal_coord && !estil_parella_coord)? 2: 1)), " style=\"background-color:", ParamCtrl.ColorFonsVista ,";\"><img src=\"",
-	   AfegeixAdrecaBaseSRC("1tran.gif"),"\" width=",vista.ncol," height=",vista.nfil,"></td>");
+	   "    <td colspan=", ((cal_vora) ? 3 : (cal_coord? 2: 1)), " rowspan=", ((cal_vora) ? 3 : ((cal_coord && !estil_parella_coord)? 2: 1)), " style=\"background-color:", ParamCtrl.ColorFonsVista ,";\" width=\"",vista.ncol,"\" height=\"",vista.nfil,"\"></td>");
 
 	if (cal_vora)
 	  cdns.push(
@@ -2148,7 +2220,7 @@ var p, unitats_CRS;
 	if (cal_coord)
 	{
 		if (estil_parella_coord)
-			cdns.push("    <td", (cal_vora ? " rowspan=\"2\"":  ""),  " nowrap><img src=\"", AfegeixAdrecaBaseSRC("1tran.gif"), "\"></td>\n");
+			cdns.push("    <td", (cal_vora ? " rowspan=\"2\"":  ""),  " nowrap></td>\n");
 		else
 		{
 			cdns.push("    <td", (cal_vora ? " rowspan=\"2\"":  ""), " valign=top nowrap><font face=arial size=1>&nbsp;&nbsp;\n");
@@ -2208,7 +2280,7 @@ var p, unitats_CRS;
 		   "    <td><a href=\"javascript:MouLaVistaSalt(1,-1);\"><img src=\"", AfegeixAdrecaBaseSRC("f_inc22.gif"),
 		   "\" width=",MidaFletxaInclinada," height=",MidaFletxaInclinada," border=0></a></td>");
 		if (cal_coord)
-		   cdns.push("    <td rowspan=\"2\"><img src=\"1tran.gif\"></td>");
+		   cdns.push("    <td rowspan=\"2\"></td>");
 		cdns.push("  </tr>");
 	}
 	if (cal_coord && estil_parella_coord)
@@ -2217,7 +2289,7 @@ var p, unitats_CRS;
 		if (ParamCtrl.CoordExtremes=="longlat_g" || ParamCtrl.CoordExtremes=="longlat_gms")
 		    ll=DonaCoordenadesLongLat(vista.EnvActual.MinX,vista.EnvActual.MinY,ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
 		if (cal_vora)
-			cdns.push("    <td><img src=\"", AfegeixAdrecaBaseSRC("1tran.gif"), "\" height=0 width=10></td>\n");
+			cdns.push("    <td height=\"0\" width=\"10\"></td>\n");
 		cdns.push("    <td align=left><font face=arial size=1>\n");
 		if (ParamCtrl.CoordExtremes=="proj")
 			cdns.push("(" , (OKStrOfNe(vista.EnvActual.MinX,ParamCtrl.NDecimalsCoordXY)), unitats_CRS, "," ,
@@ -2242,18 +2314,17 @@ var p, unitats_CRS;
 			cdns.push("(" , (g_gms(ll.x, true)), "," , (g_gms(ll.y, true)), unitats_CRS, ")");
 		cdns.push("    </td>\n");
 		if (cal_vora)
-			cdns.push("    <td><img src=\"", AfegeixAdrecaBaseSRC("1tran.gif"), "\" height=0 width=10></td>\n");
-		cdns.push("    <td",(cal_vora ? " rowspan=\"2\"": "" ),"><img src=\"",AfegeixAdrecaBaseSRC("1tran.gif"),
-		   "\" height=" , AltTextCoordenada , "></td>\n",
+			cdns.push("    <td height=\"0\" width=\"10\"></td>\n");
+		cdns.push("    <td",(cal_vora ? " rowspan=\"2\"": "" )," height=\"" , AltTextCoordenada , "\"></td>\n",
 		   "  </tr>\n");
 	}
 
 	if(ParamCtrl.MostraBarraEscala && vista.i_nova_vista==NovaVistaPrincipal)
 	{
 		cdns.push("  <tr>",
-		   "    <td colspan=", (cal_vora ? 5 : (cal_coord ? 2 : 1)), " align=middle>", DonaCadenaHTMLEscala(vista.EnvActual) ,"</td>");  //Servir‡ per indicar l'escala.
+		   "    <td colspan=", (cal_vora ? 5 : (cal_coord ? 2 : 1)), " align=middle>", DonaCadenaHTMLDibuixEscala(vista.EnvActual, false) ,"</td>");  //Servir√† per indicar l'escala.
 		if (cal_coord && !cal_vora)
-			cdns.push("    <td><img src=\"", AfegeixAdrecaBaseSRC("1tran.gif"), "\"></td>\n");
+			cdns.push("    <td></td>\n");
 		cdns.push("  </tr>");
 	}
 	cdns.push("</table>");
@@ -2275,7 +2346,7 @@ var p, unitats_CRS;
 			{
 				cdns.push(CreaCapaDigiLayer(nom_vista, vista.i_nova_vista, i));
 				if (capa.estil[capa.i_estil].TipusObj=='P')
-					cdns.push(CreaCapaDigiLayer(nom_vista, vista.i_nova_vista, -i-1)); //La capa oculta per rasteritzar identificadors gr‡fics de poligons
+					cdns.push(CreaCapaDigiLayer(nom_vista, vista.i_nova_vista, -i-1)); //La capa oculta per rasteritzar identificadors gr√†fics de poligons
 			}
 			else
 			{
@@ -2288,7 +2359,7 @@ var p, unitats_CRS;
 			}
 		}
 
-		if (vista.i_nova_vista!=NovaVistaImprimir)  //Evito que la impressiÛn tingui events.
+		if (vista.i_nova_vista!=NovaVistaImprimir)  //Evito que la impressi√≥ tingui events.
 		{
 			//Dibuixo el rectangle de zoom sobre la vista (inicialment invisible)
 			cdns.push(textHTMLLayer(nom_vista+SufixZRectangle, DonaMargeEsquerraVista(vista.i_nova_vista), DonaMargeSuperiorVista(vista.i_nova_vista), vista.ncol+1, vista.nfil+1, null, {scroll: "no", visible: false, border: "1px solid " + ParamCtrl.ColorQuadratSituacio, ev: null, save_content: false}, null, null));
@@ -2296,85 +2367,13 @@ var p, unitats_CRS;
 			//Dibuixo el "tel" transparent amb els events de moure i click. Sembla que si tinc slider aquests esdeveniments no es fan servir i els altres tenen prioritat
 			cdns.push(textHTMLLayer(nom_vista+SufixTelTrans, DonaMargeEsquerraVista(vista.i_nova_vista)+1, DonaMargeSuperiorVista(vista.i_nova_vista)+1, vista.ncol, vista.nfil, null, {scroll: "no", visible: true, ev: (ParamCtrl.ZoomUnSolClic ? "onmousedown=\"IniciClickSobreVista(event, "+vista.i_nova_vista+");\" " : "") + "onmousemove=\"MovimentSobreVista(event, "+vista.i_nova_vista+");\" onClick=\"ClickSobreVista(event, "+vista.i_nova_vista+");\" onTouchStart=\"return IniciDitsSobreVista(event, "+vista.i_nova_vista+");\" onTouchMove=\"return MovimentDitsSobreVista(event, "+vista.i_nova_vista+");\" onTouchEnd=\"return FiDitsSobreVista(event, "+vista.i_nova_vista+");\"", save_content: false, bg_trans: true}, null, "<!-- -->"));
 
-		    var barra_slider=[];
-		    if (( ParamCtrl.VistaBotonsBruixola || ParamCtrl.VistaBotonsZoom || ParamCtrl.VistaSliderZoom || ParamCtrl.VistaEscalaNumerica) &&
-			vista.i_nova_vista==NovaVistaPrincipal && !ParamCtrl.hideLayersOverVista)
-		    {
-				barra_slider.push("<table class=\"", MobileAndTabletWebBrowser ? "finestra_superposada_opaca" : "finestra_superposada", "\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\">");
-				if (ParamCtrl.VistaBotonsBruixola && (parseInt(document.getElementById("vista").style.height) >= 300))
-				{
-					barra_slider.push("<tr><td align='center'>");
-					barra_slider.push(CadenaBotoPolsable('boto_nw', 'nw', GetMessage("moveNorthWest", "miramon"), 'MouLaVistaEventDeSalt(event,-1,1)'));
-					barra_slider.push(CadenaBotoPolsable("boto_n", "n", GetMessage("moveNorth", "miramon"), "MouLaVistaEventDeSalt(event,0,1)"));
-					barra_slider.push(CadenaBotoPolsable("boto_ne", "ne", GetMessage("moveNorthEast", "miramon"), "MouLaVistaEventDeSalt(event,1,1)"));
-					barra_slider.push("<br/>");
-					barra_slider.push(CadenaBotoPolsable("boto_w", "w", GetMessage("moveWest", "miramon"), "MouLaVistaEventDeSalt(event,-1,0)"));
-					barra_slider.push(CadenaBotoPolsable("boto_zoomall", "zoomall", GetMessage("generalView", "barra"), "PortamAVistaGeneralEvent(event)"));
-					barra_slider.push(CadenaBotoPolsable("boto_e", "e", GetMessage("moveEast", "miramon"), "MouLaVistaEventDeSalt(event,1,0)"));
-					barra_slider.push("<br/>");
-					barra_slider.push(CadenaBotoPolsable("boto_sw", "sw", GetMessage("moveSouthWest", "miramon"), "MouLaVistaEventDeSalt(event,-1,-1)"));
-					barra_slider.push(CadenaBotoPolsable("boto_s", "s", GetMessage("moveSouth", "miramon"), "MouLaVistaEventDeSalt(event,0,-1)"));
-					barra_slider.push(CadenaBotoPolsable("boto_se", "se", GetMessage("moveSouthEast", "miramon"), "MouLaVistaEventDeSalt(event,1,-1)"));
-					barra_slider.push("</td></tr><tr><td height='15px'></td></tr>");
-				}
-				barra_slider.push("<tr><td align='center'>");
-				if (ParamCtrl.VistaBotonsZoom)
-				{
-					barra_slider.push(CadenaBotoPolsable("boto_zoom_in", "zoom_in", GetMessage("IncreaseZoomLevel", "miramon"), "PortamANivellDeZoomEvent(event, " + (DonaIndexNivellZoom(vista.CostatZoomActual)+1) + ")"));
-					barra_slider.push("<br>");
-				}
-				if (ParamCtrl.VistaSliderZoom && (parseInt(document.getElementById("vista").style.height) >= 500))
-				{
-					barra_slider.push("<input id='zoomSlider' type='range' step='1' min='0' max='", (ParamCtrl.zoom.length-1), "' value='", DonaIndexNivellZoom(vista.CostatZoomActual), "' style=';' orient='vertical' onchange='PortamANivellDeZoomEvent(event, this.value);' onclick='dontPropagateEvent(event);'><br>");
-				}
-				if (ParamCtrl.VistaBotonsZoom)
-				{
-					barra_slider.push(CadenaBotoPolsable("boto_zoom_out", "zoomout", GetMessage("ReduceZoomLevel", "miramon"), "PortamANivellDeZoomEvent(event, " + (DonaIndexNivellZoom(vista.CostatZoomActual)-1) + ")"));
-				}
-				barra_slider.push("</td></tr>");
-				if (ParamCtrl.VistaEscalaNumerica && (parseInt(document.getElementById("vista").style.height,10) >= 400))
-				{
-					barra_slider.push("<tr><td align='center'><span class=\"text_allus\" style='font-family: Verdana, Arial; font-size: 0.6em;'>", (ParamCtrl.TitolLlistatNivellZoom ? DonaCadena(ParamCtrl.TitolLlistatNivellZoom) : "Zoom:"), "<br>", EscriuDescripcioNivellZoom(DonaIndexNivellZoom(vista.CostatZoomActual), ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS, true), "</span>");
-					barra_slider.push("<br>");
-					barra_slider.push(CadenaBotoPolsable("boto_zoomcoord", "zoomcoord", GetMessage("goToCoordinate", "barra"), "MostraFinestraAnarCoordenadaEvent(event)"));
-					barra_slider.push(CadenaBotoPolsable("boto_zoom_bk", "zoom_bk", GetMessage("previousView", "barra"), "RecuperaVistaPreviaEvent(event)"));
-					if (ParamCtrl.fullScreen)
-						barra_slider.push(CadenaBotoPolsable("boto_fullscreen", "exitfullscreen", GetMessage("exitFullScreen", "miramon"), "ExitFullScreenEvent(event)"));
-					else
-						barra_slider.push(CadenaBotoPolsable("boto_fullscreen", "fullscreen", GetMessage("fullScreen", "miramon"), "GoFullScreenEvent(event)"));
-
-					barra_slider.push("</td></tr>");
-				}
-				barra_slider.push("</table>");
-		    }
-
-		    if (ParamCtrl.VistaSliderData && ParamInternCtrl.millisegons.length &&
-				vista.i_nova_vista==NovaVistaPrincipal && !ParamCtrl.hideLayersOverVista)
-		    {
-				barra_slider.push("<span style='position: absolute; bottom: 20; right: 100; font-family: Verdana, Arial; font-size: 0.6em;' class='text_allus ", MobileAndTabletWebBrowser ? "finestra_superposada_opaca" : "finestra_superposada", "'>", DonaDataMillisegonsComATextBreu(ParamInternCtrl.FlagsData, ParamInternCtrl.millisegons[ParamInternCtrl.iMillisegonsActual]),
-						"<input type='button' value='<' onClick='PortamADataEvent(event, ", ParamInternCtrl.millisegons[(ParamInternCtrl.iMillisegonsActual ? ParamInternCtrl.iMillisegonsActual-1 : 0)], ");'", (ParamInternCtrl.iMillisegonsActual==0 ? " disabled='disabled'" : ""), ">",
-						"<input id='timeSlider' type='range' style='width: 300px;' step='1' min='", ParamInternCtrl.millisegons[0], "' max='", ParamInternCtrl.millisegons[ParamInternCtrl.millisegons.length-1], "' value='", ParamInternCtrl.millisegons[ParamInternCtrl.iMillisegonsActual], "' onchange='PortamADataEvent(event, this.value);' onclick='dontPropagateEvent(event);' list='timeticks'>",
-						"<input type='button' value='>' onClick='PortamADataEvent(event, ", ParamInternCtrl.millisegons[(ParamInternCtrl.iMillisegonsActual==ParamInternCtrl.millisegons.length-1 ? ParamInternCtrl.millisegons.length-1 : ParamInternCtrl.iMillisegonsActual+1)], ");'", (ParamInternCtrl.iMillisegonsActual==ParamInternCtrl.millisegons.length-1 ? " disabled='disabled'" : ""), ">");
-				if (ParamInternCtrl.millisegons.length<300/2)
-				{
-					barra_slider.push("<datalist id='timeticks'>");
-					for (var i=0; i<ParamInternCtrl.millisegons.length; i++)
-						barra_slider.push("<option value='", ParamInternCtrl.millisegons[i], "'></option>");
-					barra_slider.push("</datalist>");
-				}
-				barra_slider.push("</span>");
-		    }
-
-		    barra_slider.push("<span id='llegenda_situacio_coord' style='position: absolute; top: 4; right: 4;' class='", MobileAndTabletWebBrowser ? "finestra_superposada_opaca" : "finestra_superposada", "'>",
-				DonaCadenaBotonsVistaLlegendaSituacioCoord(),
-				"</span>");
-		    //if (barra_slider.length) Finalment la creo sempre per poder canviar el seu interior si cal.
-		    cdns.push(textHTMLLayer(nom_vista+SufixSliderZoom, DonaMargeEsquerraVista(vista.i_nova_vista)+4, DonaMargeSuperiorVista(vista.i_nova_vista)+4, vista.ncol-3, vista.nfil-3, null, {scroll: "no", visible: true, ev: (ParamCtrl.ZoomUnSolClic ? "onmousedown=\"IniciClickSobreVista(event, "+vista.i_nova_vista+");\" " : "") + "onmousemove=\"MovimentSobreVista(event, "+vista.i_nova_vista+");\" onClick=\"ClickSobreVista(event, "+vista.i_nova_vista+");\" onTouchStart=\"return IniciDitsSobreVista(event, "+vista.i_nova_vista+");\" onTouchMove=\"return MovimentDitsSobreVista(event, "+vista.i_nova_vista+");\" onTouchEnd=\"return FiDitsSobreVista(event, "+vista.i_nova_vista+");\"", save_content: false, bg_trans: true}, null, barra_slider.join("")));
+		    var cadena_barra_slider=OmpleSlider(vista); // Creem sempre l'element que cont√© la barra de l'slider per poder canviar el seu interior
+		    cdns.push(textHTMLLayer(nom_vista+SufixSliderZoom, DonaMargeEsquerraVista(vista.i_nova_vista)+4, DonaMargeSuperiorVista(vista.i_nova_vista)+4, vista.ncol-3, vista.nfil-3, null, {scroll: "no", visible: true, ev: (ParamCtrl.ZoomUnSolClic ? "onmousedown=\"IniciClickSobreVista(event, "+vista.i_nova_vista+");\" " : "") + "onmousemove=\"MovimentSobreVista(event, "+vista.i_nova_vista+");\" onClick=\"ClickSobreVista(event, "+vista.i_nova_vista+");\" onTouchStart=\"return IniciDitsSobreVista(event, "+vista.i_nova_vista+");\" onTouchMove=\"return MovimentDitsSobreVista(event, "+vista.i_nova_vista+");\" onTouchEnd=\"return FiDitsSobreVista(event, "+vista.i_nova_vista+");\"", save_content: false, bg_trans: true}, null, cadena_barra_slider));
 		}
 
 		contentLayer(elem, cdns.join(""));
 
-		//NomÈs s'hauria de fer si hi ha peticions SOAP
+		//Nom√©s s'hauria de fer si hi ha peticions SOAP
 		RespostaGetTileWMTS_SOAP.splice(0,RespostaGetTileWMTS_SOAP.length);
 		ajaxGetTileWMTS_SOAP.splice(0,ajaxGetTileWMTS_SOAP.length);
 
@@ -2396,7 +2395,7 @@ var p, unitats_CRS;
 			{
 				if (EsCapaVisibleAAquestNivellDeZoom(capa) && EsCapaVisibleEnAquestaVista(vista.i_nova_vista!=NovaVistaPrincipal ? vista.i_vista : DonaIVista(nom_vista), i))
 					timeOutCapaVista[nom_vista+"_"+i_crea_vista][i]=setTimeout("OmpleVistaCapa(\""+nom_vista+"\", "+JSON.stringify(vista)+", "+i+")", 25*i);
-				else if (capa.estil) //si la capa ara Ès no visible, i tÈ estils, he de mirar si hi ha gr‡fics vinculats a ella per a "congelar-los"
+				else if (capa.estil) //si la capa ara √©s no visible, i t√© estils, he de mirar si hi ha gr√†fics vinculats a ella per a "congelar-los"
 				{
 					for (var i_estil=0; i_estil<capa.estil.length; i_estil++)
 						DesactivaCheckITextChartsMatriusDinamics(i, i_estil, true);

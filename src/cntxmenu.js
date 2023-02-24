@@ -17,19 +17,19 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2022 Xavier Pons
+    Copyright 2001, 2023 Xavier Pons
 
-    Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
-    amb l'ajut de Núria Julià (n julia at creaf uab cat)
-    dins del grup del MiraMon. MiraMon és un projecte del
-    CREAF que elabora programari de Sistema d'Informació Geogràfica
-    i de Teledetecció per a la visualització, consulta, edició i anàlisi
-    de mapes ràsters i vectorials. Aquest programari inclou
-    aplicacions d'escriptori i també servidors i clients per Internet.
-    No tots aquests productes són gratuïts o de codi obert.
+    Aquest codi JavaScript ha estat idea de Joan MasÃ³ Pau (joan maso at uab cat)
+    amb l'ajut de NÃºria JuliÃ  (n julia at creaf uab cat)
+    dins del grup del MiraMon. MiraMon Ã©s un projecte del
+    CREAF que elabora programari de Sistema d'InformaciÃ³ GeogrÃ fica
+    i de TeledetecciÃ³ per a la visualitzaciÃ³, consulta, ediciÃ³ i anÃ lisi
+    de mapes rÃ sters i vectorials. Aquest programari inclou
+    aplicacions d'escriptori i tambÃ© servidors i clients per Internet.
+    No tots aquests productes sÃ³n gratuÃ¯ts o de codi obert.
 
     En particular, el Navegador de Mapes del MiraMon (client per Internet)
-    es distribueix sota els termes de la llicència GNU Affero General Public
+    es distribueix sota els termes de la llicÃ¨ncia GNU Affero General Public
     License, mireu https://www.gnu.org/licenses/licenses.html#AGPL.
 
     El Navegador de Mapes del MiraMon es pot actualitzar des de
@@ -60,7 +60,7 @@ function MoureASobre(i_capa)
 
 	ParamCtrl.capa.splice(i_capa-1, 0, ParamCtrl.capa.splice(i_capa, 1)[0]);
 
-	//Caldrà fer alguna cosa amb els grups, capes no visibles a la llegenda en aquell moment,...
+	//CaldrÃ  fer alguna cosa amb els grups, capes no visibles a la llegenda en aquell moment,...
 	RevisaEstatsCapes();
 	RepintaMapesIVistes();
 	return;
@@ -81,7 +81,7 @@ function MoureASota(i_capa)
 
 function MoureASotaDeTot(i_capa)
 {
-	//He de pujar totes les capes que estan sota i_capa una posició
+	//He de pujar totes les capes que estan sota i_capa una posiciÃ³
 	CanviaIndexosCapesSpliceCapa(ParamCtrl.capa.length-i_capa, i_capa, null, ParamCtrl);  //els moc fora de rang per no barrejar-los amb els nous
 	CanviaIndexosCapesSpliceCapa(-1, i_capa+1, -1, ParamCtrl);
 
@@ -96,7 +96,7 @@ function EsborrarCapa(i_capa)
 {
 	if (AvisaDeCapaAmbIndexosACapaEsborrada(i_capa)==false)
 		return;
-	CanviaIndexosCapesSpliceCapa(-1, i_capa+1, -1, ParamCtrl);  // com que 'i_capa' desapareix, intentar moure cosa que apuntin a 'i_capa' no te sentit; i ja hem avisat que no anirà bé.
+	CanviaIndexosCapesSpliceCapa(-1, i_capa+1, -1, ParamCtrl);  // com que 'i_capa' desapareix, intentar moure cosa que apuntin a 'i_capa' no te sentit; i ja hem avisat que no anirÃ  bÃ©.
 	ParamCtrl.capa.splice(i_capa, 1);
 	RevisaEstatsCapes();
 	RepintaMapesIVistes();
@@ -124,7 +124,7 @@ function TancaContextMenuCapa()
 
 function MouLayerContextMenuCapa(event, s)
 {
-	//Crear la layer i mostrar-ho en la posició on s'ha fet el clic amb aquest contingut
+	//Crear la layer i mostrar-ho en la posiciÃ³ on s'ha fet el clic amb aquest contingut
 	var menu=getLayer(window, "menuContextualCapa");
 
 	if (isLayer(menu))
@@ -170,9 +170,9 @@ function ZoomACapa(capa)
 	if (!EsCapaDisponibleEnElCRSActual(capa) && capa.CRS && capa.CRS.length)
 		CanviaCRSISituacio(capa.CRS[0], -1);  //Canviar de CRS al primer que la capa indiqui.
 
-	//Si l'envolupant de la capa no cap dins del CostatMaxim s'usa. Si no, es centra a la capa i el porta al costat màxim
+	//Si l'envolupant de la capa no cap dins del CostatMaxim s'usa. Si no, es centra a la capa i el porta al costat mÃ xim
 	if (capa.EnvTotal)
-		PortamAAmbit(TransformaEnvolupant(capa.EnvTotal.EnvCRS, capa.EnvTotal.CRS, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS));  //Aquesta funció refresca la vista i mes
+		PortamAAmbit(TransformaEnvolupant(capa.EnvTotal.EnvCRS, capa.EnvTotal.CRS, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS));  //Aquesta funciÃ³ refresca la vista i mes
 	if (!EsCapaDinsRangDEscalesVisibles(capa))
 		CanviaNivellDeZoom(DonaIndexNivellZoom(capa.CostatMaxim), true); //Canviar al CostatMaxim
 }
@@ -289,7 +289,7 @@ var capa=ParamCtrl.capa[i_capa], alguna_opcio=false;
 		cdns.push("<hr>");
 		alguna_opcio=false;
 	}
-	if (capa.estil && capa.estil.length==1 && (EsCapaBinaria(capa) /* || capa.model==model_vector*/)) // Cal programar això per vector ·$·
+	if (capa.estil && capa.estil.length==1 && (EsCapaBinaria(capa)  || capa.model==model_vector))
 	{
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraEditaEstilCapa(", i_capa, ",0);TancaContextMenuCapa();\">",
 				GetMessage("EditStyle", "cntxmenu"), "</a><br>");
@@ -340,7 +340,7 @@ var capa=ParamCtrl.capa[i_capa], alguna_opcio=false;
 		if(!alguna_opcio)
 			alguna_opcio=true;
 	}
-	if (EsCapaBinaria(capa) || capa.model==model_vector) 
+	if (EsCapaBinaria(capa) || capa.model==model_vector)
 	{
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraSeleccioCondicional(", i_capa, ");TancaContextMenuCapa();\">",
 				GetMessage("Selection"), "</a><br>");
@@ -354,7 +354,7 @@ var capa=ParamCtrl.capa[i_capa], alguna_opcio=false;
 		if(!alguna_opcio)
 			alguna_opcio=true;
 	}
-	if (capa.estil && capa.estil.length==1 && (EsCapaBinaria(capa)/* || capa.model==model_vector*/)) // Cal programar això per vector ·$·
+	if (capa.estil && capa.estil.length==1 && (EsCapaBinaria(capa)/* || capa.model==model_vector*/)) // Cal programar aixÃ² per vector Â·$Â·
 	{
 		if(alguna_opcio)
 		{
@@ -363,6 +363,11 @@ var capa=ParamCtrl.capa[i_capa], alguna_opcio=false;
 		}
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraFeedbackAmbEstilsDeCapa(", i_capa, ");TancaContextMenuCapa();\">",
 				GetMessage("RetrieveStyles", "cntxmenu"), "</a><br>");
+	}
+	if (capa.model==model_vector)
+	{
+		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraTaulaDeCapaVectorial(", i_capa, ");TancaContextMenuCapa();\">",
+				GetMessage("ShowLikeTable", "cntxmenu"), "</a><br>");
 	}
 
 	if (cdns.length==0)
@@ -378,7 +383,7 @@ var capa=ParamCtrl.capa[i_capa], alguna_opcio=false;
 }
 
 function CompartirCapa(i_capa)
-{	//·$·
+{	//Â·$Â·
 	alert(GetMessage("UnderDevelopment"));
 }
 
@@ -418,7 +423,7 @@ var capa=ParamCtrl.capa[i_capa];
 	cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraFeedbackCapa(", i_capa,",", i_estil,");TancaContextMenuCapa();\">",
 			GetMessage("Feedback"), "</a><br>");
 
-	if (EsCapaBinaria(capa) /*|| capa.model==model_vector*/) // Cal programar això per vector ·$·
+	if (EsCapaBinaria(capa) || capa.model==model_vector)
 	{
 		cdns.push("<hr>");
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraEditaEstilCapa(", i_capa,",", i_estil,");TancaContextMenuCapa();\">",
@@ -441,14 +446,14 @@ function CompartirEstilCapa(i_capa, i_estil)
 var s, text="";
 var capa=ParamCtrl.capa[i_capa];
 
-	//el TARGET de l'estil compartit és la seva capa "mare"
+	//el TARGET de l'estil compartit Ã©s la seva capa "mare"
 	if (!(s=DonaCodeCapaEstilFeedback(i_capa, -1)))
 		return;
 
-	//Eliminem els Item de la llegenda quan aquesta és automàtica, per fer el "code" més petit
-	//·$· si això no es pot fer, o quan tenim paleta pròpia (pero ara pels estils propis encara no es pot) haurem de pensar que fer amb les URL llargues
+	//Eliminem els Item de la llegenda quan aquesta Ã©s automÃ tica, per fer el "code" mÃ©s petit
+	//Â·$Â· si aixÃ² no es pot fer, o quan tenim paleta prÃ²pia (pero ara pels estils propis encara no es pot) haurem de pensar que fer amb les URL llargues
 
-	//·$· mirar si les funcions de neteja del jason treuen això de sota, i si es pot emancipar una "NetejaEstil" d'allà per usar-la aquí ·$·
+	//Â·$Â· mirar si les funcions de neteja del jason treuen aixÃ² de sota, i si es pot emancipar una "NetejaEstil" d'allÃ  per usar-la aquÃ­ Â·$Â·
 	var estil_copia=JSON.parse(JSON.stringify(capa.estil[i_estil]));
 	if (estil_copia.nItemLlegAuto)
 		delete estil_copia.ItemLleg;
@@ -461,13 +466,13 @@ var capa=ParamCtrl.capa[i_capa];
 			{abstract: DonaCadena(capa.estil[i_estil].desc), specific_usage: GetMessage("ShareStyle", "cntxmenu"),
 			ru_code: JSON.stringify(estil_copia), ru_code_media_type: "application/json",
 			ru_platform: ToolsMMN, ru_version: VersioToolsMMN.Vers+"."+VersioToolsMMN.SubVers, ru_schema: config_schema_estil
-			/*, ru_sugg_app: location.href -> s'afegeix automàticament */},
+			/*, ru_sugg_app: location.href -> s'afegeix automÃ ticament */},
 			ParamCtrl.idioma, "" /*access_token_type*/);
 }
 
 function DonaTextSeparadorCapaAfegida(i_capa)
 {
-//var separa_capa_afegida=DonaCadenaLang({"cat":"Capes afegides", "spa":"Capas añadidas", "eng":"Added layers", "fre":"Couches ajoutées"});
+//var separa_capa_afegida=DonaCadenaLang({"cat":"Capes afegides", "spa":"Capas aÃ±adidas", "eng":"Added layers", "fre":"Couches ajoutÃ©es"});
 var separa_capa_afegida;
 
 	var capa=ParamCtrl.capa[i_capa];
@@ -485,7 +490,7 @@ function DonaFormatFeatureInfoCapesWMS(servidorGC)
 {
 var j;
 
-	//Format de consulta comú per totes les capes
+	//Format de consulta comÃº per totes les capes
 	if(servidorGC.formatGetFeatureInfo)
 	{
 		for(j=0; j<servidorGC.formatGetFeatureInfo.length; j++)
@@ -532,15 +537,15 @@ var i_on_afegir=servidorGC.i_capa_on_afegir;
 	if(form==null)
 		return;
 
-	//Format de consulta comú per totes les capes
+	//Format de consulta comÃº per totes les capes
 	i_get_featureinfo=DonaFormatFeatureInfoCapesWMS(servidorGC);
 
-	//Potser només tinc una capa al servidor, en aquest cap form.sel_capes no és un array i no puc fer sel_capes.length
+	//Potser nomÃ©s tinc una capa al servidor, en aquest cap form.sel_capes no Ã©s un array i no puc fer sel_capes.length
 	if(form.sel_capes.length!=null)
 	{
 		for(i=0; i<form.sel_capes.length; i++)
 		{
-			if(form.sel_capes[i].checked)  //Si la capa està seleccionada l'afegeix-ho al navegador
+			if(form.sel_capes[i].checked)  //Si la capa estÃ  seleccionada l'afegeix-ho al navegador
 			{
 				i_capa=form.sel_capes[i].value;
 				if(!alguna_capa_afegida)
@@ -555,7 +560,7 @@ var i_on_afegir=servidorGC.i_capa_on_afegir;
 	}
 	else
 	{
-		if(form.sel_capes.checked)  //Si la capa està seleccionada l'afegeix-ho al navegador
+		if(form.sel_capes.checked)  //Si la capa estÃ  seleccionada l'afegeix-ho al navegador
 		{
 			if(!alguna_capa_afegida)
 				alguna_capa_afegida=true;
@@ -566,32 +571,32 @@ var i_on_afegir=servidorGC.i_capa_on_afegir;
 	if(alguna_capa_afegida)
 	{
 		/*Si s'ha afegit alguna capa de servidor extern, relaxo les
-                limitacions d'àmbit de navegació per poder-me sortir del mapa
-		de situació. En realitat, el que voldria programar és que si la
-                capa que afegixo se surt del àmbit "relaxo" però si no, doncs no
-		però no sembla que NJ llegeixi l'àmbit de la capa i per això
-		decideixo fer-ho més general*/
+                limitacions d'Ã mbit de navegaciÃ³ per poder-me sortir del mapa
+		de situaciÃ³. En realitat, el que voldria programar Ã©s que si la
+                capa que afegixo se surt del Ã mbit "relaxo" perÃ² si no, doncs no
+		perÃ² no sembla que NJ llegeixi l'Ã mbit de la capa i per aixÃ²
+		decideixo fer-ho mÃ©s general*/
 		ParamCtrl.RelaxaAmbitVisualitzacio=true;
-                //Redibuixo el navegador perquè les noves capes siguin visibles
+                //Redibuixo el navegador perquÃ¨ les noves capes siguin visibles
 		RevisaEstatsCapes();
 		RepintaMapesIVistes();
 	}
 }//Fi de AfegeixCapesWMSAlNavegadorForm
 
-/*Aquesta funció s'ha de cridar abans o després fer capa.splice() o similars.
-Revisa totes les capes però només canvia els indexos de les capes i_capa_ini (inclosa) en endavant. Per tant el valor que cal passar a i_capa_ini no depèn
-de si capa.splice() es fa abans o després de la crida a aquesta funció. Si capa.splice() es fa abans, els indexos encara tenen els valors antics igualment.
-També canvia els indexos de les variables ParamCtrl.ICapaVola* .
+/*Aquesta funciÃ³ s'ha de cridar abans o desprÃ©s fer capa.splice() o similars.
+Revisa totes les capes perÃ² nomÃ©s canvia els indexos de les capes i_capa_ini (inclosa) en endavant. Per tant el valor que cal passar a i_capa_ini no depÃ¨n
+de si capa.splice() es fa abans o desprÃ©s de la crida a aquesta funciÃ³. Si capa.splice() es fa abans, els indexos encara tenen els valors antics igualment.
+TambÃ© canvia els indexos de les variables ParamCtrl.ICapaVola* .
 'n_moviment' pot ser negatiu quan elimines capes o positiu quan insereixes.
-'i_capa_ini' és la capa inicial (inclosa) per fer el canvi d'indexos. En eliminar capes eviteu usar la capa eliminada com a i_capa_ini
-Si es fa un 'n_moviment' negatiu (eliminació de capes) que es combina amb capa.splice(), es pot fer servir
+'i_capa_ini' Ã©s la capa inicial (inclosa) per fer el canvi d'indexos. En eliminar capes eviteu usar la capa eliminada com a i_capa_ini
+Si es fa un 'n_moviment' negatiu (eliminaciÃ³ de capes) que es combina amb capa.splice(), es pot fer servir
 for (i=0 i<-n_moviment; i++)
     AvisaDeCapaAmbIndexosACapaEsborrada(i_capa_ini+i)
 	return;
-per avisar que hi ha capes que tenen indexos que apunten a capes que s'eliminen. Tot això ja es te en compte a EsborrarCapa().
-'i_capa_fi_per_sota' és la capa fi (no incluent ella mateixa) on cal fer el canvi d'indexos. Si voleu fins al final especifiqueu -1 (o ParamCtrl.capa.length),
-	Si voleu moure només els index que coindideixen amb i_capa_ini useu null o i_capa_ini+1
-Des que els histogrames són dinàmics també ha de revisar els HistogramaFinestra[] i Superficie3DFinestra[]*/
+per avisar que hi ha capes que tenen indexos que apunten a capes que s'eliminen. Tot aixÃ² ja es te en compte a EsborrarCapa().
+'i_capa_fi_per_sota' Ã©s la capa fi (no incluent ella mateixa) on cal fer el canvi d'indexos. Si voleu fins al final especifiqueu -1 (o ParamCtrl.capa.length),
+	Si voleu moure nomÃ©s els index que coindideixen amb i_capa_ini useu null o i_capa_ini+1
+Des que els histogrames sÃ³n dinÃ mics tambÃ© ha de revisar els HistogramaFinestra[] i Superficie3DFinestra[]*/
 function CanviaIndexosCapesSpliceCapa(n_moviment, i_capa_ini, i_capa_fi_per_sota, param_ctrl)
 {
 var capa, j, k, d, fragment, cadena, calcul, final, nou_valor, inici, calcul;
@@ -657,7 +662,6 @@ var capa, j, k, d, fragment, cadena, calcul, final, nou_valor, inici, calcul;
 										capa.estil[j].component[k].representacio.dimMatriu[d].i_capa>=i_capa_ini &&
 										capa.estil[j].component[k].representacio.dimMatriu[d].i_capa<i_capa_fi_per_sota)
 									capa.estil[j].component[k].representacio.dimMatriu[d].i_capa+=n_moviment;
-
 							}
 						}
 					}
@@ -792,10 +796,10 @@ var capa, j, k, fragment, cadena, inici, final, nou_valor;
 }
 
 
-//n_moviment pot ser negatiu quan elimines capes o positiu quan insereixes. Aquest funció s'ha de cridar despres fer capa.splice() o similars.
-//i_capa índex de la capa que conté l'estil a esborrar o a inserir
-//i_estil_ini és l'índex de l'estil inicial per fer el canvi d'indexos
-//i_estil_fi_per_sota és l'índex de l'estil  fi (no incluent ell mateixa) on cal fer el canvi d'indexos. Opcional; si no s'especifica (o es posa null), val i_estil_ini+1
+//n_moviment pot ser negatiu quan elimines capes o positiu quan insereixes. Aquest funciÃ³ s'ha de cridar despres fer capa.splice() o similars.
+//i_capa Ã­ndex de la capa que contÃ© l'estil a esborrar o a inserir
+//i_estil_ini Ã©s l'Ã­ndex de l'estil inicial per fer el canvi d'indexos
+//i_estil_fi_per_sota Ã©s l'Ã­ndex de l'estil  fi (no incluent ell mateixa) on cal fer el canvi d'indexos. Opcional; si no s'especifica (o es posa null), val i_estil_ini+1
 function CanviaIndexosCapesSpliceEstil(n_moviment, i_capa, i_estil_ini, i_estil_fi_per_sota)
 {
 var capa, j, k, d, fragment, cadena, calcul, final, nou_valor, inici, calcul;
@@ -1011,7 +1015,7 @@ var condicio=[], capa=[], i_capes, i_cat, categories, cat_noves, atributs, atrib
 	capa[0]=ParamCtrl.capa[i_capes[0]];
 	capa[1]=ParamCtrl.capa[i_capes[1]];
 
-	//Creo la nova descripció de les categories i la nova paleta
+	//Creo la nova descripciÃ³ de les categories i la nova paleta
 	categories=[capa[0].estil[condicio[0].i_estil].categories, capa[1].estil[condicio[1].i_estil].categories];
 	cat_noves=[];
 	i_color_tipic=0;
@@ -1042,7 +1046,7 @@ var condicio=[], capa=[], i_capes, i_cat, categories, cat_noves, atributs, atrib
 		}
 	}
 
-	//Creo la descripció des atributs
+	//Creo la descripciÃ³ des atributs
 	atributs=[capa[0].estil[condicio[0].i_estil].atributs, capa[1].estil[condicio[1].i_estil].atributs];
 	atrib_nous=[];
 
@@ -1130,19 +1134,19 @@ var condicio=[], capa=[], i_capes, i_cat, categories, cat_noves, atributs, atrib
 		"FlagsData": null,
 		"data": null,
 		"i_data": 0,
-		"animable":	false, //··Segurament la capa es podria declarar animable si alguna capa té els temps "current" i és multitime.
-		"AnimableMultiTime": false,  //··Segurament la capa es podria declarar AnimableMultiTime si alguna capa té els temps "current" i és multitime.
+		"animable":	false, //Â·Â·Segurament la capa es podria declarar animable si alguna capa tÃ© els temps "current" i Ã©s multitime.
+		"AnimableMultiTime": false,  //Â·Â·Segurament la capa es podria declarar AnimableMultiTime si alguna capa tÃ© els temps "current" i Ã©s multitime.
 		"proces":	null,
 		"ProcesMostrarTitolCapa" : false,
 		"origen": OrigenUsuari
 		});
 
-	if (i_capa<ParamCtrl.capa.length)  //això és fa després, donat que els índex de capa de la capa nova es poden referir a capes que s'han pogut.
+	if (i_capa<ParamCtrl.capa.length)  //aixÃ² Ã©s fa desprÃ©s, donat que els Ã­ndex de capa de la capa nova es poden referir a capes que s'han pogut.
 		CanviaIndexosCapesSpliceCapa(1, i_capa, -1, ParamCtrl);
 
 	CompletaDefinicioCapa(ParamCtrl.capa[i_capa]);
 
-	//Redibuixo el navegador perquè les noves capes siguin visibles
+	//Redibuixo el navegador perquÃ¨ les noves capes siguin visibles
 	RevisaEstatsCapes();
 	RepintaMapesIVistes();
 }//Fi de AfegeixCapaCombicapaCategoric()
@@ -1172,17 +1176,17 @@ var condicio=[], capa=[], i_capes, i_cat, categories, categ_noves, atributs, atr
 	capa[0]=ParamCtrl.capa[i_capes[0]];
 	capa[1]=ParamCtrl.capa[i_capes[1]];
 
-	//La descripció de les categories i la paleta és igual que la de la capa categòrica, la primera de la combinació
+	//La descripciÃ³ de les categories i la paleta Ã©s igual que la de la capa categÃ²rica, la primera de la combinaciÃ³
 	//cat_noves=capa[0].estil[condicio[0].i_estil].categories;
 	//colors=capa[0].estil[condicio[0].i_estil].paleta.colors;
 
 	var n_dec_estad=4;
 
-	//Creo la descripció dels atributs
-	// a/ les categories com a primer atribut i tots els estadístics de la segona capa després
+	//Creo la descripciÃ³ dels atributs
+	// a/ les categories com a primer atribut i tots els estadÃ­stics de la segona capa desprÃ©s
 	for (var i_atrib_capa_0=0; i_atrib_capa_0<capa[0].estil[condicio[0].i_estil].atributs.length; i_atrib_capa_0++)
 		atrib_nous.push(JSON.parse(JSON.stringify(capa[0].estil[condicio[0].i_estil].atributs[i_atrib_capa_0])));
-	// b/ afegir els estadístics
+	// b/ afegir els estadÃ­stics
 	if (DonaTractamentComponent(capa[1].estil[condicio[1].i_estil], 0)=="categoric")
 	{
 		atrib_nous.push({nom: "$stat$_i_mode", descripcio: GetMessage("ModalClass"), mostrar: "no"});
@@ -1192,12 +1196,12 @@ var condicio=[], capa=[], i_capes, i_cat, categories, categ_noves, atributs, atr
 	else
 	{
 		var n_atrib_ori=atrib_nous.length;
-		/* marco alguns a mostrar "no" per provar que lo de darrera va, però després la idea és que quan s'esculli que vols crear estadístics
+		/* marco alguns a mostrar "no" per provar que lo de darrera va, perÃ² desprÃ©s la idea Ã©s que quan s'esculli que vols crear estadÃ­stics
 		quins vols que es mostrin (es calculen sempre tots)*/
 		atrib_nous.push({nom: "$stat$_sum", descripcio: GetMessage("Sum"), mostrar: "si_ple", simbol: "&Sigma;"});
 		atrib_nous.push({nom: "$stat$_sum_area", descripcio: GetMessage("SumArea"), mostrar: "si_ple", simbol: "&Sigma;<small>a</small>"});
 		atrib_nous.push({nom: "$stat$_mean", descripcio: GetMessage("Mean"), mostrar: "si_ple", simbol: "x&#772"}); //x-bar
-		atrib_nous.push({nom: "$stat$_variance", descripcio: GetMessage("Variance"), mostrar: "si_ple", simbol: "&sigma;²"});
+		atrib_nous.push({nom: "$stat$_variance", descripcio: GetMessage("Variance"), mostrar: "si_ple", simbol: "&sigma;Â²"});
 		atrib_nous.push({nom: "$stat$_stdev", descripcio: GetMessage("StandardDeviation"), mostrar: "si_ple", simbol: "&sigma;"});
 		atrib_nous.push({nom: "$stat$_min", descripcio: GetMessage("Minimum"), mostrar: "si_ple", simbol: "Min"});
 		atrib_nous.push({nom: "$stat$_max", descripcio: GetMessage("Maximum"), mostrar: "si_ple", simbol: "Max"});
@@ -1208,21 +1212,21 @@ var condicio=[], capa=[], i_capes, i_cat, categories, categ_noves, atributs, atr
 			for (var i=n_atrib_ori; i<atrib_nous.length; i++)
 				atrib_nous[i].unitats=capa[1].estil[condicio[1].i_estil].DescItems;
 
-			//per la sum_area les unitats són diferents -> buscar DonaUnitatsCoordenadesProj(crs) per mirar quines unitats he de concatenar al darrera
-			atrib_nous[n_atrib_ori+1].unitats=capa[1].estil[condicio[1].i_estil].DescItems+"&sdot;m²";
-			//la variança són les unitats al quadrat :)
-			atrib_nous[n_atrib_ori+3].unitats="("+atrib_nous[n_atrib_ori+3].unitats+")²";
+			//per la sum_area les unitats sÃ³n diferents -> buscar DonaUnitatsCoordenadesProj(crs) per mirar quines unitats he de concatenar al darrera
+			atrib_nous[n_atrib_ori+1].unitats=capa[1].estil[condicio[1].i_estil].DescItems+"&sdot;mÂ²";
+			//la varianÃ§a sÃ³n les unitats al quadrat :)
+			atrib_nous[n_atrib_ori+3].unitats="("+atrib_nous[n_atrib_ori+3].unitats+")Â²";
 		}
-		else //per la sum_area les unitats són les "no unitats"*m2 :)
-			atrib_nous[n_atrib_ori+1].unitats="m²";
+		else //per la sum_area les unitats sÃ³n les "no unitats"*m2 :)
+			atrib_nous[n_atrib_ori+1].unitats="mÂ²";
 
 		if (capa[1].estil[condicio[1].i_estil].component[0].NDecimals)
 		{
 			for (var i=n_atrib_ori; i<atrib_nous.length; i++)
 				atrib_nous[i].NDecimals=capa[1].estil[condicio[1].i_estil].component[0].NDecimals;
 		}
-		else /*si no hi havien decimals definits, en poso "2" pels camps calculats (on ens sortiran), però no als
-			altres (així la suma, el rang, etc. els veure sesne decimals com la cpa original, pex DTM en m enters)*/
+		else /*si no hi havien decimals definits, en poso "2" pels camps calculats (on ens sortiran), perÃ² no als
+			altres (aixÃ­ la suma, el rang, etc. els veure sesne decimals com la cpa original, pex DTM en m enters)*/
 		{
 			atrib_nous[n_atrib_ori+2].NDecimals=n_dec_estad;	//mean
 			atrib_nous[n_atrib_ori+3].NDecimals=n_dec_estad;	//variance
@@ -1230,7 +1234,7 @@ var condicio=[], capa=[], i_capes, i_cat, categories, categ_noves, atributs, atr
 		}
 	}
 
-	//Creo la descripció de les categories, de moment només la original, les altres ja s'afegiran després
+	//Creo la descripciÃ³ de les categories, de moment nomÃ©s la original, les altres ja s'afegiran desprÃ©s
 	categ_noves=JSON.parse(JSON.stringify(capa[0].estil[condicio[0].i_estil].categories));
 
 	var cadena_desc=ConcatenaCadenes(ConcatenaCadenes((capa[0].DescLlegenda ? capa[0].DescLlegenda: capa[0].nom),GetMessageJSON("_withStatisticOf_", "cntxmenu")),(capa[1].DescLlegenda?capa[1].DescLlegenda: capa[1].nom));
@@ -1290,19 +1294,19 @@ var condicio=[], capa=[], i_capes, i_cat, categories, categ_noves, atributs, atr
 		"FlagsData": null,
 		"data": null,
 		"i_data": 0,
-		"animable":	false, //··Segurament la capa es podria declarar animable si alguna capa té els temps "current" i és multitime.
-		"AnimableMultiTime": false,  //··Segurament la capa es podria declarar AnimableMultiTime si alguna capa té els temps "current" i és multitime.
+		"animable":	false, //Â·Â·Segurament la capa es podria declarar animable si alguna capa tÃ© els temps "current" i Ã©s multitime.
+		"AnimableMultiTime": false,  //Â·Â·Segurament la capa es podria declarar AnimableMultiTime si alguna capa tÃ© els temps "current" i Ã©s multitime.
 		"proces":	null,
 		"ProcesMostrarTitolCapa" : false,
 		"origen": OrigenUsuari
 		});
 
-	if (i_capa<ParamCtrl.capa.length)  //això és fa després, donat que els índex de capa de la capa nova es poden referir a capes que s'han pogut.
+	if (i_capa<ParamCtrl.capa.length)  //aixÃ² Ã©s fa desprÃ©s, donat que els Ã­ndex de capa de la capa nova es poden referir a capes que s'han pogut.
 		CanviaIndexosCapesSpliceCapa(1, i_capa, -1, ParamCtrl);
 
 	CompletaDefinicioCapa(ParamCtrl.capa[i_capa]);
 
-	//Redibuixo el navegador perquè les noves capes siguin visibles
+	//Redibuixo el navegador perquÃ¨ les noves capes siguin visibles
 	RevisaEstatsCapes();
 	RepintaMapesIVistes();
 }//Fi de AfegeixTransferenciaEstadistics()
@@ -1313,18 +1317,18 @@ var i, old_value, old_up_value, new_value, desc_value, inici, final;
 
 	i=linia_reclass.indexOf(';');
 
-	if(i==0)  // la línia és un comentari
+	if(i==0)  // la lÃ­nia Ã©s un comentari
 		return null;
 
 	if(i!=-1)
 	{
-		// tinc descripció
+		// tinc descripciÃ³
 		desc_value=TreuCometesDePrincipiIFinalDeCadena(linia_reclass.substring(i+1).trim());
 		linia_reclass=linia_reclass.substring(0,i);
 	}
 
-	// Si faig un split i hi ha dos espais en blanc seguits, m'ho dividirà en un element per cada espai, i
-	// això no és el que vull
+	// Si faig un split i hi ha dos espais en blanc seguits, m'ho dividirÃ  en un element per cada espai, i
+	// aixÃ² no Ã©s el que vull
 	/* var elem_reclass = (linia_reclass.trim()).split(" ");
 	if(elem_reclass.length<2 || elem_reclass.length>3)
 	{
@@ -1348,19 +1352,19 @@ var i, old_value, old_up_value, new_value, desc_value, inici, final;
 		return null;
 	}*/
 	var elem_reclass =linia_reclass.trim();
-	if(-1==(i = elem_reclass.search(/[\s|\t]/i))) //no pot ser indexOf perquè és una regular expression
+	if(-1==(i = elem_reclass.search(/[\s|\t]/i))) //no pot ser indexOf perquÃ¨ Ã©s una regular expression
 	{
 		alert(GetMessage("WrongNumberElementsInLine", "cntxmenu")+" "+i_linia+": "+linia_reclass);
 		return null;
 	}
 	old_value=elem_reclass.substring(0,i);
 	elem_reclass=elem_reclass.substring(i+1,elem_reclass.length).trim();
-	i = elem_reclass.search(/[\s|\t]/i); 	//no pot ser indexOf perquè és una regular expression
+	i = elem_reclass.search(/[\s|\t]/i); 	//no pot ser indexOf perquÃ¨ Ã©s una regular expression
 	if(i!=-1)
 	{
 		old_up_value=elem_reclass.substring(0,i);
 		elem_reclass=elem_reclass.substring(i+1,elem_reclass.length).trim();
-		if(-1!=(i = elem_reclass.search(/[\s|\t]/i)))	 //no pot ser indexOf perquè és una regular expression
+		if(-1!=(i = elem_reclass.search(/[\s|\t]/i)))	 //no pot ser indexOf perquÃ¨ Ã©s una regular expression
 		{
 			alert(GetMessage("WrongNumberElementsInLine", "cntxmenu")+" "+i_linia+": "+linia_reclass);
 			return null;
@@ -1371,7 +1375,7 @@ var i, old_value, old_up_value, new_value, desc_value, inici, final;
 
 	new_value=elem_reclass;
 
-	// Ara he de buscar si cal les equivalències entre categories i valors
+	// Ara he de buscar si cal les equivalÃ¨ncies entre categories i valors
 	if(!categories)
 	{
 		if(NaN==parseFloat(old_value) || (old_up_value && NaN==parseFloat(old_up_value)))
@@ -1389,7 +1393,7 @@ var i, old_value, old_up_value, new_value, desc_value, inici, final;
 	}
 	else
 	{
-		if(-1!=old_value.search(/["|']/i)) 	//no pot ser indexOf perquè és una regular expression
+		if(-1!=old_value.search(/["|']/i)) 	//no pot ser indexOf perquÃ¨ Ã©s una regular expression
 		{
 			old_value=TreuCometesDePrincipiIFinalDeCadena(old_value);
 			for(i=0; i<categories.length; i++)
@@ -1406,7 +1410,7 @@ var i, old_value, old_up_value, new_value, desc_value, inici, final;
 				return null;
 			}
 		}
-		if(-1!=new_value.search(/["|']/i))  //no pot ser indexOf perquè és una regular expression
+		if(-1!=new_value.search(/["|']/i))  //no pot ser indexOf perquÃ¨ Ã©s una regular expression
 		{
 			new_value=TreuCometesDePrincipiIFinalDeCadena(new_value.trim());
 			for(i=0; i<categories.length; i++)
@@ -1426,7 +1430,7 @@ var i, old_value, old_up_value, new_value, desc_value, inici, final;
 		}
 		else if(new_value.toUpperCase=="REMOVE")
 			new_value=NaN;
-		if(old_up_value && -1!=old_up_value.search(/["|']/i))	 //no pot ser indexOf perquè és una regular expression
+		if(old_up_value && -1!=old_up_value.search(/["|']/i))	 //no pot ser indexOf perquÃ¨ Ã©s una regular expression
 		{
 			old_up_value=TreuCometesDePrincipiIFinalDeCadena(old_up_value.trim());
 			for(i=0; i<categories.length; i++)
@@ -1611,6 +1615,7 @@ var url_a_mostrar;
 	{
 		var i_sel=form.llista_serveis_OWS.options[form.llista_serveis_OWS.selectedIndex].value;
 		form.servidor.value=LlistaServOWS[i_sel].url;
+		form.cors.checked=(LlistaServOWS[i_sel].cors==true ? true : false);
 		form.cors.value=LlistaServOWS[i_sel].cors;
 	}
 }
@@ -1620,7 +1625,7 @@ function OrdenacioServOWSPerCategoriaINom(a,b) {
     var x = DonaCadena(a.categoria.desc);
     var y = DonaCadena(b.categoria.desc);
 
-	//podria ser que en un dels idiomes no estigués indicat
+	//podria ser que en un dels idiomes no estiguÃ©s indicat
 	if(x==null && y==null)
 		return 0;
 	if(x==null)
@@ -1636,7 +1641,7 @@ function OrdenacioServOWSPerCategoriaINom(a,b) {
 	if(x > y)
 		return 1;
 
-	//Si són iguals ho ordeno pel nom
+	//Si sÃ³n iguals ho ordeno pel nom
 	x = DonaCadena(a.nom);
     y = DonaCadena(b.nom);
 	if(x==null && y==null)
@@ -1742,7 +1747,7 @@ var elem=ObreFinestra(window, "info", GetMessage("toShowInformationOrHelp", "cnt
 	if (!elem)
 		return;
 
-	ajustaAllargadaAContingutFinestraLayer(window, "info", 0);  //fa la finestra petita per forçar l'scroll
+	ajustaAllargadaAContingutFinestraLayer(window, "info", 0);  //fa la finestra petita per forÃ§ar l'scroll
 	contentLayer(elem, nom_funcio);
 	ajustaAllargadaAContingutFinestraLayer(window, "info", -1); //fa que es vegi tot el text
 }
@@ -1802,19 +1807,19 @@ var cdns=[], i, capa, hi_ha_rasters=0, operacio;
 	{
 		cdns.push("<br>",
 				//"<fieldset><legend>",
-			  //DonaCadenaLang({"cat":"Afegeix capa calculada a partir de les capes existents", "spa":"Añada capa calculada a partir de las capas existentes", "eng":"Add layer computed from existing layers", "fre":"Rajouter couche calculé à partir de couches existantes"}),
+			  //DonaCadenaLang({"cat":"Afegeix capa calculada a partir de les capes existents", "spa":"AÃ±ada capa calculada a partir de las capas existentes", "eng":"Add layer computed from existing layers", "fre":"Rajouter couche calculÃ© Ã  partir de couches existantes"}),
 			  //"</legend>",
 			  "<fieldset><legend>",
 			  GetMessage("LayerForExpression", "cntxmenu"),
 			  ": </legend>");
 		//Posar uns desplegables de capes, estils i dates
 		cdns.push(DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-calcul", -1, 0, {vull_operador: false, nomes_categoric: false, vull_valors: false}));
-		//Posar un botó d'afegir a la fórmula
+		//Posar un botÃ³ d'afegir a la fÃ³rmula
 		cdns.push("<input type=\"button\" class=\"Verdana11px\" value=\"",
 		     	GetMessage("WriteInExpression", "cntxmenu"),
 		        "\" onClick='EscriuCapaALaFormulaAfegeixCapa();' /></fieldset>");
 		cdns.push("<fieldset><legend>",
-		//Botons operadors i funcions per a la fórmula
+		//Botons operadors i funcions per a la fÃ³rmula
 				GetMessage("OperatorsFunctionsForExpression", "cntxmenu"),
 			  ": </legend>");
 				operacio=[{text: "&equals;",prefix: "=",  size: "width:40px"},
@@ -1835,7 +1840,7 @@ var cdns=[], i, capa, hi_ha_rasters=0, operacio;
 						  {text: "5", 		prefix: "5",  size: "width:30px"},
 						  {text: "6", 		prefix: "6",  size: "width:30px", separa: "&nbsp;&nbsp;&nbsp;&nbsp;"},
 						  {text: "&times;", prefix: "*",  size: "width:30px", separa: "<br>"},
-						  {text: "&radic;¯",prefix: "Math.sqrt	(", sufix: ")", size: "width:40px"},
+						  {text: "&radic;Â¯",prefix: "Math.sqrt	(", sufix: ")", size: "width:40px"},
 						  {text: "LOG",     prefix: "Math.log10 (", sufix: ")", size: "width:40px"},
 						  {text: "LN",    	prefix: "Math.log	(", sufix: ")", size: "width:40px"},
 						  {text: "EXP",     prefix: "Math.exp	(", sufix: ")", size: "width:40px"},
@@ -1873,7 +1878,7 @@ var cdns=[], i, capa, hi_ha_rasters=0, operacio;
 						cdns.push(operacio[i].separa);
 				}
 			  cdns.push("</fieldset>");
-		//Caixa multilínia per a la formula.
+		//Caixa multilÃ­nia per a la formula.
 		cdns.push(GetMessage("Expression"),
 			":<br><textarea name=\"calcul\" class=\"Verdana11px\" style=\"width:420px;height:100\" ></textarea><br>",
 			GetMessage("ResultOfSelectionAddedAsNewLayerStyleWithName", "cntxmenu"),
@@ -1963,7 +1968,7 @@ var algun_fitxer_ok=false, fileread=[], i_fitxer, tiff_blobs=[];
 		{
 			//https://stackoverflow.com/questions/19706046/how-to-read-an-external-local-json-file-in-javascript
 			fileread[i_fitxer] = new FileReader();
-			fileread[i_fitxer].nom_json=form.nom_fitxer.files[i_fitxer].name;  //Així onload pot saber el nom del fitxer
+			fileread[i_fitxer].nom_json=form.nom_fitxer.files[i_fitxer].name;  //AixÃ­ onload pot saber el nom del fitxer
 			fileread[i_fitxer].onload = function(e) {
 				var objectes;
 				try{
@@ -1989,7 +1994,7 @@ var algun_fitxer_ok=false, fileread=[], i_fitxer, tiff_blobs=[];
 	}
 	if (tiff_blobs.length>0)
 	{
-		//AfegeixCapaGeoTIFF és asincrona.
+		//AfegeixCapaGeoTIFF Ã©s asincrona.
 		AfegeixCapaGeoTIFF((tiff_blobs.length==1) ? tiff_blobs[0].name : "TIFFs", tiff_blobs, -1);
 		algun_fitxer_ok=true;
 	}
@@ -2025,8 +2030,8 @@ var cdns=[], i;
 			"<input type=\"hidden\" name=\"tipus\" value=\"TipusWMS\">",
 			"<input type=\"radio\" id=\"RadioVersion_WMS11\" name=\"versio\" value=\"1.1.0\" onclick=\"document.AfegeixCapaServidor.tipus.value='TipusWMS';\"><label for=\"RadioVersion_WMS11\">OGC WMS v 1.1</label>",
 			"<input type=\"radio\" id=\"RadioVersion_WMS111\" name=\"versio\" value=\"1.1.1\" onclick=\"document.AfegeixCapaServidor.tipus.value='TipusWMS';\"><label for=\"RadioVersion_WMS111\">OGC WMS v 1.1.1</label>",
-			"<input type=\"radio\" id=\"RadioVersion_WMS13\" name=\"versio\" value=\"1.3.0\" checked=\"checked\" onclick=\"document.AfegeixCapaServidor.tipus.value='TipusWMS';\"><label for=\"RadioVersion_WMS13\">OGC WMS v 1.3</label>",
-			"<input type=\"radio\" id=\"RadioOAPI_Maps\" name=\"versio\" value=\"\" onclick=\"document.AfegeixCapaServidor.tipus.value='TipusOAPI_Maps';\"><label for=\"RadioTipusOAPI_Maps\">OGC API Maps</label><br/>",
+			"<input type=\"radio\" id=\"RadioVersion_WMS13\" name=\"versio\" value=\"1.3.0\" checked=\"checked\" onclick=\"document.AfegeixCapaServidor.tipus.value='TipusWMS';\"><label for=\"RadioVersion_WMS13\">OGC WMS v 1.3</label><br/>",
+			"<input type=\"radio\" id=\"RadioOAPI_Maps\" name=\"versio\" value=\"OAPI_Maps\" onclick=\"document.AfegeixCapaServidor.tipus.value='TipusOAPI_Maps';\"><label for=\"RadioOAPI_Maps\">OGC API Maps</label>",
 			"<input type=\"button\" class=\"Verdana11px\" value=\"",
 			GetMessage("Explore"),
 			"\" onClick=\"FesPeticioCapacitatsIParsejaResposta(document.AfegeixCapaServidor.servidor.value, document.AfegeixCapaServidor.tipus.value, document.AfegeixCapaServidor.versio.value, JSON.parse(document.AfegeixCapaServidor.cors.value), null, ", i_capa, ", MostraCapesCapacitatsWMS, null);\" />");
@@ -2207,8 +2212,8 @@ function ActivaConstantOCapaSeleccioCondicional(prefix_id, i_condicio, quin_radi
 }
 
 
-/*Retorna un objecte amb "n_capa" que és nombre de capes compatibles amb i_capa i la vista actual (o si i_capa==-1 només amb la vista actual)
-i "i_capa_unica" que és la primera capa compatible (o la única si només n'hi ha una)*/
+/*Retorna un objecte amb "n_capa" que Ã©s nombre de capes compatibles amb i_capa i la vista actual (o si i_capa==-1 nomÃ©s amb la vista actual)
+i "i_capa_unica" que Ã©s la primera capa compatible (o la Ãºnica si nomÃ©s n'hi ha una)*/
 function DonaNCapesVisiblesOperacioArraysBinarisOVectors(i_capa, considera_vectors, nomes_categoric)
 {
 var n_capa=0, i_capa_unica=-1, capa, i;
@@ -2223,14 +2228,14 @@ var n_capa=0, i_capa_unica=-1, capa, i;
 			capa=ParamCtrl.capa[i];
 			if(origen_vector)
 			{
-				// Quan l'origen és vector només vull veure les capes ràster o la pròpia i_capa
+				// Quan l'origen Ã©s vector nomÃ©s vull veure les capes rÃ ster o la prÃ²pia i_capa
 				if (i!=i_capa && (!EsCapaDinsRangDEscalesVisibles(capa) || !EsCapaDinsAmbitActual(capa) || !EsCapaDisponibleEnElCRSActual(capa) ||
 					!EsCapaDinsAmbitCapa(capa, ParamCtrl.capa[i_capa]) || !EsCapaBinaria(capa) || !capa.valors))
 					continue;
 			}
 			else
 			{
-				// Quan l'origen és ràster ho vull tot el que sigui vector o capa binària
+				// Quan l'origen Ã©s rÃ ster ho vull tot el que sigui vector o capa binÃ ria
 				if (!EsCapaDinsRangDEscalesVisibles(capa) || !EsCapaDinsAmbitActual(capa) || !EsCapaDisponibleEnElCRSActual(capa) ||
 					((i_capa==-1) ? false : !EsCapaDinsAmbitCapa(capa, ParamCtrl.capa[i_capa])) || (capa.model!=model_vector && (!EsCapaBinaria(capa) || !capa.valors)))
 					continue;
@@ -2283,7 +2288,7 @@ var estil=capa.estil[i_estil];
 			cdns.push("<input type=\"hidden\" value=\"0\" id=\"", prefix_id, "-valor-",i_condicio,"\" name=\"valor", i_condicio, "\" />", DonaTextCategoriaDesDeColor(estil.categories, estil.atributs, 0, true));
 		cdns.push("<br>");
 
-		//Posar un botó d'afegir a l'expressió de reclassificació
+		//Posar un botÃ³ d'afegir a l'expressiÃ³ de reclassificaciÃ³
 		cdns.push("<input type=\"button\" class=\"Verdana11px\" value=\"",
 		     	GetMessage("WriteValueInExpression", "cntxmenu"),
 		        "\" onClick='EscriuValorALaReclasssificacioAfegeixCapa(\"",prefix_id,"\");' />");
@@ -2381,7 +2386,7 @@ var estil_o_atrib;
 	{
 		if(capa.objectes && capa.objectes.features && capa.objectes.features.length>1)
 		{
-			//·$· El més probable és que no tingui els valors de les propietats, només tindrè els que s'han consultat, caldrà fer alguna cosa com es va dfer per la qualitats
+			//Â·$Â· El mÃ©s probable Ã©s que no tingui els valors de les propietats, nomÃ©s tindrÃ¨ els que s'han consultat, caldrÃ  fer alguna cosa com es va dfer per la qualitats
 			var feature, atribut=estil_o_atrib.nom, valors_atrib=[],i_obj, i_valor;
 
 			for (i_obj=0; i_obj<capa.objectes.features.length; i_obj++)
@@ -2391,10 +2396,10 @@ var estil_o_atrib;
 		    		feature.properties[atribut]=="" ||
 					feature.properties[atribut]==null)
 					continue;
-				if (valors_atrib.length==0 || valors_atrib[valors_atrib.length-1]!=DonaCadena(feature.properties[atribut]))  //Això evita que si n'hi ha de repetits seguits es posin a la llista
+				if (valors_atrib.length==0 || valors_atrib[valors_atrib.length-1]!=DonaCadena(feature.properties[atribut]))  //AixÃ² evita que si n'hi ha de repetits seguits es posin a la llista
 					valors_atrib.push(DonaCadena(feature.properties[atribut]));
 			}
-			// pensar de fer una funció específica per nombres si acabo posant tipus als atributs
+			// pensar de fer una funciÃ³ especÃ­fica per nombres si acabo posant tipus als atributs
 			valors_atrib.sort(sortAscendingStringSensible);
 			valors_atrib.removeDuplicates(sortAscendingStringSensible);
 
@@ -2550,9 +2555,9 @@ function ActivaCondicioSeleccioCondicional(prefix_id, i_condicio, estat)
 	document.getElementById(prefix_id + "-nexe-"+i_condicio).style.display=(estat) ? "inline" : "none";
 }
 
-//i_capa és la capa que se seleccionarà per defecte en el selector. Pot ser -1 per seleccionar la primera compatible.
-//param.vull_operador: indica que vulls els operador per fer una condició per selecció
-//param.nomes_categoric: només vull capes ràster amb categories
+//i_capa Ã©s la capa que se seleccionarÃ  per defecte en el selector. Pot ser -1 per seleccionar la primera compatible.
+//param.vull_operador: indica que vulls els operador per fer una condiciÃ³ per selecciÃ³
+//param.nomes_categoric: nomÃ©s vull capes rÃ ster amb categories
 //param.vull_valors:
 function DonaCadenaCapaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, param)
 {
@@ -2593,7 +2598,7 @@ var cdns=[], capa, nc, capa_def, origen_vector;
 				}
 				else
 				{
-					// Quan l'origen és ràster ho vull tot el que sigui vector o capa binària
+					// Quan l'origen Ã©s rÃ ster ho vull tot el que sigui vector o capa binÃ ria
 					if (capa.model!=model_vector && (!EsCapaBinaria(capa) || !capa.valors))
 						continue;
 				}
@@ -2663,7 +2668,7 @@ var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null;
 			}
 			cdns.push("</select>");
 		}
-		else // si només hi ha un estil no és obligatòri ni el nom ni la descripció i es considera l'estil per defecte
+		else // si nomÃ©s hi ha un estil no Ã©s obligatÃ²ri ni el nom ni la descripciÃ³ i es considera l'estil per defecte
 			cdns.push("<input type=\"hidden\" value=\"0\" id=\"", prefix_id, "-estil\" name=\"estil\" />", DonaCadena(capa.estil[0].desc)?DonaCadena(capa.estil[0].desc): (capa.estil[0].nom?capa.estil[0].nom: GetMessage("byDefault", "cntxmenu")));
 		cdns.push("<br>");
 	}
@@ -2756,7 +2761,7 @@ var sel_condicional={}, condicio, radials;
 	sel_condicional.i_capa=i_capa;
 	var capa=ParamCtrl.capa[i_capa];
 	if (capa.estil && capa.estil.length)
-		sel_condicional.i_estil=parseInt(document.getElementById(prefix_id+"-estil").value);  //No se perquè en IE no funciona la manera clàssica.
+		sel_condicional.i_estil=parseInt(document.getElementById(prefix_id+"-estil").value);  //No se perquÃ¨ en IE no funciona la manera clÃ ssica.
 	sel_condicional.nom_estil=document.SeleccioCondicional.nom_estil.value;
 	sel_condicional.condicio=[];
 	for (var i_condicio=0; i_condicio<MaxCondicionsSeleccioCondicional; i_condicio++)
@@ -2777,7 +2782,7 @@ var sel_condicional={}, condicio, radials;
 			else if ((radials[1] && radials[1].checked) || (radials[2] && radials[2].checked))
 			{
 				var valor=document.SeleccioCondicional["valor"+i_condicio].value;
-				if (valor && valor!="")  //Si la cadena és buida, no ho recullo"
+				if (valor && valor!="")  //Si la cadena Ã©s buida, no ho recullo"
 					condicio.valor=valor;
 				else
 					delete condicio.operador;
@@ -2799,7 +2804,7 @@ var sel_condicional={}, condicio, radials;
 	return sel_condicional;
 }
 
-//Escriu una referencia a una capa, valor i data per un càlcul (format {\"i_capa\":0, \"i_valor\":1, \"i_data\":2})
+//Escriu una referencia a una capa, valor i data per un cÃ lcul (format {\"i_capa\":0, \"i_valor\":1, \"i_data\":2})
 function DonaReferenciaACapaPerCalcul(i_capa_ref, i_capa, i_valor, i_data)
 {
 var cdns=[];
@@ -2876,7 +2881,7 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 	i_estil_nou=DuplicaEstilCapa(capa, sel_condicional.i_estil, sel_condicional.nom_estil);
 	estil=capa.estil[i_estil_nou];
 
-	//Defineix el "calcul" de la selecció que serà de tipus "(capaA<5 || CapaA>capaB)? capa : null"
+	//Defineix el "calcul" de la selecciÃ³ que serÃ  de tipus "(capaA<5 || CapaA>capaB)? capa : null"
 	if(capa.model!=model_vector)
 		calcul="(";
 	else
@@ -2884,7 +2889,7 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 	for (var i_condicio=0; i_condicio<sel_condicional.condicio.length; i_condicio++)
 	{
 		condicio=sel_condicional.condicio[i_condicio];
-		// Quan la capa és un vector sel_condicional.condicio[i_condicio].capa_clau.i_estil és l'índex del atribut i no de l'estil
+		// Quan la capa Ã©s un vector sel_condicional.condicio[i_condicio].capa_clau.i_estil Ã©s l'Ã­ndex del atribut i no de l'estil
 		calcul+=DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil);
 		if (typeof condicio.operador==="undefined")
 			calcul+="!=null";
@@ -2935,7 +2940,7 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 
 	if(capa.model==model_vector)
 	{
-		// Creo un atribut nou que contindrà el càlcul
+		// Creo un atribut nou que contindrÃ  el cÃ lcul
 		var i_atrib_nou=capa.atributs.length;
 		var i=0, index=0, nom_proposat=sel_condicional.nom_estil.replaceAll(' ', '_');
 
@@ -3093,14 +3098,14 @@ var cdns=[], capa=ParamCtrl.capa[i_capa], estil=capa.estil[capa.i_estil];
 	  					" "+DonaCadena(ParamCtrl.capa[capa.valors[0].i_capa].estil[capa.valors[0].i_valor].desc)+": </legend>";
 	    value_text+="<table style=\"width:100%;text-align:left;font-size:inherit\"><tr><td rowspan=\"2\">";
 
-	    //només poso per triar els que els atributs de la capa categorica inicial indiquen com a mostrables
-	    if (estil.component[1].herenciaOrigen.tractament=="categoric") //la segona és categòrica també
+	    //nomÃ©s poso per triar els que els atributs de la capa categorica inicial indiquen com a mostrables
+	    if (estil.component[1].herenciaOrigen.tractament=="categoric") //la segona Ã©s categÃ²rica tambÃ©
 	    {
 	    	for (i_atrib=0, recompte=0; i_atrib<estil.atributs.length; i_atrib++)
 	    	{
-	    		if (!estil.atributs[i_atrib].nom || estil.atributs[i_atrib].mostrar == "no") //en aquest cas no cal posar igual a false perquè ja es creen amb "si"/"no"...
+	    		if (!estil.atributs[i_atrib].nom || estil.atributs[i_atrib].mostrar == "no") //en aquest cas no cal posar igual a false perquÃ¨ ja es creen amb "si"/"no"...
 	    			continue;
-	    		//if (estil.atributs[i_atrib].nom == "$stat$_i_mode") -> no la miro perquè ja inicialment es declara com a mostrar = "no"
+	    		//if (estil.atributs[i_atrib].nom == "$stat$_i_mode") -> no la miro perquÃ¨ ja inicialment es declara com a mostrar = "no"
 	    		if (estil.atributs[i_atrib].nom == "$stat$_mode")
 	    		{
 	    			value_text+="<input type=\"radio\" id=\"stat_mode_2\" name=\"stat\" value=\"mode_2\"><label for=\"stat_mode_2\">"+GetMessage("ModalClass")+"</label><br>";
@@ -3118,14 +3123,14 @@ var cdns=[], capa=ParamCtrl.capa[i_capa], estil=capa.estil[capa.i_estil];
 						value_text+="<input type=\"radio\" id=\"stat_mode_and_percent_2\" name=\"stat\" value=\"mode_and_percent_2\" checked=\"true\"><label for=\"stat_mode_and_percent_2\">"+
 						GetMessage("ModalClass")+" ("+GetMessage("PercentageMode")+")</label><br>";
 	  	}
-			else //la segona és QC
+			else //la segona Ã©s QC
 			{
 	    	for (i_atrib=0, recompte=0; i_atrib<estil.atributs.length; i_atrib++)
 	    	{
-	    		if (!estil.atributs[i_atrib].nom || estil.atributs[i_atrib].mostrar == "no") //en aquest cas no cal posar igual a false perquè ja es creen amb "si"/"no"...
+	    		if (!estil.atributs[i_atrib].nom || estil.atributs[i_atrib].mostrar == "no") //en aquest cas no cal posar igual a false perquÃ¨ ja es creen amb "si"/"no"...
 	    			continue;
 
-	    		//primer mirar sui_ple, pq si es que no no cal q em proecupi si él nom és un dles que m¡0interessa , oq igualment no es mostrara
+	    		//primer mirar sui_ple, pq si es que no no cal q em proecupi si Ã©l nom Ã©s un dles que mÂ¡0interessa , oq igualment no es mostrara
 					if (estil.atributs[i_atrib].nom == "$stat$_sum")
 					{
 						value_text+="<input type=\"radio\" id=\"stat_sum_2\" name=\"stat\" value=\"sum_2\"><label for=\"stat_sum_2\">"+GetMessage("Sum")+"</label><br>";
@@ -3217,10 +3222,10 @@ function CridaCreacioEstadistic(i_capa)
 	}
 	TancaFinestraLayer("seleccioEstadistic");
 	if (document.SeleccioEstadistic.stat.value.substr(document.SeleccioEstadistic.stat.value.length-2, 2) == "_2")
-	//si acaba en "_2" és la part de transferència de camps estadístics, necessito saber tipus de representació i ordenació
+	//si acaba en "_2" Ã©s la part de transferÃ¨ncia de camps estadÃ­stics, necessito saber tipus de representaciÃ³ i ordenaciÃ³
 		return ObreFinestraHistograma(i_capa, -1, (document.SeleccioEstadistic.presentacio.value == "graphic") ? "chart_categ" : "stat_categ",
 					document.SeleccioEstadistic.stat.value.substring(0, document.SeleccioEstadistic.stat.value.length-2), document.SeleccioEstadistic.order.value);
-	else //cas normal, només necessito saber el estadístic a mostrar
+	else //cas normal, nomÃ©s necessito saber el estadÃ­stic a mostrar
 		return ObreFinestraHistograma(i_capa, -1, "stat", document.SeleccioEstadistic.stat.value);
 }
 
@@ -3239,7 +3244,7 @@ var cdns=[];
 }
 
 
-//només funciona bé amb i_component<3
+//nomÃ©s funciona bÃ© amb i_component<3
 function DonaCadenaComponentDeCombinacioRGB(i_capa, i_component)
 {
 var cdns=[], capa, primers_i_valor_valid=[null, null, null], params;
@@ -3340,7 +3345,7 @@ function DonaCadenaEditaEstilCapa(i_capa, i_estil)
 {
 var cdns=[], capa=ParamCtrl.capa[i_capa], estil=capa.estil[i_estil];
 
-	if (!estil.histograma)
+	if (capa.model != "vector" && !estil.histograma)
 	{
 		alert(GetMessage("CannotEditStyleNeverVisualized", "cntxmenu"));
 		return "";
@@ -3384,7 +3389,7 @@ var cdns=[], capa=ParamCtrl.capa[i_capa], estil=capa.estil[i_estil];
 				"<br>");
 		cdns.push("</fieldset>");
 	}
-	else if (estil.component.length<3)
+	else if (estil.component && estil.component.length<3)
 	{
 		var paleta;
 		cdns.push("<fieldset><legend>",
@@ -3426,9 +3431,151 @@ var cdns=[], capa=ParamCtrl.capa[i_capa], estil=capa.estil[i_estil];
 		cdns.push("</fieldset>");
 	}
 
+	if (capa.model == "vector")
+	{
+		/* Es construeix estructura amb colors i descripcions a mostrar. A partir dels
+		colors de "forma" amb attribut "TipusNom" i les
+		descripcions de "ItemLleg". Com relacionar els 2 arrays:
+		Ã­ndex ItemLleg = TipusNom - 1, si la simbolitzaciÃ³ Ã©s indexada
+		*/
+		const arrayColorsSelectors = [];
+
+		if (estil.TipusObj == "L" && estil.ItemLleg && estil.ItemLleg.length > 0)
+		{
+			// Thicknesses to modify
+			var arrayThicknessSelectors = [];
+			if (estil.formes && estil.formes.length)
+			{
+				const lastFormaIndex = estil.formes.length - 1;
+				const lastForma = estil.formes[lastFormaIndex];
+				if (lastForma.vora && lastForma.vora.paleta && lastForma.vora.paleta.colors)
+				{
+					const isMultipleColored = lastForma.vora.NomCamp ? true : false;
+					for (var indexColors = isMultipleColored ? 1 : 0, colorsLength = lastForma.vora.paleta.colors.length; indexColors < colorsLength; indexColors++)
+					{
+							const currentColor = lastForma.vora.paleta.colors[indexColors];
+							// Index refering to ItemLleg where to find description of the color
+							const indexItemLleg = estil.ItemLleg && estil.ItemLleg.length >= indexColors && isMultipleColored ? indexColors-1 : indexColors;
+							arrayColorsSelectors.push({color:currentColor, descr:estil.ItemLleg[indexItemLleg].DescColor});
+					}
+				}
+				// Check if thickness (gruix) is available
+				if (lastForma.vora && lastForma.vora.gruix && lastForma.vora.gruix.amples)
+				{
+					arrayThicknessSelectors = lastForma.vora.gruix.amples;
+				}
+			}
+
+			if(arrayColorsSelectors && arrayColorsSelectors.length)
+			{
+				// Color HTML Section
+				cdns.push("<fieldset><legend>", GetMessage("Colors"), ": </legend><table>");
+				for (var indexColorSel = 0, itemsColorSelLength = arrayColorsSelectors.length; indexColorSel < itemsColorSelLength; indexColorSel++)
+				{
+					cdns.push("<tr><td><input type=\"color\" name=\"PaletaColors\" id=\"edita-estil-color-" + indexColorSel + "\" value=\"" + arrayColorsSelectors[indexColorSel].color + "\"></td><td><label class=\"Verdana11px\" for=\"edita-estil-color-" + indexColorSel + "\">", arrayColorsSelectors[indexColorSel].descr, "</label></td></tr>");
+				}
+				cdns.push("</table></fieldset>");
+			}
+
+			if(arrayThicknessSelectors && arrayThicknessSelectors.length)
+			{
+				// Thickness HTML Section
+				cdns.push("<fieldset><legend>", GetMessage("Thickness"), ": </legend><table>");
+				cdns.push("<tr><td>", "<p class=\"Verdana11px\">", GetMessage("ThicknessRange", "cntxmenu"),"</p>","</td></tr>");
+				for (var indexThickSel = 0, itemsThickSelLength = arrayThicknessSelectors.length; indexThickSel < itemsThickSelLength; indexThickSel++)
+				{
+					cdns.push("<tr><td><input type=\"text\" name=\"Gruixos\" size=\"2\" id=\"edita-estil-gruix-" + indexThickSel + "\" value=\"" + arrayThicknessSelectors[indexThickSel] + "\"></td></tr>");
+				}
+				cdns.push("</table></fieldset>");
+			}
+		}
+		else if (estil.TipusObj == "P")
+		{
+			const voraKey = "vora";
+			const interiorKey = "interior";
+			// Alpha color values to modify
+			var arrayAlphaSelectors = [];
+
+			const formes = estil.formes.length > 0 ? estil.formes[0] : undefined;
+			// Cast object() inside "formes" to a new Map()
+			function objToMap(object)
+			{
+				return Object.keys(object).reduce(function(result, key) {
+					result.set(key, object[key]);
+					return result;
+				} , new Map());
+			}
+			if (formes !== undefined)
+			{
+				const mapFormes = objToMap(formes);
+				// Gathers all interesting keyes from map
+				const arrayKeyes = [];
+
+				if (mapFormes.has(voraKey))
+					arrayKeyes.push(voraKey);
+
+				if (mapFormes.has(interiorKey))
+					arrayKeyes.push(interiorKey);
+
+				arrayKeyes.forEach((item, i) => {
+					const objKey = item;
+					const forma = mapFormes.get(objKey);
+
+					if (forma.paleta && forma.paleta.colors && forma.paleta.colors.length > 0)
+					{
+						// The color is in hexadecimal format
+						if (forma.paleta.colors[0].indexOf("#") != -1)
+						{
+							arrayColorsSelectors.push({color:forma.paleta.colors[0], descr:objKey});
+						}
+						// The color is in RGB format
+						else if (forma.paleta.colors[0].indexOf("#") == -1)
+						{
+							const rgbDigits = forma.paleta.colors[0].slice( forma.paleta.colors[0].indexOf("(") + 1, forma.paleta.colors[0].indexOf(")"));
+							const arrayColorRGBA = rgbDigits.split(",");
+							const hexColor = "#" + ((1 << 24) + (parseInt(arrayColorRGBA[0]) << 16) + (parseInt(arrayColorRGBA[1]) << 8) + parseInt(arrayColorRGBA[2])).toString(16).slice(1);
+
+							arrayColorsSelectors.push({color:hexColor, descr:objKey});
+							if (arrayColorRGBA.length == 4)
+							{
+								arrayAlphaSelectors.push({alpha:parseFloat(arrayColorRGBA[arrayColorRGBA.length-1]), descr:objKey});
+							}
+						}
+					}
+				});
+			}
+			// Build HTML inputs
+			if(arrayColorsSelectors && arrayColorsSelectors.length)
+			{
+			// Color HTML Section
+				cdns.push("<fieldset><legend>", GetMessage("Colors"), ": </legend><table>");
+				for (var indexColorSel = 0, itemsColorSelLength = arrayColorsSelectors.length; indexColorSel < itemsColorSelLength; indexColorSel++)
+				{
+					const labelString = arrayColorsSelectors[indexColorSel].descr.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
+					cdns.push("<tr><td><input type=\"color\" name=\"PaletaColors\" id=\"edita-estil-color-" + indexColorSel + "\" value=\"" + arrayColorsSelectors[indexColorSel].color + "\"></td><td><label class=\"Verdana11px\" for=\"edita-estil-color-" + indexColorSel + "\">", labelString, "</label></td></tr>");
+				}
+				cdns.push("</table></fieldset>");
+			}
+
+			if(arrayAlphaSelectors && arrayAlphaSelectors.length)
+			{
+				// Transparency HTML Section
+				cdns.push("<fieldset><legend>", GetMessage("Transparency"), ": </legend><table>");
+				for (var indexTranspSel = 0, itemsTransSelLength = arrayAlphaSelectors.length; indexTranspSel < itemsTransSelLength; indexTranspSel++)
+				{
+					const labelString = arrayAlphaSelectors[indexTranspSel].descr.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
+					cdns.push("<tr><td><input type=\"text\" name=\"Transparencia\" size=\"2\" id=\"edita-estil-transparencia-" + indexTranspSel + "\" value=\"" + (100 - parseInt(arrayAlphaSelectors[indexTranspSel].alpha * 100)) + "\"></td><td><label class=\"Verdana11px\" for=\"edita-estil-transparencia-" + indexTranspSel + "\">", GetMessage("PercentageTransparencyRange", "cntxmenu"), "</label></td></tr></tr>");
+				}
+				cdns.push("</table></fieldset>");
+			}
+		}
+	}
 	cdns.push("<input type=\"button\" class=\"Verdana11px\" value=\"",
 		GetMessage("OK"),
 	        "\" onClick='EditaEstilCapa(", i_capa, ",", i_estil, ");TancaFinestraLayer(\"editaEstil\");' />",
+			"<input type=\"button\" class=\"Verdana11px\" value=\"",
+		GetMessage("Apply"),
+	        "\" onClick='EditaEstilCapa(", i_capa, ",", i_estil, ");' />",
 		"</div></form>");
 	return cdns.join("");
 }
@@ -3439,13 +3586,15 @@ var cdns=[], capa=ParamCtrl.capa[i_capa], estil=capa.estil[i_estil];
 
 	for (var i_comp=0, compLength=estil.component.length; i_comp<compLength; i_comp++)
 	{
-		// Es fa una còpia de l'estirament de la paleta per preservar-lo després d'esser modificat.
-		if (!estil.component[i_comp].estiramentPaletaInicial)
+		// Es fa una cÃ²pia de l'estirament de la paleta per preservar-lo desprÃ©s d'esser modificat.
+		if (!estil.component[i_comp].estiramentPaletaExtrems)
 		{
-			estil.component[i_comp].estiramentPaletaInicial = {
-				valorMaxim: estil.component[i_comp].estiramentPaleta.valorMaxim,
-				valorMinim: estil.component[i_comp].estiramentPaleta.valorMinim
+			estil.component[i_comp].estiramentPaletaExtrems = {
+				valorMaxim: estil.component[i_comp].estiramentPaleta.valorMaxim > estil.histograma.component[i_comp].valorMaximReal ? estil.component[i_comp].estiramentPaleta.valorMaxim : estil.histograma.component[i_comp].valorMaximReal,
+				valorMinim: estil.component[i_comp].estiramentPaleta.valorMinim < estil.histograma.component[i_comp].valorMinimReal ? estil.component[i_comp].estiramentPaleta.valorMinim : estil.histograma.component[i_comp].valorMinimReal
 			};
+			estil.component[i_comp].estiramentPaleta.valorMaxim = estil.component[i_comp].estiramentPaletaExtrems.valorMaxim;
+			estil.component[i_comp].estiramentPaleta.valorMinim = estil.component[i_comp].estiramentPaletaExtrems.valorMinim;
 		}
 
 		if (estil.component.length>2)
@@ -3468,47 +3617,46 @@ var cdns=[], capa=ParamCtrl.capa[i_capa], estil=capa.estil[i_estil];
 			}
 			cdns.push(": </legend>");
 		}
-		// Valor mínim i valor màxim
-		// Valor unitari prement botons incrmenet/decrement. Serà 1% del rang possible.
+		// Valor mÃ­nim i valor mÃ xim
+		// Valor unitari prement botons incrmenet/decrement. SerÃ  1% del rang possible.
 		var valUnitari = 1; // Per defecte.
-		const estPaletaIni = estil.component[i_comp].estiramentPaletaInicial;
+		const estPaletaExtr = estil.component[i_comp].estiramentPaletaExtrems;
 		const estPaleta = estil.component[i_comp].estiramentPaleta;
-		if (estPaletaIni)
+		if (estPaletaExtr)
 		{
-			valUnitari = (estPaletaIni.valorMaxim - estPaletaIni.valorMinim) / 100.00;
+			valUnitari = (estPaletaExtr.valorMaxim - estPaletaExtr.valorMinim) / 100.00;
 		}
 
 		cdns.push("<label for=\"edita-estil-capa-valor-minim-", i_comp, "\">", GetMessage("Minimum"), ": </label>",
-			"<input type=\"number\" id=\"edita-estil-capa-valor-minim-",i_comp, "\" name=\"minim", i_comp,"\" min=\"", estPaletaIni.valorMinim, "\" max=\"", estPaletaIni.valorMaxim, "\" step=\"", valUnitari, "\" value=\"",
-			DonaFactorValorMinEstiramentPaleta(estPaleta), "\" style=\"width:80px;\" onChange=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", this.value, ", valUnitari, ", true);\">",
+			"<input type=\"text\" id=\"edita-estil-capa-valor-minim-",i_comp, "\" name=\"minim", i_comp,"\" value=\"",
+			DonaFactorValorMinEstiramentPaleta(estPaleta).toFixed(3), "\" style=\"width:80px;\" onChange=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", this.value, ", valUnitari, ", true);\">",
 			" (", GetMessage("computed", "cntxmenu"), " ", estil.histograma.component[i_comp].valorMinimReal.toFixed(3), " ",
 			"<input type=\"button\" class=\"Verdana11px\" value=\"", GetMessage("Adopt", "cntxmenu"),
 				"\" onClick=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", ", estil.histograma.component[i_comp].valorMinimReal, ", ", valUnitari,", true);\">",")", "<br>",
-			"<input type=\"button\" id=\"edita-estil-capa-button-fletxa-esq-valor-minim-",i_comp, "\" value=\"<\" onClick=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", parseFloat(document.getElementById('edita-estil-capa-valor-minim-", i_comp, "').value) - ", valUnitari,", ", valUnitari, ", true);\">",
-			"<input type=\"range\" id=\"edita-estil-capa-slider-valor-minim-",i_comp, "\" style=\"width: 300px;\" step=\"", valUnitari, "\" min=\"", 0, "\" max=\"", estPaletaIni.valorMaxim - estPaletaIni.valorMinim, "\" value=\"", estPaleta.valorMinim - estPaletaIni.valorMinim, "\" onchange=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", this.value, ", valUnitari, ", true);\" onclick=\"dontPropagateEvent(event);\">",
+				"<div style='display: flex; align-items: stretch;'><label id=\"minEsqBtn-", i_comp, "\" for=\"edita-estil-capa-button-fletxa-esq-valor-minim-", i_comp, "\">", GetMessage("Minimum"), " ", GetMessage("Range"), ": ", DonaFactorValorMinEstiramentPaleta(estPaletaExtr).toFixed(3), "</label>",
+				"<input type=\"button\" id=\"edita-estil-capa-button-fletxa-esq-valor-minim-",i_comp, "\" value=\"<\" onClick=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", parseFloat(document.getElementById('edita-estil-capa-valor-minim-", i_comp, "').value) - ", valUnitari,", ", valUnitari, ", true);\">",
+			"<input type=\"range\" id=\"edita-estil-capa-slider-valor-minim-",i_comp, "\" style=\"width: 285px;\" step=\"", valUnitari, "\" min=\"", 0, "\" max=\"", estPaletaExtr.valorMaxim - estPaletaExtr.valorMinim, "\" value=\"", estPaleta.valorMinim - estPaletaExtr.valorMinim, "\" onchange=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", this.value, ", valUnitari, ", true);\" onclick=\"dontPropagateEvent(event);\">",
 			"<input type=\"button\" id=\"edita-estil-capa-button-fletxa-dret-valor-minim-",i_comp, "\" value=\">\" onClick=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", parseFloat(document.getElementById('edita-estil-capa-valor-minim-", i_comp, "').value) + ", valUnitari,", ", valUnitari, ", true);\">",
-			"<br>");
+			"<label id=\"minDrtBtn-", i_comp, "\" for=\"edita-estil-capa-button-fletxa-dret-valor-minim-", i_comp, "\">", GetMessage("Maximum"), " ", GetMessage("Range"), ": ", DonaFactorValorMaxEstiramentPaleta(estPaletaExtr).toFixed(3), "</label>",
+			"</div><br>");
 
 		cdns.push("<label for=\"edita-estil-capa-valor-maxim-", i_comp, "\">", GetMessage("Maximum"), ": </label>",
-			"<input type=\"number\" id=\"edita-estil-capa-valor-maxim-",i_comp, "\" name=\"maxim", i_comp,"\" min=\"", estPaletaIni.valorMinim, "\" max=\"", estPaletaIni.valorMaxim, "\" step=\"", valUnitari, "\" value=\"",
-			DonaFactorValorMaxEstiramentPaleta(estPaleta), "\" style=\"width:80px;\" onChange=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", this.value, ", valUnitari,", false);\">",
+			"<input type=\"text\" id=\"edita-estil-capa-valor-maxim-",i_comp, "\" name=\"maxim", i_comp,"\" value=\"",
+			DonaFactorValorMaxEstiramentPaleta(estPaleta).toFixed(3), "\" style=\"width:80px;\" onChange=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", this.value, ", valUnitari,", false);\">",
 			" (", GetMessage("computed", "cntxmenu"), " ", estil.histograma.component[i_comp].valorMaximReal.toFixed(3), " ",
 			"<input type=\"button\" class=\"Verdana11px\" value=\"", GetMessage("Adopt", "cntxmenu"),
 				"\" onClick=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", ", estil.histograma.component[i_comp].valorMaximReal, ", ", valUnitari, ", false);\">",")", "<br>",
+				"<div style='display: flex; align-items: stretch;'><label id=\"maxEsqBtn-", i_comp,"\" for=\"edita-estil-capa-button-fletxa-esq-valor-maxim-", i_comp, "\"  style=\"text-align: center;\">", GetMessage("Minimum"), " ", GetMessage("Range"), ": ", DonaFactorValorMinEstiramentPaleta(estPaletaExtr).toFixed(3), "</label>",
 				"<input type=\"button\" id=\"edita-estil-capa-button-fletxa-esq-valor-maxim-",i_comp, "\" value=\"<\" onClick=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", parseFloat(document.getElementById('edita-estil-capa-valor-maxim-", i_comp, "').value) - ", valUnitari,", ", valUnitari, ", false);\">",
-				"<input type=\"range\" id=\"edita-estil-capa-slider-valor-maxim-",i_comp, "\" style=\"width: 300px;direction: rtl;\" step=\"", valUnitari, "\" min=\"", 0, "\" max=\"", estPaletaIni.valorMaxim - estPaletaIni.valorMinim, "\" value=\"", estPaletaIni.valorMaxim - estPaletaIni.valorMinim -(estPaleta.valorMaxim - estPaletaIni.valorMinim), "\" onchange=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", this.value, ", valUnitari,", false);\" onclick=\"dontPropagateEvent(event);\">",
-				"<input type=\"button\" id=\"edita-estil-capa-button-fletxa-dret-valor-maxim-",i_comp, "\" value=\">\" onClick=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", parseFloat(document.getElementById('edita-estil-capa-valor-maxim-", i_comp, "').value) + ", valUnitari, ", ", valUnitari, ", false);\">");
+				"<input type=\"range\" id=\"edita-estil-capa-slider-valor-maxim-",i_comp, "\" style=\"width: 285px;direction: rtl;\" step=\"", valUnitari, "\" min=\"", 0, "\" max=\"", estPaletaExtr.valorMaxim - estPaletaExtr.valorMinim, "\" value=\"", estPaletaExtr.valorMaxim - estPaletaExtr.valorMinim -(estPaleta.valorMaxim - estPaletaExtr.valorMinim), "\" onchange=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", this.value, ", valUnitari,", false);\" onclick=\"dontPropagateEvent(event);\">",
+				"<input type=\"button\" id=\"edita-estil-capa-button-fletxa-dret-valor-maxim-",i_comp, "\" value=\">\" onClick=\"CanviaValorEstiramentDePaleta(event, ", i_capa, ", ", i_comp, ", ", i_estil, ", parseFloat(document.getElementById('edita-estil-capa-valor-maxim-", i_comp, "').value) + ", valUnitari, ", ", valUnitari, ", false);\">",
+				"<label id=\"maxDrtBtn-", i_comp, "\" for=\"edita-estil-capa-button-fletxa-dret-valor-maxim-", i_comp, "\">", GetMessage("Maximum"), " ", GetMessage("Range"), ": ", DonaFactorValorMaxEstiramentPaleta(estPaletaExtr).toFixed(3), "</label>",
+			"</div><br>");
 		if (estil.component.length>1)
 			cdns.push("</fieldset>");
 	}
 	return cdns.join("");
 }
-
-/*function AdoptRule(i_capa, i_estil, i_comp)
-{
-	const capa=ParamCtrl.capa[i_capa], estil=capa.estil[i_estil];
-	document.getElementById("edita-estil-capa-valor-maxim-" + i_comp).value = estil.histograma.component[i_comp].valorMaximReal;
-}*/
 
 function TancarFinestra_editEstil(idDiv)
 {
@@ -3523,8 +3671,8 @@ function TancarFinestra_editEstil(idDiv)
 
 function ForcaRecalculItemLleg(estil)
 {
-	//Cal passar a llegenda automàtica per força
-	estil.ItemLleg=null //això força a tornar a genera els colors de la llegenda i aquest eren automàtics.
+	//Cal passar a llegenda automÃ tica per forÃ§a
+	estil.ItemLleg=null //aixÃ² forÃ§a a tornar a genera els colors de la llegenda i aquest eren automÃ tics.
 	if (!estil.nItemLlegAuto)
 		estil.nItemLlegAuto=20;
 	if (!estil.ncol)
@@ -3579,7 +3727,7 @@ var capa=ParamCtrl.capa[i_capa], estil=capa.estil[i_estil], valor_min, valor_max
 		else
 			estil.component[0].illum.f=valor;
 	}
-	else if (estil.component.length<3)
+	else if (estil.component && estil.component.length<3)
 	{
 		var paleta_de_estil_capa=false;
 		if (document.getElementById("edita-estil-capa-paleta-actual").checked)
@@ -3640,6 +3788,116 @@ var capa=ParamCtrl.capa[i_capa], estil=capa.estil[i_estil], valor_min, valor_max
 						}
 					}
 				}
+			}
+		}
+	}
+	if (capa.model == "vector")
+	{
+ 		if (estil.TipusObj == "L" && estil.ItemLleg)
+		{
+			/* Save new colors selected for legend representation and to"forma.paleta"
+			 object. It defines how the line should be painted on map */
+			for (var iItemLleg = 0, itemsLlegLength = estil.ItemLleg.length; iItemLleg < itemsLlegLength; iItemLleg++)
+			{
+				var colorInput = document.getElementById("edita-estil-color-" + iItemLleg);
+				if (colorInput && colorInput.value)
+				{
+					// Legend
+					estil.ItemLleg[iItemLleg].color = colorInput.value;
+					// Palette
+					if (estil.formes && estil.formes.length > 0)
+					{
+						const lastForma = estil.formes[estil.formes.length - 1];
+						if (lastForma.vora && lastForma.vora.paleta && lastForma.vora.paleta.colors)
+						{
+							// If NomCamp exists means we have multiple colors and then we need to worry about the first emtpy color in "paleta"
+							const indexPalette = lastForma.vora.NomCamp ? iItemLleg + 1 : iItemLleg;
+							if (lastForma.vora.paleta.colors.length > indexPalette)
+							{
+								lastForma.vora.paleta.colors[indexPalette] = colorInput.value;
+							}
+						}
+					}
+				}
+			}
+			if (estil.formes && estil.formes.length > 0)
+			{
+				const lastForma = estil.formes[estil.formes.length - 1];
+				if (lastForma.vora && lastForma.vora.gruix && lastForma.vora.gruix.amples)
+				{
+					for (var iAmples = 0, amplesLength = lastForma.vora.gruix.amples.length; iAmples < amplesLength; iAmples++)
+					{
+						var textThicknessInput = document.getElementById("edita-estil-gruix-" + iAmples);
+						if (textThicknessInput && textThicknessInput.value)
+						{
+							lastForma.vora.gruix.amples[iAmples] = textThicknessInput.value > 10 ? 10 : (textThicknessInput.value < 1 ? 1 : textThicknessInput.value);
+						}
+					}
+				}
+			}
+		}
+		else if (estil.TipusObj == "P" && estil.formes)
+		{
+			const voraKey = "vora";
+			const interiorKey = "interior";
+			const formes = estil.formes.length > 0 ? estil.formes[0] : undefined;
+
+			function objToMap(object)
+			{
+				return Object.keys(object).reduce(function(result, key) {
+					result.set(key, object[key]);
+					return result;
+				} , new Map());
+			}
+
+			function hexToRgb(hex) {
+			  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+			  return result ? {
+			    r: parseInt(result[1], 16),
+			    g: parseInt(result[2], 16),
+			    b: parseInt(result[3], 16)
+			  } : null;
+			}
+
+			if (formes !== undefined)
+			{
+				const mapFormes = objToMap(formes);
+
+				// Gathers all interesting keyes from map
+				const arrayKeyes = [];
+				var alphaIndex = 0;
+				if (mapFormes.has(voraKey))
+					arrayKeyes.push(voraKey);
+
+				if (mapFormes.has(interiorKey))
+					arrayKeyes.push(interiorKey);
+
+				arrayKeyes.forEach((item, i) => {
+					const objKey = item;
+					const forma = mapFormes.get(objKey);
+					const colorInput = document.getElementById("edita-estil-color-" + i);
+
+					if (forma.paleta && forma.paleta.colors && forma.paleta.colors.length > 0 && colorInput && colorInput.value)
+					{
+						if (forma.paleta.colors[0].indexOf("#") == -1)
+						{
+							const transpInput = document.getElementById("edita-estil-transparencia-" + alphaIndex);
+							if (transpInput && transpInput.value)
+							{
+								const rgbComponents = hexToRgb(colorInput.value);
+								const evalTanspValue = parseInt(transpInput.value) > 100 ? 100 : (parseInt(transpInput.value) < 0 ? 0 : parseInt(transpInput.value));
+								const transValueTantPer1 = 1 - evalTanspValue/100;
+								const rgbaValue = "rgba(" + rgbComponents.r + "," + rgbComponents.g + "," + rgbComponents.b + "," + transValueTantPer1.toString() + ")";
+								forma.paleta.colors[0] = rgbaValue;
+							}
+							alphaIndex++;
+						}
+						else
+						{
+							forma.paleta.colors[0] = colorInput.value;
+					}
+				}
+				});
 			}
 		}
 	}
@@ -3860,85 +4118,284 @@ var floatValor=parseFloat(valor);
 	if (estil && estil.component && estil.component.length > 0)
 	{
 		const estPaleta = estil.component[i_component].estiramentPaleta;
-		const estPaletaIni = estil.component[i_component].estiramentPaletaInicial;
-		if (!isNaN(estPaleta.valorMinim) && !isNaN(estPaleta.valorMaxim) && !isNaN(estPaletaIni.valorMinim) && !isNaN(estPaletaIni.valorMaxim))
+		const estPaletaExtr = estil.component[i_component].estiramentPaletaExtrems;
+		if (!isNaN(estPaleta.valorMinim) && !isNaN(estPaleta.valorMaxim) && !isNaN(estPaletaExtr.valorMinim) && !isNaN(estPaletaExtr.valorMaxim))
 		{
 			if (esMinim)
 			{
-				var valueDinsRang = 0;
+				var valorActual = 0;
 				//	Distingim entre el tipus de element "input" que preten modifica el
-				//	valor de la paleta. Diferenciem entre input.type= range/number/button
+				//	valor de la paleta. Diferenciem entre input.type= range/text/button
 				if (event.target.attributes["type"].value.localeCompare("range") == 0)
 				{
-					valueDinsRang = estPaletaIni.valorMinim + floatValor;
+					valorActual = estPaletaExtr.valorMinim + floatValor;
 				}
-				else //	Tant per input.type= number com button
+				else //	Tant per input.type= text o button
 				{
-					valueDinsRang = floatValor;
-					floatValor =  floatValor - estPaletaIni.valorMinim;
+					valorActual = floatValor;
+					floatValor =  floatValor - estPaletaExtr.valorMinim;
 				}
 
 				const textMinim = document.getElementById("edita-estil-capa-valor-minim-" + i_component);
+				const textMaxim = document.getElementById("edita-estil-capa-valor-maxim-" + i_component);
 				const sliderMinim = document.getElementById("edita-estil-capa-slider-valor-minim-" + i_component);
 				const sliderMaxim = document.getElementById("edita-estil-capa-slider-valor-maxim-" + i_component);
-				const valueRangSuperior = estPaletaIni.valorMaxim - parseFloat(sliderMaxim.value);
-				if (parseFloat(valueDinsRang) > parseFloat(estPaletaIni.valorMinim) && parseFloat(valueDinsRang) < parseFloat(valueRangSuperior))
+				if (parseFloat(valorActual) > parseFloat(estPaletaExtr.valorMinim) && parseFloat(valorActual) < parseFloat(textMaxim.value))
 				{
-					textMinim.value = valueDinsRang;
+					textMinim.value = valorActual.toFixed(3);
 					sliderMinim.value = floatValor;
 				}
 				else
 				{
-					if (parseFloat(valueDinsRang) <= parseFloat(estPaletaIni.valorMinim))
+					if (parseFloat(valorActual) <= parseFloat(estPaletaExtr.valorMinim))
 					{
-						textMinim.value = estPaletaIni.valorMinim;
-						sliderMinim.value = sliderMinim.min;
+						const labelRangeEsqMin= document.getElementById("minEsqBtn-" + i_component);
+						const labelRangeEsqMax= document.getElementById("maxEsqBtn-" + i_component);
+						textMinim.value = valorActual.toFixed(3);
+						labelRangeEsqMin.textContent = TextLimitsSliders(parseFloat(textMinim.value), true);
+						labelRangeEsqMax.textContent = TextLimitsSliders(parseFloat(textMinim.value), true);
+						sliderMinim.max = parseFloat(sliderMinim.max) + (parseFloat(estPaletaExtr.valorMinim) - valorActual);
+						sliderMaxim.max = sliderMinim.max;
+						sliderMinim.value = 0;
+						estPaletaExtr.valorMinim = parseFloat(estPaletaExtr.valorMinim) - (parseFloat(estPaletaExtr.valorMinim) - valorActual);
 					}
 					else
 					{
-						textMinim.value = parseFloat(valueRangSuperior) - valorUnitari;
+						textMinim.value = (parseFloat(textMaxim.value) - valorUnitari).toFixed(3);
 						sliderMinim.value = parseFloat(sliderMaxim.max) - parseFloat(sliderMaxim.value) - valorUnitari;
 					}
 				}
 			}
 			else
 			{
-				var valueDinsRang = 0;
+				var valorActual = 0;
 				//	Distingim entre el tipus de element "input" que preten modifica el
-				//	valor de la paleta. Diferenciem entre input.type= range/number/button
+				//	valor de la paleta. Diferenciem entre input.type= range/text/button
 				if (event.target.attributes["type"].value.localeCompare("range") == 0)
 				{
-					valueDinsRang = estPaletaIni.valorMaxim - floatValor;
+					valorActual = estPaletaExtr.valorMaxim - floatValor;
 				}
-				else //	Tant per input.type= number com button
+				else //	Tant per input.type= text o button
 				{
-					valueDinsRang = floatValor;
-					floatValor =  estPaletaIni.valorMaxim - estPaletaIni.valorMinim -(floatValor - estPaletaIni.valorMinim);
+					valorActual = floatValor;
+					floatValor =  estPaletaExtr.valorMaxim - estPaletaExtr.valorMinim -(floatValor - estPaletaExtr.valorMinim);
 				}
 
+				const textMinim = document.getElementById("edita-estil-capa-valor-minim-" + i_component);
 				const textMaxim = document.getElementById("edita-estil-capa-valor-maxim-" + i_component);
 				const sliderMinim = document.getElementById("edita-estil-capa-slider-valor-minim-" + i_component);
 				const sliderMaxim = document.getElementById("edita-estil-capa-slider-valor-maxim-" + i_component);
-				const valueRangInferior = estPaletaIni.valorMinim + parseFloat(sliderMinim.value);
-				if (parseFloat(valueDinsRang) > parseFloat(valueRangInferior) && parseFloat(valueDinsRang) < parseFloat(estPaletaIni.valorMaxim))
+				if (parseFloat(valorActual) > parseFloat(textMinim.value) && parseFloat(valorActual) < parseFloat(estPaletaExtr.valorMaxim))
 				{
-					textMaxim.value = valueDinsRang;
+					textMaxim.value = valorActual.toFixed(3);
 					sliderMaxim.value = floatValor;
 				}
 				else
 				{
-					if (parseFloat(valueDinsRang) >= parseFloat(estPaletaIni.valorMaxim))
+					if (parseFloat(valorActual) >= parseFloat(estPaletaExtr.valorMaxim))
 					{
-						textMaxim.value = estPaletaIni.valorMaxim;
+						const labelRangeDrtMin= document.getElementById("minDrtBtn-" + i_component);
+						const labelRangeDrtMax= document.getElementById("maxDrtBtn-" + i_component);
+						textMaxim.value = valorActual.toFixed(3);
+						labelRangeDrtMin.textContent = TextLimitsSliders(parseFloat(textMaxim.value), false);
+						labelRangeDrtMax.textContent = TextLimitsSliders(parseFloat(textMaxim.value), false);
 						sliderMaxim.value = 0;
+						sliderMaxim.max = valorActual - estPaletaExtr.valorMinim;
+						sliderMinim.max = sliderMaxim.max;
+						estPaletaExtr.valorMaxim = valorActual;
 					}
 					else
 					{
-						textMaxim.value =  parseFloat(valueRangInferior) + valorUnitari;
+						textMaxim.value =  (parseFloat(textMinim.value) + valorUnitari).toFixed(3);
 						sliderMaxim.value = parseFloat(sliderMinim.max) - parseFloat(sliderMinim.value) - valorUnitari;
 					}
 				}
 			}
 		}
 	}
+}
+
+function TextLimitsSliders(limitValue, esMinim)
+{
+	return GetMessage(esMinim ? "Minimum" : "Maximum") + " " + GetMessage("Range") + ": " + limitValue.toFixed(3).toString();
+}
+/*
+	Mostra la capa vectorial en format taula.
+ */
+const i_objectesAExportar = {};
+var i_capaATaula = null;
+/* Mostra la finestra flotant de la taula per representar la capa vectorial */
+function ObreFinestraTaulaDeCapaVectorial(i_capa)
+{
+var elem=ObreFinestra(window, "taulaCapaVectorial", GetMessage("ElementsVectorialTable", "vector"));
+
+	if (!elem)
+		return;
+	i_capaATaula=i_capa;
+	contentLayer(elem, DonaCadenaTaulaDeCapaVectorial(i_capa));
+	titolFinestraLayer(window, "modificaNom", GetMessage("WhyNotVisible", "cntxmenu"));
+}
+/* Crea l'HTML per a construir la taula d'elements vectorials */
+function DonaCadenaTaulaDeCapaVectorial(i_capa, isNomesAmbit = false, ambGeometria = true)
+{
+const cdnsHtml=[], cdnsPortapapers=[], capa=ParamCtrl.capa[i_capa];
+const atributsVisibles = [], objectesDinsAmbit = [];
+var objectes = capa.objectes.features, i, j, attrLength = capa.atributs.length, objLength;
+
+	for (i = 0; i < attrLength; i++)
+	{
+		const attribute = capa.atributs[i];
+		if (attribute.mostrar == "si")
+		{
+			atributsVisibles.push(capa.atributs[i]);
+		}
+	}
+	// Si nomÃ©s desitgem veure els objectes de l'Ã mbit
+	if (isNomesAmbit)
+	{
+		for (i = 0, objLength = objectes.length; i < objLength; i++)
+		{
+			const objActual = objectes[i];
+			if (objActual.geometry.type == "Point")
+			{
+				const puntCRS = DonaCoordenadesCRS(objActual.geometry.coordinates[0], objActual.geometry.coordinates[1], ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
+				if (EsPuntDinsEnvolupant(puntCRS, ParamInternCtrl.vista.EnvActual))
+				{
+					objectesDinsAmbit.push(objActual);
+				}
+			}
+			else if (objActual.geometry.type == "LineString" || objActual.geometry.type == "Polygon")
+			{
+				const ambitCRS = DonaEnvolupantCRS(DonaEnvDeMinMaxXY(objActual.bbox[0], objActual.bbox[2], objActual.bbox[1], objActual.bbox[3]), ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
+				if (EsEnvDinsEnvolupant(ambitCRS, ParamInternCtrl.vista.EnvActual))
+				{
+					objectesDinsAmbit.push(objActual);
+				}
+			}
+		}
+		// Transpassem els objectes de l'Ã mbit a l'estructura que nodreix la resta de la funciÃ³.
+		objectes = objectesDinsAmbit;
+	}
+
+	if (atributsVisibles.length > 0)
+	{
+		cdnsHtml.push("<div><p style='font-size:20px'>", GetMessage("Layer"), " ", capa.desc, "</p><input type='checkbox' id='nomesAmbit'", (isNomesAmbit)? "checked" : "", " onChange='RecarregaTaula(",i_capa, ", this, document.getElementById(\"ambGeometria\"))'>",
+		"<label for='nomesAmbit'>", GetMessage("ViewItemsInScope", "cntxmenu"), "</label>",
+		"<input type='checkbox' id='ambGeometria'", (ambGeometria)? "checked" : "", " onChange='RecarregaTaula(",i_capa, ", document.getElementById(\"nomesAmbit\"), this)'>",
+		"<label for='ambGeometria'>", GetMessage("ShowGeometry", "cntxmenu"), "</label>",
+		"<button style='align-self:end;' onClick='ExportarObjectesGeoJSON(", i_capa, ")'>", GetMessage("ExportObjects", "cntxmenu"),"</button>",  
+		"</div><hr>");
+
+		// Porta papers capa info
+		cdnsPortapapers.push(GetMessage("Layer"), "\t", DonaCadena(capa.desc), "\n",
+		GetMessage("CurrentReferenceSystem"), "\t", DonaCadena(capa.CRSgeometry), "\n",
+		"MinX", "\t", capa.objectes.bbox[0], "\n",
+		"MaxX", "\t", capa.objectes.bbox[1], "\n",
+		"MinY", "\t", capa.objectes.bbox[2], "\n",
+		"MaxY", "\t", capa.objectes.bbox[3], "\n",
+		GetMessage("Type"), "\t", DonaCadena(capa.model)," ", DonaCadena(objectes[0].geometry.type), "\n");
+
+		cdnsHtml.push("<table class='vectorial' style='width:100%'><tr>");
+		for (i = 0, attrLength = atributsVisibles.length; i < attrLength; i++)
+		{
+			cdnsHtml.push("<th class='vectorial'>", atributsVisibles[i].descripcio, "</th>");
+
+			// Porta papers
+			cdnsPortapapers.push(atributsVisibles[i].descripcio, "\t");
+		}
+		if (ambGeometria)
+		{
+			cdnsHtml.push("<th class='vectorial' style='width:200px'>", GetMessage("Geometry", "cntxmenu"), "</th>");
+			// Porta papers
+			cdnsPortapapers.push(GetMessage("Geometry", "cntxmenu"), "\n");
+		}
+		cdnsHtml.push("<th class='vectorial'>", GetMessage("ExportObject", "cntxmenu"), "</th>");
+		cdnsHtml.push("<th class='vectorial'>", GetMessage("GoTo", "capavola"),"</th>");
+		cdnsHtml.push("</tr>");
+		for (i = 0, objLength = objectes.length; i < objLength; i++)
+		{
+			const objecteARepresentar = objectes[i];
+			cdnsHtml.push("<tr class='vectorial'>");
+			for (j = 0, attrLength = atributsVisibles.length; j < attrLength; j++)
+			{
+				cdnsHtml.push("<td class='vectorial' sytle='text-overflow:ellipsis; overflow:hidden; white-space:nowrap'>", objecteARepresentar.properties[atributsVisibles[j].nom], "</td>");
+				// Porta papers
+				cdnsPortapapers.push(objecteARepresentar.properties[atributsVisibles[j].nom], "\t");
+			}
+			if (ambGeometria)
+			{
+				cdnsHtml.push("<td sytle='text-overflow:ellipsis; overflow:hidden; white-space:nowrap; width:200px'>", objecteARepresentar.geometry.coordinates.toString(), "</td>");
+				// Porta papers
+				cdnsPortapapers.push(objecteARepresentar.geometry.coordinates.toString(), "\t");
+			}
+			cdnsHtml.push("<td style='text-align:center'><input type='checkbox' id='checkExport_"+ i + "' value='" + i + "' onChange='ActualitzaIndexObjectesExportar(this);'></td>");
+			cdnsHtml.push("<td><button style='width=100%' onClick='AnarAObjVectorialTaula(", objecteARepresentar.geometry.coordinates[0], " ,",  objecteARepresentar.geometry.coordinates[1], ")'>", GetMessage("GoTo", "capavola"),"</button>", "</td></tr>");
+			// Porta papers
+			cdnsPortapapers.push("\n");
+		}
+		cdnsHtml.push("</table>");
+	}
+
+	// Div i textArea per copar contingut de la taula i exportar-lo a .csv (Full de cÃ lcul).
+	cdnsHtml.push(DonaPortapapersTaulaCapaVectorial(cdnsPortapapers.join("")));
+	return cdnsHtml.join("");
+}
+/* Determina quins elements vectorials s'inclouran en l'exportaciï¿½ */
+function ActualitzaIndexObjectesExportar(checkbox)
+{
+	const indexATreballar = checkbox.value.toString();
+	// Ã‰s un diccionari d'Ã­ndexos on cada element Ã©s a la vegada el mateix Ã­ndex.
+	checkbox.checked ? (i_objectesAExportar[indexATreballar]=indexATreballar) : (delete i_objectesAExportar[indexATreballar]);
+}
+
+function DonaPortapapersTaulaCapaVectorial(contingutACopiar)
+{
+	const portapapers = "<div style=\"display: none\" id=\"taulaCapaVectorial_copy_div\"><form name=\"taulaCapaVectorial_copy_form\" onSubmit=\"return false;\"><textarea id=\"taulaCapaVectorial_copy_text\" wrap=\"off\" autocomplete=\"off\" autocorrect=\"off\" autocapitalize=\"off\" spellcheck=\"false\">" + contingutACopiar + "</textarea></form></div>";
+	return portapapers;
+}
+
+// FunciÃ³ que es crida al tancar la vista amb taula d'elements i elimina la creu punter de l'objecte localitzat.
+function TancaFinestra_taulaCapaVectorial()
+{
+	i_capaATaula=null;
+	TancaFinestra_anarCoord();
+}
+
+function RecarregaTaula(i_capa, checkboxAmbit, checkboxGeometria)
+{
+	const ambit = checkboxAmbit.checked, geometria = checkboxGeometria.checked;
+	contentLayer(getFinestraLayer(window, "taulaCapaVectorial"), DonaCadenaTaulaDeCapaVectorial(i_capa, ambit, geometria));
+}
+
+function ExportarObjectesGeoJSON(i_capa)
+{
+const capa = ParamCtrl.capa[i_capa];
+// Valors mÃ­nims/mÃ xims 
+const bboxObjectesAExportar = [180.0, 90.0, -180.0, -90.0];
+const capaExportar = {"type": "FeatureCollection", "features": []};
+	Object.keys(i_objectesAExportar).forEach(key => {
+		const objAExportar = ParamCtrl.capa[i_capa].objectes.features[key];
+		// Definir l'Ã mbit global dels elements exportats
+		if (objAExportar.bbox && objAExportar.bbox.length==4)
+		{
+			const iteradorIndex = objAExportar.bbox.keys();
+			for (var index of iteradorIndex)
+			{
+				// Coord del bbox MÃ­nima
+				if (index < 2)
+				{
+					if (objAExportar.bbox[index] < bboxObjectesAExportar[index])
+						bboxObjectesAExportar[index] = objAExportar.bbox[index];
+				}
+				else // Coord del bbox MÃ xima
+				{
+					if (objAExportar.bbox[index] > bboxObjectesAExportar[index])
+						bboxObjectesAExportar[index] = objAExportar.bbox[index];
+				}
+			}
+			capaExportar.bbox = bboxObjectesAExportar;
+		}
+		capaExportar.features.push(objAExportar);
+	});
+	return GuardaDadesJSONFitxerExtern(capaExportar, GetMessage("exportedVectorObjects", "cntxmenu") + Date.now());
 }
