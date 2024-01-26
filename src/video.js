@@ -1,4 +1,4 @@
-/*
+Ôªø/*
     This file is part of MiraMon Map Browser.
     MiraMon Map Browser is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -17,19 +17,19 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2021 Xavier Pons
+    Copyright 2001, 2023 Xavier Pons
 
-    Aquest codi JavaScript ha estat idea de Joan MasÛ Pau (joan maso at uab cat)
-    amb l'ajut de N˙ria Juli‡ (n julia at creaf uab cat)
-    dins del grup del MiraMon. MiraMon Ès un projecte del
-    CREAF que elabora programari de Sistema d'InformaciÛ Geogr‡fica
-    i de TeledetecciÛ per a la visualitzaciÛ, consulta, ediciÛ i an‡lisi
-    de mapes r‡sters i vectorials. Aquest programari inclou
-    aplicacions d'escriptori i tambÈ servidors i clients per Internet.
-    No tots aquests productes sÛn gratuÔts o de codi obert.
+    Aquest codi JavaScript ha estat idea de Joan Mas√≥ Pau (joan maso at uab cat)
+    amb l'ajut de N√∫ria Juli√† (n julia at creaf uab cat)
+    dins del grup del MiraMon. MiraMon √©s un projecte del
+    CREAF que elabora programari de Sistema d'Informaci√≥ Geogr√†fica
+    i de Teledetecci√≥ per a la visualitzaci√≥, consulta, edici√≥ i an√†lisi
+    de mapes r√†sters i vectorials. Aquest programari inclou
+    aplicacions d'escriptori i tamb√© servidors i clients per Internet.
+    No tots aquests productes s√≥n gratu√Øts o de codi obert.
 
     En particular, el Navegador de Mapes del MiraMon (client per Internet)
-    es distribueix sota els termes de la llicËncia GNU Affero General Public
+    es distribueix sota els termes de la llic√®ncia GNU Affero General Public
     License, mireu https://www.gnu.org/licenses/licenses.html#AGPL.
 
     El Navegador de Mapes del MiraMon es pot actualitzar des de
@@ -39,16 +39,20 @@
 "use strict"
 
 var RodetVertical=false;  // Constant. el mode vertical no s'ha provat mai.
-var DatesVideo=[];  //Un array de propietats de cada "fotograma" de conforma el video: {"i_capa":, "i_data":, "i_estil:, "millisegons":, "animable":("si", "ara_no", "no"), "carregada":, "carregadaRodet":, "timeoutRodet":, "timeoutFotograma":}
+var DatesVideo=[];  // Un array de propietats de cada "fotograma" de conforma el video: {"i_capa":, "i_data":, "i_estil:, "millisegons":, "animable":("si", "ara_no", "no"), "carregada":, "carregadaRodet":, "timeoutRodet":, "timeoutFotograma":}
 var IDataVideoMostrada;
-var IDataVideoInicial, IDataVideoFinal;  //NomÈs ˙tils al principi de la c‡rrega. DesprÈs DatesVideo Ès manipulat per eliminar les dates fora de l'interval que desapareixen del array.
+var IDataVideoInicial, IDataVideoFinal;  //Nom√©s √∫tils al principi de la c√†rrega. Despr√©s DatesVideo √©s manipulat per eliminar les dates fora de l'interval que desapareixen del array.
 var NomVideoActiu;
 var PuntsSerieTemporal=[], IconaVideoClick={}, ImgVideoStat, ImgVideoStatHistograma;
 //var EstadisticCarregatVideo=null;
-var IFilEixXEixTVideo=-1    //Index de fila que representa la imatge x/t
+const IFilEixXEixTVideoConsulta=-1;  //mode animaci√≥ on la consulta est√† activada.
+const IFilEixXEixTVideoRes=-3;       //mode cube on la consulta est√† desactivada.
+const IFilEixXEixTVideoPendent=-2;   //mode x/y per√≤ encara pendent de saber l'index de fila.
+var IFilEixXEixTVideo=IFilEixXEixTVideoConsulta;    //Index de fila que representa la imatge x/t.
 var IDataFilEixXEixT=[];    //Array amb d'index de fotograma que representa cada linia (fila) de la imatge x/t
 
 var timeoutVideoID=null, timeoutVideoInfo=null;
+var tipusAnimacio="animaci√≥";
 
 function OrdenacioCapesVideoData(x,y)
 {
@@ -58,7 +62,7 @@ function OrdenacioCapesVideoData(x,y)
 
 function EsCapaAptePerVideo(capa)
 {
-	if (capa.NomVideo!=null && (DonaTipusServidorCapa(capa)=="TipusWMS" || DonaTipusServidorCapa(capa)=="TipusHTTP_GET") &&   // Segurament les capes en TipusOAPI_Maps tambÈ sÛn aptes per a vÌdeos
+	if (capa.NomVideo!=null && (DonaTipusServidorCapa(capa)=="TipusWMS" || DonaTipusServidorCapa(capa)=="TipusHTTP_GET") &&   // Segurament les capes en TipusOAPI_Maps tamb√© s√≥n aptes per a v√≠deos
 		EsCapaDinsRangDEscalesVisibles(capa) && EsCapaDinsAmbitActual(capa) && EsCapaDisponibleEnElCRSActual(capa) &&
 		capa.animable==true && capa.data)
 		return true;
@@ -67,17 +71,19 @@ function EsCapaAptePerVideo(capa)
 
 function DonaNPecesBarraVideo()
 {
-	return Math.round((ParamInternCtrl.vista.ncol-2)/8);
+	return Math.round((ParamInternCtrl.vista.ncol-6)/8);
 }
 
-function DonaIPecaBarraVideo(i_data_video, n)
+//Abans es deia: DonaIPecaBarraVideo() per√≤ el seu √∫s √©s m√©s general.
+function DonaPosicioDeFrameEstiratLinealment(i_data_video, n)
 {
 	if (document.video_animacions.TipusTemps[0].checked)
 		return parseInt(((DatesVideo[i_data_video].millisegons-DatesVideo[0].millisegons)/(DatesVideo[DatesVideo.length-1].millisegons-DatesVideo[0].millisegons))*(n-1));
 	return Math.round((n-1)*(i_data_video/(DatesVideo.length-1)));
 }
 
-function DonaIDataVideoDesDePecaBarraVideo(i, n)
+//Abans es deia: DonaIDataVideoDesDePecaBarraVideo
+function DonaIDataVideoDesDePosicioDeFrameEstiratLinealment(i, n)
 {
 var t;
 	if (document.video_animacions.TipusTemps[0].checked)
@@ -169,7 +175,7 @@ var data=[], i_v, i_c;
 				estadistics=CalculaEstadisticsHistograma(estil.capa_video[DatesVideo[i_data_video].i_data].histograma.component[i_c].classe,
 						DonaFactorValorMinEstiramentPaleta(estil.component[i_c].estiramentPaleta),
 						DonaFactorValorMaxEstiramentPaleta(estil.component[i_c].estiramentPaleta,
-								estil.capa_video[DatesVideo[i_data_video].i_data].histograma.component[i_c].classe.length  //El nombre de colors, o Ès el nombre de colors de la paleta, o Ès 256 per totes les bandes
+								estil.capa_video[DatesVideo[i_data_video].i_data].histograma.component[i_c].classe.length  //El nombre de colors, o √©s el nombre de colors de la paleta, o √©s 256 per totes les bandes
 									));
 				data[i_c][0][i_v]={t:DatesVideo[i_data_video].millisegons, y:estadistics.mitjana+estadistics.desv_tipica};
 				data[i_c][1][i_v]={t:DatesVideo[i_data_video].millisegons, y:estadistics.mitjana};
@@ -182,7 +188,7 @@ var data=[], i_v, i_c;
 }
 
 
-//Aquesta funciÛ dona les etiquetes de temps en mode "moment" tal com ho vol la llibreria chart.js.
+//Aquesta funci√≥ dona les etiquetes de temps en mode "moment" tal com ho vol la llibreria chart.js.
 function DonaEtiquetesValorsSerieTemporalLocalitzacio()
 {
 var labels=[];
@@ -197,7 +203,7 @@ var labels=[];
 	return labels;
 }
 
-//Aquesta funciÛ dona les etiquetes de temps en mode text.
+//Aquesta funci√≥ dona les etiquetes de temps en mode text.
 function DonaTempsValorsSerieTemporalLocalitzacio()
 {
 var temps=[];
@@ -226,43 +232,21 @@ var titol=[], estil;
 		{
 			for (var i_c=0; i_c<estil.component.length; i_c++)
 				titol[i_c]=(estil.component[i_c].desc) ? DonaCadena(estil.component[i_c].desc) : DonaCadena(estil.desc);
-			return titol;  //agafem el primer tÌtol sense mÈs.
+			return titol;  //agafem el primer t√≠tol sense m√©s.
 		}
 	}
 }
 
-/*function CanviaTipusClickVideo(event)
-{
-	if (document.video_animacions.TipusClick[0].checked && PuntsSerieTemporal.length==0)
-	{
-		document.getElementById("video_click").style.visibility="hidden";
-		//if (typeof document.video_animacions.veure!=="undefined" && document.video_animacions.veure!=null)
-		//{
-			document.video_animacions.veure.selectedIndex=0;
-			PosaEstadisticSerieOAnimacio(null, estadistic, -1);
-		}
-	}
-	else
-	{
-		TancaFinestraSerieTemp("video_grafic", "video_click");
-		document.getElementById("video_click").style.visibility="visible";
-		IFilEixXEixTVideo=-1;
-		return;
-	}
-	if (event)
-		dontPropagateEvent(event);
-}*/
-
 function ClickSobreVideo(event_de_click)
 {
-	if (IFilEixXEixTVideo==-1)
+	if (IFilEixXEixTVideo==IFilEixXEixTVideoConsulta)
 		ConsultaSobreVideo(event_de_click);
-	else if (IFilEixXEixTVideo==-2)
+	else if (IFilEixXEixTVideo==IFilEixXEixTVideoPendent)
 	{
 		if (!EstanTotsElsFotogramesCarregatsVideo())
 			return;
 		if (typeof document.video_animacions.veure!=="undefined" && document.video_animacions.veure!=null)
-			document.video_animacions.veure.selectedIndex=1;
+			document.video_animacions.veure.selectedIndex=2;
 		PosaEstadisticSerieOAnimacio(null, "x/t", DonaCoordJDeCoordSobreVista(document.getElementById("video_central"), NovaVistaVideo, event_de_click.clientY))
 		document.getElementById("video_click").style.visibility="hidden";
 	}
@@ -288,7 +272,7 @@ function ConsultaSobreVideo(event_de_click)
 
 	if (PuntsSerieTemporal.length==0)
 	{
-		//Ara cal presentar la gr‡fica.
+		//Ara cal presentar la gr√†fica.
 		ChartConsultaSobreVideo=ObreGraficSerieTemporal("video_grafic", "video_click", "video_grafic",
 						DonaDadesEstadistiquesFotogramaDeSerieTemporal(),
 						DonaEtiquetesValorsSerieTemporalLocalitzacio(),
@@ -305,7 +289,7 @@ function MouSobreVideo(event_de_click)
 {
 var ctx, canvas, shadowPrevi;
 
-	if (IFilEixXEixTVideo==-1)
+	if (IFilEixXEixTVideo==IFilEixXEixTVideoConsulta || IFilEixXEixTVideo==IFilEixXEixTVideoRes)
 		return;
 
 	var j=DonaCoordJDeCoordSobreVista(document.getElementById("video_central"), NovaVistaVideo, event_de_click.clientY)
@@ -353,7 +337,7 @@ var ctx, canvas, shadowPrevi;
 			shadowPrevi=ActivaSombraFonts(ctx)
 
 			ctx.beginPath();
-			ctx.strokeStyle=PuntsSerieTemporal[i_punt].color;;
+			ctx.strokeStyle=PuntsSerieTemporal[i_punt].color;
 			ctx.lineWidth=3;
 			var i_ini=PuntsSerieTemporal[i_punt].i+5;
 			var j_ini=PuntsSerieTemporal[i_punt].j-5;
@@ -380,8 +364,8 @@ function OmpleFinestraVideo(win, name)
 {
 var cdns=[], capa, i_capa_primer_video;
 
-	//Canviar la mida de la finestra.
-	moveFinestraLayer(win, name, -1, -1, ParamInternCtrl.vista.ncol+142, ParamInternCtrl.vista.nfil+140);
+	var div=win.document.getElementById(ParamCtrl.containerName);
+	moveFinestraLayer(win, name, -1, -1, (div.clientWidth && div.clientWidth<ParamInternCtrl.vista.ncol+142) ? div.clientWidth-4 : ParamInternCtrl.vista.ncol+142, (div.clientHeight && div.clientHeight<ParamInternCtrl.vista.nfil+140) ? div.clientHeight-4 : ParamInternCtrl.vista.nfil+140);
 
 	//Determinar el primer video actiu.
 	for (i_capa_primer_video=0; i_capa_primer_video<ParamCtrl.capa.length; i_capa_primer_video++)
@@ -395,10 +379,20 @@ var cdns=[], capa, i_capa_primer_video;
 		return;
 	}
 
-	//ComenÁo pel selector de capes.
+	//Comen√ßo pel selector de capes.
 	cdns.push("<form name=\"video_animacions\" METHOD=\"GET\" onSubmit=\"return CanviaAnimacio(document.video_animacions.capa.value);\">",
 		" <table border=\"0\" width=\"98%\" cellspacing=\"0\" cellpadding=\"0\"><tr><td align=left>"+DonaCadena(ParamCtrl.TitolCaixa)+"</td>",
-			  "<td align=right><font face=\"Verdana, Arial, Helvetica, sans-serif\" size=2>",
+		"<td align=right><font face=\"Verdana, Arial, Helvetica, sans-serif\" size=2>",
+		GetMessage("ReferenceLayer", "video"),
+		": <select name=\"caparef\" onChange=\"CanviaImatgeCapaRefVideo(document.video_animacions.caparef.value);\">",
+		"<option value=\"-1\" selected> -- ", GetMessage("none"), " --</option>");
+	for (var i_capa=0; i_capa<ParamCtrl.capa.length; i_capa++)
+	{
+		capa=ParamCtrl.capa[i_capa];
+		if (!EsCapaAptePerVideo(capa) && EsCapaVisibleAAquestNivellDeZoom(capa))
+			cdns.push("<option value=\"", i_capa ,"\">", DonaCadenaNomDesc(capa),"</option>");
+	}
+	cdns.push("</select>",
 			  GetMessage("TimeSeries", "video"),
 			  ": <select name=\"capa\" onChange=\"CanviaAnimacio(document.video_animacions.capa.value);\">");
 
@@ -428,22 +422,21 @@ var cdns=[], capa, i_capa_primer_video;
 		"<span id=\"video_estil\"></span></font></td></tr></table>");
 
 	//Creo la pantalla on es projecte el video.
-	cdns.push("<div id=\"video_central\" style=\"position: relative; margin-left: auto; margin-right: auto; width:", ParamInternCtrl.vista.ncol, "; height:", ParamInternCtrl.vista.nfil, ";\">",
-		"<div id=\"video_pantalla\" style=\"position: absolute; bottom: 0; width:", ParamInternCtrl.vista.ncol, "; height:", ParamInternCtrl.vista.nfil, ";\"><img src=\"",AfegeixAdrecaBaseSRC("1gris.gif"),"\" NAME=\"pantalla\" width=\"", ParamInternCtrl.vista.ncol, "\" height=\"", ParamInternCtrl.vista.nfil, "\"></div>",
-		"<div id=\"video_click\" style=\"position: absolute; bottom: 0; width:", ParamInternCtrl.vista.ncol, "; height:", ParamInternCtrl.vista.nfil, ";\"><canvas id=\"video_click_canvas\" width=\"", ParamInternCtrl.vista.ncol, "\" height=\"", ParamInternCtrl.vista.nfil, "\"></canvas></div>",
-		"<div id=\"video_info\" class=\"text_allus\" style=\"position: absolute; top: 0; margin-left: auto; margin-right: auto; width:", ParamInternCtrl.vista.ncol, "; height:", ParamInternCtrl.vista.nfil, ";\" onClick=\"ClickSobreVideo(event);\" onMouseMove=\"MouSobreVideo(event);\"></div>",
-		"<div id=\"video_botons\" class=\"finestra_superposada text_allus\" style=\"position: absolute; bottom: 0; margin-left: auto; margin-right: auto;\" onClick=\"ClickSobreVideo(event);\" onMouseMove=\"MouSobreVideo(event);\">");
+	cdns.push("<div id=\"video_central\" style=\"position: relative; margin-left: auto; margin-right: auto; width:", ParamInternCtrl.vista.ncol, "px; height:", ParamInternCtrl.vista.nfil, "px;\">",
+		"<div id=\"video_pantalla\" style=\"position: absolute; bottom: 0px; width:", ParamInternCtrl.vista.ncol, "px; height:", ParamInternCtrl.vista.nfil, "px;\"><img src=\"",AfegeixAdrecaBaseSRC("1gris.gif"),"\" name=\"pantalla\" width=\"", ParamInternCtrl.vista.ncol, "px\" height=\"", ParamInternCtrl.vista.nfil, "px\"></div>",
+		"<div id=\"video_info\" class=\"text_allus\" style=\"position: absolute; top: 0px; margin-left: auto; margin-right: auto; width:", ParamInternCtrl.vista.ncol, "px; height:", ParamInternCtrl.vista.nfil, "px;\" onClick=\"ClickSobreVideo(event);\" onMouseMove=\"MouSobreVideo(event);\"></div>",
+		"<div id=\"video_botons\" class=\"finestra_superposada text_allus\" style=\"position: absolute; bottom: 0px; margin-left: auto; margin-right: auto;\" onClick=\"ClickSobreVideo(event);\" onMouseMove=\"MouSobreVideo(event);\">");
 
-	// Desplegable d' animaciÛ o d'estadistic.
+	// Desplegable d'animaci√≥ o d'estadistic.
 	cdns.push("<center><span id=\"video_veure\"></span>");
 
-	//Dibuixar els botons de progrÈs del video.
+	//Dibuixar els botons de progr√©s del video.
 	cdns.push("<span id=\"video_botons_estadistics\" style=\"visibility: hidden\"><button onClick=\"return VideoCopiaEstadistic(event);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("boto_copiar.gif"),"\" alt=\"",GetMessage("copy"),"\" title=\"",GetMessage("copy"),"\"></button></span>");
 	cdns.push("<span id=\"video_botons_animacio\"><button onClick=\"return VideoMostraEvent(event, -2);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("b_start.gif"),"\" alt=\"",GetMessage("toTheStart"),"\" title=\"",GetMessage("toTheStart"),"\"></button>",
 		"<button onClick=\"return VideoMostraEvent(event, -1);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("b_rewind.gif"),"\" alt=\"",GetMessage("stepBack"),"\" title=\"",GetMessage("stepBack"),"\"></button>",
 		"<button onClick=\"return VideoMostraEvent(event, 0);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("b_pause.gif"),"\" alt=\"",GetMessage("pause"),"\" title=\"",GetMessage("pause"),"\"></button>",
 		"<button onClick=\"return VideoPlayEvent(event, 9);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("b_play.gif"),"\" alt=\"",GetMessage("play"),"\" title=\"",GetMessage("play"),"\"></button>",
-		"<button onClick=\"return VideoPlayEvent(event, 8);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("b_repeat.gif"),"\" alt=\"",GetMessage("repeatedlyPlay", "video"),"\" title=\"",GetMessage("repeatedlyPlay", "video"),"\"></button>",
+		"<button onClick=\"return VideoPlayEvent(event, 8);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("b_repeat.gif"),"\" alt=\"",GetMessage("repeatedlyPlay"),"\" title=\"",GetMessage("repeatedlyPlay"),"\"></button>",
 		"<button onClick=\"return VideoMostraEvent(event, 1);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("b_forward.gif"),"\" alt=\"",GetMessage("stepForward"),"\" title=\"",GetMessage("stepForward"),"\"></button>",
 		"<button onClick=\"return VideoMostraEvent(event, 2);\"><img align=middle src=\"",AfegeixAdrecaBaseSRC("b_end.gif"),"\" alt=\"",GetMessage("toTheEnd"),"\" title=\"",GetMessage("toTheEnd"),"\"></button>",
 		"<br />",
@@ -466,13 +459,13 @@ var cdns=[], capa, i_capa_primer_video;
 		"</font>",
 		"</center>");
 
-	//Dibuixar la data i la barra de progrÈs del video.
-	cdns.push("<span id=\"video_time_text\"><center><font face=\"Verdana, Arial, Helvetica, sans-serif\" size=2>",
+	//Dibuixar la data i la barra de progr√©s del video.
+	cdns.push("<span id=\"video_time_text\"><center><font face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"2\">",
 			  GetMessage("Date"),": <span id=\"video_data\"></span></center><span>",
 			"<span id=\"video_time_slider\"><center><img src=\"", AfegeixAdrecaBaseSRC("evol_mrg.png"), "\" border=\"0\">");
 	var n=DonaNPecesBarraVideo();
 	for (var i=0; i<n; i++)
-		cdns.push("<img src=\"", AfegeixAdrecaBaseSRC("evol_bl.png"), "\" border=\"0\" name=\"video_evol",i,"\" onMouseOver=\"CanviaFotogramaSiPuntABarra(event,",i,");\">");
+		cdns.push("<img src=\"", AfegeixAdrecaBaseSRC("evol_bl.png"), "\" border=\"0\" name=\"video_evol",i,"\" onMouseOver=\"CanviaFotogramaSiPuntABarra(event,",i,");\" onMouseOut=\"CancellaCanviaFotogramaSiPuntABarra();\">");
 	cdns.push("<img src=\"", AfegeixAdrecaBaseSRC("evol_mrg.png"), "\" border=\"0\"></center></span>");
 
 	if (ParamCtrl.IconaConsulta && !IconaVideoClick.img || !IconaVideoClick.img.sha_carregat || IconaVideoClick.img.hi_ha_hagut_error)
@@ -486,13 +479,13 @@ var cdns=[], capa, i_capa_primer_video;
 
 	//if (RodetVertical==false)
 	cdns.push("<div id=\"video_rodet\" style=\"overflow:auto;\"></div>",
-		"<div id=\"video_grafic\" style=\"position: absolute; visibility: hidden; top: 25px; width:"+ 460 +"; height:"+ ParamInternCtrl.vista.nfil +";\"></div>",
+		"<div id=\"video_grafic\" style=\"position: absolute; visibility: hidden; top: 25px; width:"+ 460 +"px; height:"+ ParamInternCtrl.vista.nfil +"px;\"></div>",
 		"</form>",
 		DonaTextDivCopiaPortapapersFinestra("VideoDiv"));
 
 	contentFinestraLayer(win, name, cdns.join(""));
 
-		//Si hi ha un video actiu, activar la seva preparaciÛ.
+		//Si hi ha un video actiu, activar la seva preparaci√≥.
 	CanviaAnimacio(document.video_animacions.capa.value);
 }
 
@@ -506,12 +499,26 @@ function CanviaEstatAnimable(boto, i_data_video)
 				clearTimeout(DatesVideo[i_data_video].timeOutFotograma);
 			var vista=JSON.parse(JSON.stringify(ParamInternCtrl.vista));
 			vista.i_nova_vista=NovaVistaVideo;
-			DatesVideo[i_data_video].timeoutFotograma=setTimeout("CanviaImatgeCapaVideo("+i_data_video+", "+JSON.stringify(vista)+", "+DatesVideo[i_data_video].i_capa+", "+DatesVideo[i_data_video].i_estil+", "+DatesVideo[i_data_video].i_data+")", 50);
+			//DatesVideo[i_data_video].timeoutFotograma=setTimeout("CanviaImatgeCapaVideo("+i_data_video+", "+JSON.stringify(vista)+", "+DatesVideo[i_data_video].i_capa+", "+DatesVideo[i_data_video].i_estil+", "+DatesVideo[i_data_video].i_data+")", 50);
+			DatesVideo[i_data_video].timeoutFotograma=setTimeout(CanviaImatgeCapaVideo, 50, i_data_video, vista, DatesVideo[i_data_video].i_capa, DatesVideo[i_data_video].i_estil, DatesVideo[i_data_video].i_data);
 		}
 		DatesVideo[i_data_video].animable="si";
+		if (IFilEixXEixTVideo==IFilEixXEixTVideoRes)
+			EncenFotogramaVideoCube(i_data_video);
 	}
 	else
+	{
 		DatesVideo[i_data_video].animable="ara_no";
+		if (i_data_video==IDataVideoMostrada)
+			ApagaFotogramaRodet(i_data_video);
+		if (i_data_video==IDataVideoMostrada && IFilEixXEixTVideo==IFilEixXEixTVideoConsulta)
+		{
+			var n=DonaNPerApagaEncenFotograma();
+			ApagaFotogramaVideo(i_data_video, n);
+		}
+		else if (IFilEixXEixTVideo==IFilEixXEixTVideoRes)
+			ApagaFotogramaVideoCube(i_data_video);
+	}
 }
 
 //Transforma un nom d'estil en un i_estil de la capa i_capa_video_actiu. Retorna null si no el troba
@@ -541,6 +548,21 @@ function CanviaImatgeCapaVideo(i_data_video, vista, i_capa, i_estil, i_data)
 {
 	var image=document.getElementById("video_i_raster"+i_data_video);
 	CanviaImatgeCapa(image, vista, i_capa, i_estil, i_data, ActivaFotogramaVideo, i_data_video);
+}
+
+function CanviaImatgeCapaRefVideo(i_capa)
+{
+	if (i_capa==-1)
+		document.getElementById("video_l_raster_ref").style.opacity=0;
+	else
+	{
+		var cdns=[];
+		cdns.push(EsCapaBinaria(ParamCtrl.capa[i_capa]) ? "<canvas id=\"video_i_raster_ref\" width=\""+ncol+"px\" height=\""+nfil+"px\"></canvas>" : "<img id=\"video_i_raster_ref\" name=\"video_i_raster_ref\" src=\""+AfegeixAdrecaBaseSRC("espereu_"+ParamCtrl.idioma+".gif")+"\">");
+		document.getElementById("video_m_raster_ref").innerHTML=cdns.join("");
+		document.getElementById("video_l_raster_ref").style.opacity=1;
+		var image=document.getElementById("video_i_raster_ref");
+		CanviaImatgeCapa(image, ParamInternCtrl.vista, i_capa, -1, null, null, null);
+	}
 }
 
 function CanviaValorDataVideoInicialFinal(event, millisegons, final)
@@ -583,8 +605,8 @@ var cdns=[];
 			cdns.push("<option value='", DatesVideo[i].millisegons, "'></option>");
 		cdns.push("</datalist>");
 	}
-	/*AtenciÛ que aquest slider est‡ dibuixat al revÈs ("direction: rtl"; de dreta a esquerra) i tots els calculs s'han d'invertir.
-	AixÚ Ès important perquË Chrome i Edge posen un color a la dreta de l'slider (que, en aquest cas, ha de quedar a l'esquerra)*/
+	/*Atenci√≥ que aquest slider est√† dibuixat al rev√©s ("direction: rtl"; de dreta a esquerra) i tots els calculs s'han d'invertir.
+	Aix√≤ √©s important perqu√® Chrome i Edge posen un color a la dreta de l'slider (que, en aquest cas, ha de quedar a l'esquerra)*/
 	cdns.push("<br>",
 		GetMessage("EndDate"), ": ",
 		DonaDataMillisegonsComATextBreu(ParamCtrl.capa[DatesVideo[IDataVideoFinal].i_capa].FlagsData, DatesVideo[IDataVideoFinal].millisegons), " ",
@@ -625,7 +647,7 @@ var cdns=[], capa, estil;
 
 	cdns=[];
 
-	//Llista per veure animaciÛ o veure estadistics
+	//Llista per veure animaci√≥ o veure estadistics
 	if (estil!=null)
 	{
 		for (var i_capa_video_actiu=0;i_capa_video_actiu<ParamCtrl.capa.length; i_capa_video_actiu++)
@@ -633,15 +655,16 @@ var cdns=[], capa, estil;
 			capa=ParamCtrl.capa[i_capa_video_actiu];
 			if (EsCapaAptePerVideo(capa) && nom_video==capa.NomVideo && capa.estil)
 			{
-				//Em quedo amb el primer i no em complico: Si n'hi ha mÈs d'un haurien de ser iguals.
+				//Em quedo amb el primer i no em complico: Si n'hi ha m√©s d'un haurien de ser iguals.
 				//De fet, cal limitar-ho a animacions d'una sola capa de moment.
 
 				estil=capa.estil[DonaIEstilFotograma(i_capa_video_actiu, estil)];
-				if (EsCapaBinaria(capa) && estil && estil.component && estil.component.length==1)  //Per extreure stadistics cal que la capa tingui una sola component. Si no tot Ès massa complicat.
+				if (EsCapaBinaria(capa) && estil && estil.component && estil.component.length==1)  //Per extreure stadistics cal que la capa tingui una sola component. Si no tot √©s massa complicat.
 				{
 					cdns.push(GetMessage("View"),
 						": <select name=\"veure\" onClick=\"dontPropagateEvent(event);\" onChange=\"PosaEstadisticSerieOAnimacio(event, document.video_animacions.veure.value, -1);\">");
 					cdns.push("<option value=\"animacio\" selected >", GetMessage("Animations", "video"), "</option>");
+					cdns.push("<option value=\"cube\">", GetMessage("DataCube", "video"), "</option>");
 					cdns.push("<option value=\"x/t\">", GetMessage("Graph", "video"), " x/t</option>");
 					if (DonaTractamentComponent(estil, 0)=="categoric")
 					{
@@ -650,12 +673,12 @@ var cdns=[], capa, estil;
 						{
 							if (!estil.categories[i])
 								continue;
-							cdns.push("<option value=\"NDeValor_"+i+"\">", GetMessage("NumPhotosValue", "video"), " ", DonaTextCategoriaDesDeColor(estil.categories, estil.atributs, i, true), "</option>");
+							cdns.push("<option value=\"NDeValor_"+i+"\">", GetMessage("NumPhotosValue", "video"), " ", DonaTextCategoriaDesDeColor(estil.categories, estil.attributes, i, true), "</option>");
 						}
 					}
 					else
 					{
-						//Fer estadistics cl‡sics: mitjana, desviaciÛ etc.
+						//Fer estadistics cl√†sics: mitjana, desviaci√≥ etc.
 						//Considerar determinar transformades de fourier o wavelet.
 						cdns.push("<option value=\"Mitjana\">", GetMessage("Mean"), "</option>");
 						cdns.push("<option value=\"StanDev\">", GetMessage("StandardDeviation"), "</option>");
@@ -670,7 +693,7 @@ var cdns=[], capa, estil;
 						cdns.push("<option value=\"Pheno_base\">", GetMessage("SeasonBaseValue", "video"), "</option>");
 						cdns.push("<option value=\"Pheno_aos\">", GetMessage("AmplitudeSeason", "video"), " (AoS)</option>");
 						cdns.push("<option value=\"Pheno_rog\">", GetMessage("RateGreening", "video"), " (RoG)</option>");
-						cdns.push("<option value=\"Pheno_ros\">", GetMessage("RateSenescing", "video"), " (RoS)</option>");
+						cdns.push("<option value=\"Pheno_ros\">", GetMessage("RateSenescene", "video"), " (RoS)</option>");
 					}
 					cdns.push("</select>");
 				}
@@ -763,31 +786,32 @@ function CarregaVideoRodet(nom_video, estil)
 {
 var i_data_video, capa, cdns=[];
 var vista=JSON.parse(JSON.stringify(ParamInternCtrl.vista));
+var ncol, nfil;
 
 	document.getElementById("video_info").innerHTML="<center><font face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"4\">"+ GetMessage("LoadingFilm", "video") + ". " + GetMessage("PleaseWait") +"...</font></center>";
 
 	//Dibuixo el rodet de fotogrames buit
 	vista.i_nova_vista=NovaVistaRodet;
 
-	cdns.push("<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" style=\'background-image: url(\"",AfegeixAdrecaBaseSRC("1film_v.png"),"\");background-repeat: repeat-x;\'>");
-	vista.ncol=DonaNColVideoRodet();
-	vista.nfil=DonaNFilVideoRodet();
+	cdns.push("<table cellspacing=\"0\" cellpadding=\"0\" style=\'background-image: url(\"",AfegeixAdrecaBaseSRC("1film_v.png"),"\");background-repeat: repeat-x;\'>");
+	ncol=vista.ncol=DonaNColVideoRodet();
+	nfil=vista.nfil=DonaNFilVideoRodet();
 	if (RodetVertical)
 	{
 		//Estil antic del rodet vertical a la esquerra.
 		for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
 		{
-			cdns.push("<tr><td rowspan=\"4\" width=\"13\">&nbsp;</td>",
+			cdns.push("<tr><td rowspan=\"4\" width=\"13px\"></td>",
 				"<td colspan=3>",
 				DonaCadenaHTMLTitolFotogramaRodet(i_data_video),
 				"</td></tr>",
-				"<tr><td colspan=3><img name=\"video_marc_sup",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"",vista.ncol+4,"\" height=\"2\"></td></tr>",
-				"<tr><td><img name=\"video_marc_esq",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"2\" height=\"",vista.nfil,"\"></td>",
-				"<td><div id=\"rodet_l_raster",i_data_video,"\" style=\"overflow:auto; width:", vista.ncol, "px; height:", vista.nfil, "px; background-color:white; \" onClick=\"MostraFotogramaAillat(", i_data_video,", false)\">",
-				((EsCapaBinaria(ParamCtrl.capa[DatesVideo[i_data_video].i_capa])) ? "<canvas id=\"rodet_i_raster"+i_data_video+"\" width=\""+vista.ncol+"\" height=\""+vista.nfil+"\"></canvas>" : "<img id=\"rodet_i_raster"+i_data_video+"\" name=\"rodet_i_raster"+i_data_video+"\" src=\""+AfegeixAdrecaBaseSRC("1tran.gif")+"\">"),
+				"<tr><td colspan=\"3\" style=\"font-size: 1px\"><img name=\"video_marc_sup",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"",ncol+4,"px\" height=\"2px\"></td></tr>",
+				"<tr><td style=\"font-size: 1px\"><img name=\"video_marc_esq",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"2px\" height=\"",nfil,"px\"></td>",
+				"<td><div id=\"rodet_l_raster",i_data_video,"\" style=\"overflow:auto; width:", ncol, "px; height:", nfil, "px; background-color:white; \" onClick=\"MostraFotogramaAillat(", i_data_video,", false)\">",
+				((EsCapaBinaria(ParamCtrl.capa[DatesVideo[i_data_video].i_capa])) ? "<canvas id=\"rodet_i_raster"+i_data_video+"\" width=\""+ncol+"px\" height=\""+nfil+"px\"></canvas>" : "<img id=\"rodet_i_raster"+i_data_video+"\" name=\"rodet_i_raster"+i_data_video+"\" src=\""+AfegeixAdrecaBaseSRC("1tran.gif")+"\">"),
 				"</div></td>",
-				"<td><img name=\"video_marc_dre",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"2\" height=\"", vista.nfil,"\"></td></tr>",
-				"<tr><td colspan=3><img name=\"video_marc_inf",i_data_video, "\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"",vista.ncol+4,"\" height=\"2\"></td></tr>");
+				"<td style=\"font-size: 1px\"><img name=\"video_marc_dre",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"2px\" height=\"", nfil,"px\"></td></tr>",
+				"<tr><td colspan=\"3\" style=\"font-size: 1px\"><img name=\"video_marc_inf",i_data_video, "\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"",ncol+4,"px\" height=\"2px\"></td></tr>");
 		}
 	}
 	else
@@ -796,32 +820,32 @@ var vista=JSON.parse(JSON.stringify(ParamInternCtrl.vista));
 		cdns.push("<tr>");
 		for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
 		{
-			cdns.push("<td colspan=3>",
+			cdns.push("<td colspan=\"3\">",
 				DonaCadenaHTMLTitolFotogramaRodet(i_data_video),
 				"</td>",
-				"<td rowspan=\"6\"><img src=1tran.gif width=\"8\"></td>");
+				"<td rowspan=\"6\" width=\"8px\"></td>");
 		}
 		cdns.push("</tr><tr>");
 		for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
-			cdns.push("<td colspan=3><img src=1tran.gif height=\"13\"></td>");
+			cdns.push("<td colspan=\"3\" height=\"13px\"></td>");
 		cdns.push("</tr><tr>");
 		for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
-			cdns.push("<td colspan=3><img name=\"video_marc_sup",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"",vista.ncol+4,"\" height=\"2\"></td>");
+			cdns.push("<td colspan=\"3\" style=\"font-size: 1px\"><img name=\"video_marc_sup",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"",ncol+4,"px\" height=\"2px\"></td>");
 		cdns.push("</tr><tr>");
 		for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
 		{
-			cdns.push("<td><img name=\"video_marc_esq",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"2\" height=\"",vista.nfil,"\"></td>",
-				"<td><div id=\"rodet_l_raster",i_data_video,"\" style=\"overflow:auto; width:", vista.ncol, "px; height:", vista.nfil, "px; background-color:white;\" onClick=\"MostraFotogramaAillat(", i_data_video,", false)\">",
-				((EsCapaBinaria(ParamCtrl.capa[DatesVideo[i_data_video].i_capa])) ? "<canvas id=\"rodet_i_raster"+i_data_video+"\" width=\""+vista.ncol+"\" height=\""+vista.nfil+"\"></canvas>" : "<img id=\"rodet_i_raster"+i_data_video+"\" name=\"rodet_i_raster"+i_data_video+"\" src=\""+AfegeixAdrecaBaseSRC("espereu_"+ParamCtrl.idioma+".gif")+"\">"),
+			cdns.push("<td style=\"font-size: 1px\"><img name=\"video_marc_esq",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"2px\" height=\"",nfil,"px\"></td>",
+				"<td><div id=\"rodet_l_raster",i_data_video,"\" style=\"overflow:clip; width:", ncol, "px; height:", nfil, "px; background-color:white;\" onClick=\"MostraFotogramaAillat(", i_data_video,", false)\">",
+				((EsCapaBinaria(ParamCtrl.capa[DatesVideo[i_data_video].i_capa])) ? "<canvas id=\"rodet_i_raster"+i_data_video+"\" width=\""+ncol+"px\" height=\""+nfil+"px\"></canvas>" : "<img id=\"rodet_i_raster"+i_data_video+"\" name=\"rodet_i_raster"+i_data_video+"\" src=\""+AfegeixAdrecaBaseSRC("espereu_"+ParamCtrl.idioma+".gif")+"\">"),
 				"</div></td>",
-				"<td><img name=\"video_marc_dre",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"2\" height=\"",vista.nfil,"\"></td>");
+				"<td style=\"font-size: 1px\"><img name=\"video_marc_dre",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"2px\" height=\"",nfil,"px\"></td>");
 		}
 		cdns.push("</tr><tr>");
 		for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
-			cdns.push("<td colspan=3><img name=\"video_marc_inf",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"",vista.ncol+4,"\" height=\"2\"></td>");
+			cdns.push("<td colspan=\"3\" style=\"font-size: 1px\"><img name=\"video_marc_inf",i_data_video,"\" src=\"",AfegeixAdrecaBaseSRC("1negre.gif"),"\" width=\"",ncol+4,"px\" height=\"2px\"></td>");
 		cdns.push("</tr><tr>");
 		for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
-			cdns.push("<td colspan=3><img src=1tran.gif height=\"16\"></td>");
+			cdns.push("<td colspan=\"3\" height=\"16px\"></td>");
 		cdns.push("<tr>");
 	}
 	cdns.push("</table>");
@@ -835,27 +859,12 @@ var vista=JSON.parse(JSON.stringify(ParamInternCtrl.vista));
 	//Demano totes les imatges petites per omplir el rodet de fotogrames
 	for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
 	{
-		DatesVideo[i_data_video].timeOutRodet=setTimeout("CanviaImatgeCapaRodet("+i_data_video+", "+JSON.stringify(vista)+", "+DatesVideo[i_data_video].i_capa+", "+DatesVideo[i_data_video].i_estil+", "+DatesVideo[i_data_video].i_data+")", 75*i_data_video+75);
+		//DatesVideo[i_data_video].timeOutRodet=setTimeout("CanviaImatgeCapaRodet("+i_data_video+", "+JSON.stringify(vista)+", "+DatesVideo[i_data_video].i_capa+", "+DatesVideo[i_data_video].i_estil+", "+DatesVideo[i_data_video].i_data+")", 75*i_data_video+75);
+		DatesVideo[i_data_video].timeOutRodet=setTimeout(CanviaImatgeCapaRodet, 75*i_data_video+75, i_data_video, JSON.parse(JSON.stringify(vista)), DatesVideo[i_data_video].i_capa, DatesVideo[i_data_video].i_estil, DatesVideo[i_data_video].i_data);
 	}
 
-	//Dibuixo tots els fotogrames de l'animaciÛ buits i apagats
-	cdns.length=0;
-	vista.ncol=ParamInternCtrl.vista.ncol;
-	vista.nfil=ParamInternCtrl.vista.nfil;
-
-	for (i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
-	{
-		//http://www.greywyvern.com/?post=337
-		cdns.push("<div id=\"video_l_raster",i_data_video,"\" style=\"position: absolute; width:", vista.ncol, "px; height:", vista.nfil, "px; opacity:0;\" >",
-			((EsCapaBinaria(ParamCtrl.capa[DatesVideo[i_data_video].i_capa])) ? "<canvas id=\"video_i_raster"+i_data_video+"\" width=\""+vista.ncol+"\" height=\""+vista.nfil+"\"></canvas>" : "<img id=\"video_i_raster"+i_data_video+"\" name=\"video_i_raster"+i_data_video+"\" src=\""+AfegeixAdrecaBaseSRC("espereu_"+ParamCtrl.idioma+".gif")+"\">"),
-			"</div>");
-	}
-	if (EsCapaBinaria(ParamCtrl.capa[DatesVideo[0].i_capa]))
-		cdns.push("<div id=\"video_l_raster_stat\" style=\"position: absolute; width:", vista.ncol, "px; height:", vista.nfil, "px; opacity:0;\" >",
-			"<canvas id=\"video_i_raster_stat\" width=\""+vista.ncol+"\" height=\""+vista.nfil+"\"></canvas>",
-			"</div>");
-
-	document.getElementById("video_pantalla").innerHTML=cdns.join("");
+	//Dibuixo tots els fotogrames de l'animaci√≥ buits i apagats
+	document.getElementById("video_pantalla").innerHTML=DonaCadenaHTMLVideoAnimacio(ParamInternCtrl.vista.ncol, ParamInternCtrl.vista.nfil);
 
 	NomVideoActiu=nom_video;
 	if (timeoutVideoInfo)
@@ -864,6 +873,168 @@ var vista=JSON.parse(JSON.stringify(ParamInternCtrl.vista));
 	    timeoutVideoInfo=null;
 	}
 	timeoutVideoInfo=setTimeout("ActualitzaNCarregatRodet()", 600);
+}
+
+/*Les mateixes divisions serveixen pel mode "animacio" i pel mode "cube".*/
+function DonaCadenaHTMLVideoAnimacio(ncol, nfil)
+{
+var cdns=[];
+
+	cdns.push("<div class=\"viewport-video\" id=\"viewport_video\" style=\"width:", ncol, "px; height:", nfil, "px;\">",
+		"<div class=\"video-set\" id=\"video_set\" style=\"width:", ncol, "px; height:", nfil, "px;\">",
+		"<div class=\"frame-video\" id=\"video_f_raster_ref\" style=\"width:", ncol, "px; height:", nfil, "px;\">",
+		"<div id=\"video_l_raster_ref\" class=\"frame-video-image\" style=\"bottom: 0px; width:", ncol, "px; height:", nfil, "px; opacity:0;\">",
+		"<div id=\"video_m_raster_ref\" class=\"frame-video-image\" style=\"bottom: 0px; width:", ncol, "px; height:", nfil, "px;\"></div>",
+		"<div id=\"video_date_raster_ref\" class=\"frame-video-image text_allus\" style=\"font-size: medium;font-family: font-family: Verdana, Arial, Helvetica, sans-serif; text-align: justify;text-align-last: right;bottom: 0px; width:", ncol, "px; height:", nfil, "px;\" >",
+		"</div>",
+		"</div></div>");
+	for (var i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
+	{
+		//http://www.greywyvern.com/?post=337
+		cdns.push("<div class=\"frame-video\" id=\"video_f_raster",i_data_video,"\" style=\"width:", ncol, "px; height:", nfil, "px;\">",
+			"<div class=\"frame-video-image\" id=\"video_l_raster",i_data_video,"\" style=\"width:", ncol, "px; height:", nfil, "px; opacity:0;\">",
+			((EsCapaBinaria(ParamCtrl.capa[DatesVideo[i_data_video].i_capa])) ? "<canvas id=\"video_i_raster"+i_data_video+"\" width=\""+ncol+"px\" height=\""+nfil+"px\"></canvas>" : "<img id=\"video_i_raster"+i_data_video+"\" name=\"video_i_raster"+i_data_video+"\" src=\""+AfegeixAdrecaBaseSRC("espereu_"+ParamCtrl.idioma+".gif")+"\">"),
+			"</div>",
+			"</div>");
+	}
+	cdns.push("<div class=\"frame-video\" id=\"video_f_raster_stat\" style=\"width:", ncol, "px; height:", nfil, "px;\">",
+		"<div id=\"video_l_raster_stat\" class=\"frame-video-image\" style=\"bottom: 0px; width:", ncol, "px; height:", nfil, "px; opacity:0;\" >",
+		"<canvas id=\"video_i_raster_stat\" width=\"", ncol, "px\" height=\"", nfil, "px\"></canvas>",
+		"</div></div>",
+		"<div id=\"video_f_click\" class=\"frame-video\" style=\"width:", ncol, "px; height:", nfil, "px;\">",
+		"<div id=\"video_click\" class=\"frame-video-image\" style=\"bottom: 0px; width:", ncol, "px; height:", nfil, "px;\"><canvas id=\"video_click_canvas\" width=\"", ncol, "px\" height=\"", nfil, "px\"></canvas></div></div>",
+		"</div></div>");
+	return cdns.join("");	
+}
+
+function AsignaEstilFrameAnimacio(div_f, styleFAnimacio, styleFCube, div_i, styleIAnimacio, styleICube)
+{
+	var element=document.getElementById(div_f);
+	element.classList.remove(styleFCube);
+	element.classList.add(styleFAnimacio);
+	element.style[userPrefixCube.js + 'Transform'] = '';
+
+	element=document.getElementById(div_i);
+	element.classList.remove(styleICube);
+	element.classList.add(styleIAnimacio);
+}
+
+function AsignaEstilVideoAnimacio()
+{
+	var element=document.getElementById("viewport_video");
+	element.classList.remove("viewport-cube");
+	element.classList.add("viewport-video");
+	element.style[userPrefixCube.js + 'Perspective'] = '';
+	element.style[userPrefixCube.js + 'PerspectiveOrigin'] = '';
+	element.style[userPrefixCube.js + 'Transform'] = '';
+
+	element=document.getElementById("video_set");
+	element.classList.remove("video-cube");
+	element.classList.add("video-set");
+	element.style[userPrefixCube.js + 'Transform'] = '';
+
+	AsignaEstilFrameAnimacio("video_f_raster_ref", "frame-video", "frame-cube", "video_l_raster_ref", "frame-video-image", "frame-cube-image");
+	document.getElementById("video_date_raster_ref").innerHTML="";
+
+	for (var i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
+		AsignaEstilFrameAnimacio("video_f_raster"+i_data_video, "frame-video", "frame-cube", "video_l_raster"+i_data_video, "frame-video-image", "frame-cube-image");
+
+	AsignaEstilFrameAnimacio("video_f_raster_stat", "frame-video", "frame-cube", "video_l_raster_stat", "frame-video-image", "frame-cube-image");
+	AsignaEstilFrameAnimacio("video_f_click", "frame-video", "frame-cube", "video_click", "frame-video-image", "frame-cube-image");
+}
+
+function AsignaEstilFrameCube(div_f, styleFAnimacio, styleFCube, div_i, styleIAnimacio, styleICube, i_data_video)
+{
+	var element=document.getElementById(div_f);
+	element.classList.remove(styleFAnimacio);
+	element.classList.add(styleFCube);
+	element.style[userPrefixCube.js + 'Transform'] = 'rotateY(180deg) translateZ(' + (ParamInternCtrl.vista.ncol/2 - DonaPosicioDeFrameEstiratLinealment(i_data_video, ParamInternCtrl.vista.ncol)) + 'px)';
+
+	element=document.getElementById(div_i);
+	element.classList.remove(styleIAnimacio);
+	element.classList.add(styleICube);
+}
+
+var PosicioCapaRef=0;
+
+function AsignaEstilVideoDatacube()
+{
+	var element=document.getElementById("viewport_video");
+	element.classList.remove("viewport-video");
+	element.classList.add("viewport-cube");
+
+	element.style[userPrefixCube.js + 'Perspective'] = ParamInternCtrl.vista.ncol*4 + 'px';
+	element.style[userPrefixCube.js + 'PerspectiveOrigin'] = '50% ' + ParamInternCtrl.vista.ncol + 'px';
+	element.style[userPrefixCube.js + 'Transform'] = 'scale(0.6, 0.6)';
+
+	element=document.getElementById("video_set");
+	element.classList.remove("video-set");
+	element.classList.add("video-cube");
+
+	AsignaEstilFrameCube("video_f_raster_ref", "frame-video", "frame-cube", "video_l_raster_ref", "frame-video-image", "frame-cube-image", DatesVideo.length-1);
+	PosicioCapaRef=ParamInternCtrl.vista.ncol;
+	document.getElementById("video_f_raster_ref").style[userPrefixCube.js + 'Transform'] = 'rotateY(180deg) translateZ(' + (ParamInternCtrl.vista.ncol/2 - PosicioCapaRef) + 'px)';
+	PosaDataSobreCapaVideoRef(PosicioCapaRef, IDataVideoMostrada);
+
+	for (var i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
+		AsignaEstilFrameCube("video_f_raster"+i_data_video, "frame-video", "frame-cube", "video_l_raster"+i_data_video, "frame-video-image", "frame-cube-image", i_data_video);
+
+	AsignaEstilFrameCube("video_f_raster_stat", "frame-video", "frame-cube", "video_l_raster_stat", "frame-video-image", "frame-cube-image", 0)
+	AsignaEstilFrameCube("video_f_click", "frame-video", "frame-cube", "video_click", "frame-video-image", "frame-cube-image", 0)
+}
+
+function PosaDataSobreCapaVideoRef(posCapaRef, i_data_video_davant)
+{
+var pos, d, millisegons;
+
+	var i_davant=DonaPosicioDeFrameEstiratLinealment(i_data_video_davant, ParamInternCtrl.vista.ncol);
+
+	pos=posCapaRef+i_davant;
+	if (pos>ParamInternCtrl.vista.ncol)
+	{
+		d=ParamInternCtrl.vista.ncol+(i_davant-DonaPosicioDeFrameEstiratLinealment(IDataVideoMostrada-1, ParamInternCtrl.vista.ncol));
+		millisegons=DatesVideo[0].millisegons+(pos-d)*(DatesVideo[DatesVideo.length-1].millisegons-DatesVideo[0].millisegons)/(ParamInternCtrl.vista.ncol);
+	}
+	else
+		millisegons=DatesVideo[0].millisegons+pos*(DatesVideo[DatesVideo.length-1].millisegons-DatesVideo[0].millisegons)/(ParamInternCtrl.vista.ncol);
+
+	document.getElementById("video_date_raster_ref").innerHTML=DonaDataMillisegonsComATextBreu(ParamCtrl.capa[DatesVideo[IDataVideoMostrada].i_capa].FlagsData, millisegons);
+}
+
+
+function WheelVideoEvent(event)
+{
+	if (parseInt(document.video_animacions.caparef.value)==-1 || IFilEixXEixTVideo!=IFilEixXEixTVideoRes)
+		return;
+	
+	PosicioCapaRef-=Math.sign(event.deltaY)*10;
+	if (PosicioCapaRef<1) 
+		PosicioCapaRef=1;
+	else if (PosicioCapaRef>ParamInternCtrl.vista.ncol)
+		PosicioCapaRef=ParamInternCtrl.vista.ncol;
+
+	document.getElementById("video_f_raster_ref").style[userPrefixCube.js + 'Transform'] = 'rotateY(180deg) translateZ(' + (ParamInternCtrl.vista.ncol/2 - PosicioCapaRef) + 'px)';
+	PosaDataSobreCapaVideoRef(PosicioCapaRef, IDataVideoMostrada);
+
+	event.preventDefault();
+}
+
+function PosaFotogramaDavantVideoCube(i_data_video_davant)
+{
+var pos, d;
+	var i_davant=DonaPosicioDeFrameEstiratLinealment(i_data_video_davant, ParamInternCtrl.vista.ncol);
+	if (i_data_video_davant>0)
+		d=ParamInternCtrl.vista.ncol+(i_davant-DonaPosicioDeFrameEstiratLinealment(i_data_video_davant-1, ParamInternCtrl.vista.ncol));
+	
+	for (var i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
+	{
+		pos=DonaPosicioDeFrameEstiratLinealment(i_data_video, ParamInternCtrl.vista.ncol)-i_davant;
+		if (i_data_video_davant>0 && pos<0)
+			pos+=d; //Les que cauen fora per davant les faig saltar al darrera del cub
+		
+		document.getElementById("video_f_raster"+i_data_video).style[userPrefixCube.js + 'Transform'] = 'rotateY(180deg) translateZ(' + (ParamInternCtrl.vista.ncol/2 - pos) + 'px)';
+	}
+	PosaDataSobreCapaVideoRef(PosicioCapaRef, i_data_video_davant);
 }
 
 function DonaRatioNodataRodet(i_data_video)
@@ -884,7 +1055,7 @@ function CanviaRatioNodataNoTolera(event, valor)
 	var n_foto=0;
 	for (var i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
 	{
-		//Determino si la imatge Ès enterament nodata.
+		//Determino si la imatge √©s enterament nodata.
 		if (ratio_nodata_no_tolerat>DonaRatioNodataRodet(i_data_video))
 			n_foto++;
 	}
@@ -900,7 +1071,7 @@ var ratio_nodata, inserir_slider=false;
 	//Demano totes les imatges grans per omplir el video de fotogrames
 	for (var i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
 	{
-		//Determino si la imatge Ès enterament nodata.
+		//Determino si la imatge √©s enterament nodata.
 		ratio_nodata=DonaRatioNodataRodet(i_data_video);
 		if (0.99<ratio_nodata)
 		{
@@ -926,7 +1097,7 @@ var ratio_nodata, inserir_slider=false;
 		CanviaRatioNodataNoTolera(null, initial_value);
 		return;
 	}
-	//Mostrar immediatament el vÌdeo
+	//Mostrar immediatament el v√≠deo
 	CarregaVideo();
 }
 
@@ -968,6 +1139,9 @@ var vista=JSON.parse(JSON.stringify(ParamInternCtrl.vista));
 		timeoutVideoInfo=null;
 	}
 	timeoutVideoInfo=setTimeout("ActualitzaNCarregatVideo()", 1000);
+
+	CanviaImatgeCapaRefVideo(document.video_animacions.caparef.value);
+
 }//Fi de CanviaVideo()
 
 function CanviaAnimacio(nom_video)
@@ -1092,7 +1266,7 @@ var i, j, i_data_video;
 		{
 			if (!ParticipaFotogramaDeLaSerieTemporal(i_data_video))
 			{
-				for (i=0; i<ncol; i++) //Necessari perque alguns estadistic reordenen els valors de l'array. si no els anulo influeixen en les files seg¸ents.
+				for (i=0; i<ncol; i++) //Necessari perque alguns estadistic reordenen els valors de l'array. si no els anulo influeixen en les files seg√ºents.
 					fila_calc[i][i_data_video]=null;
 				continue;
 			}
@@ -1101,7 +1275,7 @@ var i, j, i_data_video;
 			valors=capa.valors;
 			n_v_plena=CarregaDataViewsCapa(dv, NovaVistaVideo, DatesVideo[i_data_video].i_data, valors);
 			if (n_v_plena==0)
-				return;  //AixÚ no hauria d'haver passat mai
+				return;  //Aix√≤ no hauria d'haver passat mai
 
 			if (n_v_plena>1)
 			{
@@ -1218,6 +1392,12 @@ var estiramentPaleta, paleta;
 				return;
 		}
 	}
+	else if (estadistic=="StanDev")
+	{
+		estiramentPaleta={"valorMaxim": ImgVideoStatHistograma.component[0].valorMaximReal-(ImgVideoStatHistograma.component[0].valorMaximReal-ImgVideoStatHistograma.component[0].valorMinimReal)/3,
+				"valorMinim": ImgVideoStatHistograma.component[0].valorMinimReal}+(ImgVideoStatHistograma.component[0].valorMaximReal-ImgVideoStatHistograma.component[0].valorMinimReal)/3;
+		paleta=null;
+	}
 	else
 	{
 		estiramentPaleta={"valorMaxim": ImgVideoStatHistograma.component[0].valorMaximReal,
@@ -1262,7 +1442,7 @@ var i_cell=[], i_byte=[], fila=[], fila_calc=[];
 			valors=capa.valors;
 			n_v_plena=CarregaDataViewsCapa(dv, NovaVistaVideo, DatesVideo[i_data_video].i_data, valors);
 			if (n_v_plena==0)
-				return;  //AixÚ no hauria d'haver passat mai
+				return;  //Aix√≤ no hauria d'haver passat mai
 
 			if (n_v_plena>1)
 			{
@@ -1272,7 +1452,7 @@ var i_cell=[], i_byte=[], fila=[], fila_calc=[];
 			}
 			else
 			{
-				//Es podria obtimitzar evitant que calculi el que no cal donat que nomÈs vull la darrera fila
+				//Es podria obtimitzar evitant que calculi el que no cal donat que nom√©s vull la darrera fila
 				CalculaFilaDesDeBinaryArrays(fila_calc, i_data_video, null, dv, valors, ncol, i_byte[i_data_video], i_cell[i_data_video], estil.component[0]);
 			}
 		}
@@ -1328,11 +1508,11 @@ var i_data_fil=[], t, j, i_data_video;
 	}
 	if (j<nfil)
 	{
-		//substituexo els primers temps que no sÛn animables pel primer que ho Ès
+		//substituexo els primers temps que no s√≥n animables pel primer que ho √©s
 		for (var j2=0; j2<j; j2++)
 			i_data_fil[j2]=i_data_fil[j];
 
-		//substituexo els temps que no sÛn animables pels immediatement anteriors que ho sÛn
+		//substituexo els temps que no s√≥n animables pels immediatement anteriors que ho s√≥n
 		for (j++; j<nfil; j++)
 		{
 			if (!ParticipaFotogramaDeLaSerieTemporal(i_data_fil[j]))
@@ -1376,13 +1556,13 @@ function PosaEstadisticSerieOAnimacio(event, estadistic, i_fil)
 {
 	if (event)
 		dontPropagateEvent(event);
-	if (estadistic=="x/t" && i_fil==-1 && IFilEixXEixTVideo==-1)
+	if (estadistic=="x/t" && i_fil==-1 && IFilEixXEixTVideo==IFilEixXEixTVideoConsulta)
 	{
 		//document.video_animacions.TipusClick[0].checked=false;
 		//document.video_animacions.TipusClick[1].checked=true;
 		TancaFinestraSerieTemp("video_grafic", "video_click");
 		document.getElementById("video_click").style.visibility="visible";
-		IFilEixXEixTVideo=-2;
+		IFilEixXEixTVideo=IFilEixXEixTVideoPendent;
 		return;
 	}
 
@@ -1390,17 +1570,38 @@ function PosaEstadisticSerieOAnimacio(event, estadistic, i_fil)
 	if (isNaN(n) || n<0.09)
 		n=0;
 
-	if (estadistic=="animacio")
+	if (estadistic=="animacio" || estadistic=="cube")
 	{
 		//Activo les caracteristiques de video.
 		document.getElementById("video_botons_animacio").style.visibility="visible";
 		document.getElementById("video_botons_estadistics").style.visibility="hidden";
 		document.getElementById("video_time_text").style.visibility="visible";
 		document.getElementById("video_time_slider").style.visibility="visible";
-		EncenFotogramaRodet(IDataVideoMostrada, n);
-		EncenFotogramaVideo(IDataVideoMostrada, n);
+		EncenFotogramaRodet(IDataVideoMostrada);
 		ApagaEstadisticsVideo(n);
-		IFilEixXEixTVideo=-1;
+		tipusAnimacio=estadistic;
+		if (estadistic=="cube")
+		{
+			IFilEixXEixTVideo=IFilEixXEixTVideoRes;
+			new Viewport({
+				element: document.getElementById("video_set"),
+				fps: 20,
+				sensivity: .1,
+				sensivityFade: .93,
+				speed: 1,
+				touchSensivity: 1.5
+			});
+			AsignaEstilVideoDatacube();
+			EncenTotsElsFotogramesVideo();
+		}
+		else //if (estadistic=="animacio")
+		{
+			IFilEixXEixTVideo=IFilEixXEixTVideoConsulta;
+			StopViewport();
+			AsignaEstilVideoAnimacio();
+			ApagaTotsElsFotogramesVideo();
+			EncenFotogramaVideo(IDataVideoMostrada, n);
+		}
 		return;
 	}
 
@@ -1414,7 +1615,7 @@ function PosaEstadisticSerieOAnimacio(event, estadistic, i_fil)
 		document.getElementById("video_botons_estadistics").style.visibility="visible";
 		document.getElementById("video_time_slider").style.visibility="hidden";
 		ApagaFotogramaVideo(IDataVideoMostrada, n);
-		//Activo el fotograma de les estadÌstiques
+		//Activo el fotograma de les estad√≠stiques
 		EncenEstadisticsVideo(n);
 		if (estadistic=="x/t")
 		{
@@ -1422,7 +1623,7 @@ function PosaEstadisticSerieOAnimacio(event, estadistic, i_fil)
 			//if (EstadisticCarregatVideo!=estadistic || (IFilEixXEixTVideo!=i_fil && i_fil!=-1))
 			if (i_fil!=-1)
 			{
-				//Demano l'execuciÛ del perfil x/t
+				//Demano l'execuci√≥ del perfil x/t
 				setTimeout("CanviaImatgeBinariaEstadisticaEixXEixT(\"video_i_raster_stat\", "+i_fil+")", 50);
 				document.getElementById("video_info").innerHTML="<center><font face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"3\">"+
 					GetMessage("ComputingGraphicSeries", "video")+
@@ -1432,10 +1633,10 @@ function PosaEstadisticSerieOAnimacio(event, estadistic, i_fil)
 		else
 		{
 			document.getElementById("video_time_text").style.visibility="hidden";
-			IFilEixXEixTVideo=-1;
+			IFilEixXEixTVideo=IFilEixXEixTVideoConsulta;
 			//if (EstadisticCarregatVideo!=estadistic)
 			//{
-				//Demano l'execuciÛ del c‡lcul estadÌstic
+				//Demano l'execuci√≥ del c√†lcul estad√≠stic
 				setTimeout("CanviaImatgeBinariaEstadisticaSerieTemporal(\"video_i_raster_stat\", \""+estadistic+"\")", 50);
 				document.getElementById("video_info").innerHTML="<center><font face=\"Verdana, Arial, Helvetica, sans-serif\" size=\"3\">"+
 					GetMessage("ComputingStatisticSeries", "video")+
@@ -1599,7 +1800,7 @@ function ActivaFotogramaRodet(i_data_video)
 function ActivaFotogramaVideo(i_data_video)
 {
 	DatesVideo[i_data_video].carregada=true;
-	var img=document["video_evol"+DonaIPecaBarraVideo(i_data_video, DonaNPecesBarraVideo())];
+	var img=document["video_evol"+DonaPosicioDeFrameEstiratLinealment(i_data_video, DonaNPecesBarraVideo())];
 	var nom_icona=TreuAdreca(img.src);
 
 	//Posa la ratlleta vermella a la barra estreta
@@ -1613,19 +1814,38 @@ function ActivaFotogramaVideo(i_data_video)
 		img.src=AfegeixAdrecaBaseSRC("evol_pnt_blau_fotog.png");
 }
 
+var CanviaFotogramaSiPuntABarraId=null;
+
 function CanviaFotogramaSiPuntABarra(event, i)
 {
 var img=document["video_evol"+i];
 var nom_icona=TreuAdreca(img.src);
 
+	if (CanviaFotogramaSiPuntABarraId)
+		clearTimeout(CanviaFotogramaSiPuntABarraId);
+
 	if (nom_icona!="evol_bl_fotog.png" && nom_icona!="evol_blau_fotog.png" &&
 	    nom_icona!="evol_pnt_fotog.png" && nom_icona!="evol_pnt_blau_fotog.png")
 		return;
 
-	MostraFotogramaAillat(DonaIDataVideoDesDePecaBarraVideo(i, DonaNPecesBarraVideo()), true);
+	CanviaFotogramaSiPuntABarraId=setTimeout(MostraFotogramaAillat, 500, DonaIDataVideoDesDePosicioDeFrameEstiratLinealment(i, DonaNPecesBarraVideo()), true);
 }
 
-function ApagaFotogramaRodet(i_data_video, n)
+function CancellaCanviaFotogramaSiPuntABarra()
+{
+	if (CanviaFotogramaSiPuntABarraId)
+		clearTimeout(CanviaFotogramaSiPuntABarraId);
+}
+
+function DonaNPerApagaEncenFotograma()
+{
+	var n=parseFloat(document.video_animacions.interval.value);
+	if (isNaN(n) || n<0.09)
+		return 0;
+	return n;
+}
+
+function ApagaFotogramaRodet(i_data_video)
 {
 	if (i_data_video!=-1)
 	{
@@ -1636,28 +1856,7 @@ function ApagaFotogramaRodet(i_data_video, n)
 	}
 }
 
-function ApagaFotogramaVideo(i_data_video, n)
-{
-	if (i_data_video!=-1)
-	{
-		//Desactivo els fotograma que no toca en el video
-		document.getElementById("video_l_raster"+i_data_video).style.opacity=0;
-		//Determino la corba adient amb: http://cubic-bezier.com
-		document.getElementById("video_l_raster"+i_data_video).style.transition=(n) ? "opacity "+n/2+"s cubic-bezier(.6,.2,.8,.4)" : null;
-	}
-}
-
-function ApagaEstadisticsVideo(n)
-{
-	var elem=document.getElementById("video_l_raster_stat");
-	if (elem) // potser que no existeix-hi perquË no hi ha cap capa animable tipus IMG
-	{
-		elem.style.opacity=0;
-		elem.style.transition=(n) ? "opacity "+n/2+"s cubic-bezier(.6,.2,.8,.4)" : null;
-	}
-}
-
-function EncenFotogramaRodet(i_data_video, n)
+function EncenFotogramaRodet(i_data_video)
 {
 	if (i_data_video!=-1)
 	{
@@ -1668,20 +1867,75 @@ function EncenFotogramaRodet(i_data_video, n)
 	}
 }
 
+function ApagaFotogramaVideo(i_data_video, n)
+{
+	if (i_data_video!=-1)
+	{
+		//Desactivo els fotograma que toca en el video
+		document.getElementById("video_l_raster"+i_data_video).style.opacity=0;
+		//Determino la corba adient amb: http://cubic-bezier.com
+		document.getElementById("video_l_raster"+i_data_video).style.transition=(n) ? "opacity "+n/2+"s cubic-bezier(.6,.2,.8,.4)" : null;
+	}
+}
+
+function ApagaFotogramaVideoCube(i_data_video)
+{
+	if (i_data_video!=-1)
+	{
+		document.getElementById("video_l_raster"+i_data_video).style.opacity=0;
+	}
+}
+
+
 function EncenFotogramaVideo(i_data_video, n)
 {
 	if (i_data_video!=-1)
 	{
-		//Activo els fotograma que no toca en el video.
+		//Activo els fotograma que toca en el video.
 		document.getElementById("video_l_raster"+i_data_video).style.opacity=1;
 		document.getElementById("video_l_raster"+i_data_video).style.transition=(n) ? "opacity "+n/2+"s cubic-bezier(.2,.6,.4,.8)" : null;
+	}
+}
+
+
+
+function ApagaTotsElsFotogramesVideo()
+{
+	for (var i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
+		document.getElementById("video_l_raster"+i_data_video).style.opacity=0;
+}
+
+function EncenFotogramaVideoCube(i_data_video)
+{
+	if (i_data_video!=-1)
+		document.getElementById("video_l_raster"+i_data_video).style.opacity=0.9;
+}
+
+function EncenTotsElsFotogramesVideo()
+{
+	for (var i_data_video=0; i_data_video<DatesVideo.length; i_data_video++)
+	{
+		if (DatesVideo[i_data_video].animable=="si")
+			document.getElementById("video_l_raster"+i_data_video).style.opacity=0.9;
+		else
+			document.getElementById("video_l_raster"+i_data_video).style.opacity=0;
+	}
+}
+
+function ApagaEstadisticsVideo(n)
+{
+	var elem=document.getElementById("video_l_raster_stat");
+	if (elem) // potser que no existeix-hi perqu√® no hi ha cap capa animable tipus IMG
+	{
+		elem.style.opacity=0;
+		elem.style.transition=(n) ? "opacity "+n/2+"s cubic-bezier(.6,.2,.8,.4)" : null;
 	}
 }
 
 function EncenEstadisticsVideo(n)
 {
 	var elem=document.getElementById("video_l_raster_stat");
-	if (elem) // potser que no existeix-hi perquË no hi ha cap capa animable tipus IMG
+	if (elem) // potser que no existeix-hi perqu√® no hi ha cap capa animable tipus IMG
 	{
 		elem.style.opacity=1;
 		elem.style.transition=(n) ? "opacity "+n/2+"s cubic-bezier(.2,.6,.4,.8)" : null;
@@ -1698,11 +1952,11 @@ var j, img, nom_icona;
 	//Actualitzo la data.
 	document.getElementById("video_data").innerHTML=DonaDataComAText(DatesVideo[i_data_video].i_capa, DatesVideo[i_data_video].i_data);
 
-	//Apago la barra de progrÈs de videos.
+	//Apago la barra de progr√©s de videos.
 	var n=DonaNPecesBarraVideo();
 
 	//Encenc l'element de la barra que toca.
-	var i=DonaIPecaBarraVideo(i_data_video, n);
+	var i=DonaPosicioDeFrameEstiratLinealment(i_data_video, n);
 	for (j=0; j<i; j++)
 	{
 		img=document["video_evol"+j];
@@ -1741,22 +1995,36 @@ var j, img, nom_icona;
 		}
 	}
 
-	//Actualitzo la posiciÛ del rodet i el fotograma actiu
-	var n=parseFloat(document.video_animacions.interval.value);
-	if (isNaN(n) || n<0.09)
-		n=0;
+	//Actualitzo la posici√≥ del rodet i el fotograma actiu
+	n=DonaNPerApagaEncenFotograma();
 
-	ApagaFotogramaRodet(IDataVideoMostrada, n);
-	EncenFotogramaRodet(i_data_video, n);
+	ApagaFotogramaRodet(IDataVideoMostrada);
+	EncenFotogramaRodet(i_data_video);
 
-	ApagaFotogramaVideo(IDataVideoMostrada, n);
+	if (IFilEixXEixTVideo==IFilEixXEixTVideoRes)  //Mode cube.
+		;
+	else
+		ApagaFotogramaVideo(IDataVideoMostrada, n);
+
 	if (actualitza_fotograma_video)
 	{
-		EncenFotogramaVideo(i_data_video, n);
+		if (IFilEixXEixTVideo==IFilEixXEixTVideoRes)
+		{
+			EncenTotsElsFotogramesVideo();
+			PosaFotogramaDavantVideoCube(i_data_video);
+		}
+		else
+			EncenFotogramaVideo(i_data_video, n);
+
 		ApagaEstadisticsVideo(n);
 		//Poso el selector a animacions
 		if (typeof document.video_animacions.veure!=="undefined" && document.video_animacions.veure!=null)
-			document.video_animacions.veure.selectedIndex=0;
+		{
+			if (tipusAnimacio=="cube")
+				document.video_animacions.veure.selectedIndex=1;
+			else //if (tipusAnimacio=="animacio")
+				document.video_animacions.veure.selectedIndex=0;
+		}
 	}
 
 	if (actualitza_scroll)
@@ -1864,14 +2132,14 @@ var n;
 		{
 			if (0==VideoMostra(opcio)) 	   //mostrar la imatge que toca.
 			{
-				//buscar la imatge seg¸ent.
+				//buscar la imatge seg√ºent.
 				i_data_a_mostrar=DeterminaIDataVideoSeguent(IDataVideoMostrada, 1)
 				if (IDataVideoMostrada==i_data_a_mostrar)
 				{
 					if (opcio==9)
-						return; //Estic al final d'una sequencia autom‡tica.
+						return; //Estic al final d'una sequencia autom√†tica.
 
-					//animaciÛ circular
+					//animaci√≥ circular
 					i_data_a_mostrar=0;
 					while (DatesVideo[i_data_a_mostrar].animable!="si")
 					{
@@ -1926,11 +2194,11 @@ var i_capa_previa;
 		i_data_a_mostrar=DeterminaIDataVideoSeguent(IDataVideoMostrada, 1);
 		if ((opcio==8 || opcio==9) && IDataVideoMostrada==i_data_a_mostrar)
 		{
-		    //Estic al final d'una sequencia autom‡tica.
+		    //Estic al final d'una sequencia autom√†tica.
 			if (opcio==9)
 				return 1;
 
-			//animaciÛ circular
+			//animaci√≥ circular
 		 	i_data_a_mostrar=0;
 			while (DatesVideo[i_data_a_mostrar].animable!="si")
 			{
@@ -2014,8 +2282,8 @@ function DescarregaVideo()
 	IniciaImgVideoStat();
 	//EstadisticCarregatVideo=null;
 	IDataFilEixXEixT=[];
-	IFilEixXEixTVideo=-1;
-	TancaFinestraSerieTemp("video_grafic", "video_click");
+	IFilEixXEixTVideo=IFilEixXEixTVideoConsulta;
+	//TancaFinestraSerieTemp("video_grafic", "video_click");
 }
 
 //No useu sola. Useu TancaFinestraLayer("video")

@@ -17,7 +17,7 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2021 Xavier Pons
+    Copyright 2001, 2023 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
     amb l'ajut de Núria Julià (n julia at creaf uab cat)
@@ -62,6 +62,12 @@ function DonaIndexDataCapa(capa, i_data)
 {
 	if (i_data==null)
 		return capa.i_data<0 ? capa.data.length+capa.i_data : capa.i_data;
+	
+	if(typeof i_data === "string")
+	{
+		// En aquest cas s'interpreta que i_data és un string que pot contenir una operació matemàtica que pot contenir '{i_sel}'; que representa la data seleccionada.
+		return DonaIndexDataCapa(capa, eval(i_data.replaceAll('{i_sel}', capa.i_data)));
+	}
 	if (i_data>=capa.data.length)
 		return capa.data.length-1;
 	if (-i_data>capa.data.length)
@@ -234,9 +240,9 @@ var d = new Date(millisegons);
 	}
 	if (flags_data.DataMostraHora)
 	{
-	    if (d.getHour()<10)
+	    if (d.getHours()<10)
 			cdns.push("0");
-	    cdns.push(d.getHour());
+	    cdns.push(d.getHours());
 	}
 	if (flags_data.DataMostraMinut)
 	{
@@ -261,6 +267,7 @@ var d = new Date(millisegons);
 function DonaDataCapaPerLlegenda(i_capa, i_data)
 {
 var data, cdns=[], capa=ParamCtrl.capa[i_capa];
+
 	cdns.push(DonaDataCapaComATextBreu(i_capa, i_data));
 	if (capa.FlagsData && capa.FlagsData.properties)
 	{
@@ -373,10 +380,14 @@ var cdns=[];
 	    }
 	}
 	return cdns.join("");
-}//fi de DonaDataJSONComATextCompacte()
+}//fi de DonaDateComATextCompacte()
 
 
-//o_data és una sortida en aquesta funció
+/*Aquesta funció retorna FlagsData i omple o_data amb els resultat del canvi de data. Cal passar una variable inicialitzada així: odata={};
+La funció en si és una mica rara i si no interessa el retorn FlagsData potser és millor fer:
+var d=new Date(cadena_data);
+o_data=DonaDataJSONDesDeDate(d);
+*/
 function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 {
 	//primer miro els separadors de guions per veure que té de aaaa-mm-dd
@@ -392,7 +403,7 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 		return {"DataMostraAny": true, "DataMostraMes": true};
 
 	//Any, mes i dia i potser time
-	var i_time=tros_data[2].indexOf("[T]");
+	var i_time=tros_data[2].indexOf("T");
 	if(i_time==-1)
 	{
 		o_data.day=parseInt(tros_data[2]);
@@ -403,7 +414,7 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 	var tros_time=(tros_data[2].substr(i_time+1)).split(":");
 	if(tros_time.length==1) //només hi ha hora
 	{
-		var i_z=tros_time[0].indexOf("[Z]");
+		var i_z=tros_time[0].indexOf("Z");
 		if(i_z==-1)
 			o_data.hour=parseInt(tros_time[0]);
 		else
@@ -413,7 +424,7 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 	o_data.hour=parseInt(tros_time[0]);
 	if(tros_time.length==2) //hh:mm[Z]
 	{
-		var i_z=tros_time[1].indexOf("[Z]");
+		var i_z=tros_time[1].indexOf("Z");
 		if(i_z==-1)
 			o_data.minute=parseInt(tros_time[1]);
 		else
@@ -422,10 +433,9 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 	}
 	o_data.minute=parseInt(tros_time[1]);
 	if(tros_time.length==3) //hh:mm:ss[Z]  // ·$· NJ-> ? Això no és correcte, hi ha altres formats ISO que tenen una longitud de més de 3 i aquesta funció no reconeix. per exemple "2020-09-25T12:59:06.035+02:00"
-	// Jo ho he resolt fent new Date("2020-09-25T12:59:06.035+02:00"); potser no caldria fer cap parser, no? ja que un cop tens un date és més fàcil passar-ho a JSON i ja tenim funcions per això.
 	{
-		var i_ms=tros_time[2].indexOf("[.]");
-		var i_z=tros_time[2].indexOf("[Z]");
+		var i_ms=tros_time[2].indexOf(".");
+		var i_z=tros_time[2].indexOf("Z");
 		if(i_z==-1 && i_ms==-1)
 			o_data.second=parseInt(tros_time[2]);
 		else if(i_z!=-1 && i_ms==-1)
@@ -435,7 +445,7 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 			o_data.second=parseInt(tros_time[2].substr(0,i_ms));
 			o_data.millisecond=parseInt(tros_time[2].substr(i_ms+1,(i_z-i_ms)));
 		}
-		return {"DataMostraAny": true, "DataMostraMes": true, "DataMostraDia": true, "DataMostraHora": true, "DataMostraMinut": true, "DataMostraSegon": segon};
+		return {"DataMostraAny": true, "DataMostraMes": true, "DataMostraDia": true, "DataMostraHora": true, "DataMostraMinut": true, "DataMostraSegon": true};
 	}
 	return {"DataMostraAny": true, "DataMostraMes": true, "DataMostraDia": true, "DataMostraHora": true, "DataMostraMinut": true};
 }
@@ -750,9 +760,9 @@ function DonaUnitTimeChartJSDataHora(que_mostrar)
 }
 
 //Aquest funció, de moment, només canvia les variables {TIME}, {TIME?f=*&year=*&month=*...} i {DIM?name=*}. En el config_schema.json s'explica una mica més.
-function CanviaVariablesDeCadena(s, capa, i_data)
+function CanviaVariablesDeCadena(s, capa, i_data, dims)
 {
-var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil;
+var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil, param;
 
 	if (capa.data && capa.data.length)
 	{
@@ -822,89 +832,103 @@ var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil;
 	}
 	while(true)
 	{
-			i=s.toUpperCase().indexOf("{DIM?");
-			if (i==-1)
-				break;
-			ii=s.substring(i+5,s.length).indexOf("}");
-			if (ii==-1)
-			{
-				alert("Format error. '{DIM?' without '}' at the end");
-				break;
-			}
-			kvp=s.substring(i+5,i+5+ii).split("&");
-			query={};
-			for(k=0; k<kvp.length; k++)
-			{
-				p = kvp[k].indexOf("=");
-				if (p==-1)
-				{
-					alert("Format error in '{DIM?', Key and value pair (KVP) without '='.");
-					break;
-				}
-				query[kvp[k].substring(0, p).toLowerCase()]=kvp[k].substring(p+1);
-			}
-			if (!query.name)
-			{
-				alert("Format error in '{DIM?', Key 'name' not found.");
-				break;
-			}
-			estil=capa.estil[capa.i_estil];
-			if (!estil || !estil.component[0])
-			{
-				alert("Cannot find '" + query.name + "' extracted from the KVP '{DIM?' expression in the selected style");
-				break;
-			}
-			if (estil.component[0].i_valor)
-			{
-				valor=capa.valors[estil.component[0].i_valor];
-				if (!valor)
-				{
-					alert("Cannot find '" + query.name + "' extracted from the KVP '{DIM?' expression in the selected style");
-					break;
-				}
-			}
-			else if (estil.component[0].FormulaConsulta)
-			{
-				//Determinio si hi ha un sol v[i] a la formula i en aquest cas, no hi ha problema en continuar.
-				num_of_vs=0;
-				v=DeterminaArrayValorsNecessarisCapa(ParamCtrl.capa.indexOf(capa), capa.i_estil);
-				for (i_v=0; i_v<capa.valors.length; i_v++)
-				{
-					if (v[i_v])
-					{
-						valor=capa.valors[i_v];
-						num_of_vs++;
-						if (num_of_vs>1)
-							break;
-					}
-				}
-				if (num_of_vs!=1 || !valor)
-				{
-					alert("There is ambiguity in the values of '" + query.name + "' extracted from the KVP '{DIM?' expression. This is probably because this style is an expression. Try to select another style.");
-					break;
-				}
-			}
-
-			for (var i_param=0; i_param<valor.param.length; i_param++)
-			{
-				if (query.name==valor.param[i_param].clau.nom)
-				{
-					s=s.substring(0,i) + valor.param[i_param].valor.nom + s.substring(i+5+ii+1);
-					break;
-				}
-			}
-			if (i_param==valor.param.length)
-			{
-				alert("Cannot find '" + query.name + "' extracted from the KVP '{DIM?' expression in the selected style");
-				break;
-			}
-	}
-	if (capa.tipus=="TipusHTTP_GET" && capa.dimensioExtra && capa.dimensioExtra.length)
-	{
-		for (i=0; i<capa.dimensioExtra.length; i++)
+		i=s.toUpperCase().indexOf("{DIM?");
+		if (i==-1)
+			break;
+		ii=s.substring(i+5,s.length).indexOf("}");
+		if (ii==-1)
 		{
-			var d=capa.dimensioExtra[i];
-			s=s.replaceAll("{"+d.clau.nom+"}", d.valor[d.i_valor].nom);
+			alert("Format error. '{DIM?' without '}' at the end");
+			break;
+		}
+		kvp=s.substring(i+5,i+5+ii).split("&");
+		query={};
+		for(k=0; k<kvp.length; k++)
+		{
+			p = kvp[k].indexOf("=");
+			if (p==-1)
+			{
+				alert("Format error in '{DIM?', Key and value pair (KVP) without '='.");
+				break;
+			}
+			query[kvp[k].substring(0, p).toLowerCase()]=kvp[k].substring(p+1);
+		}
+		if (!query.name)
+		{
+			alert("Format error in '{DIM?', Key 'name' not found.");
+			break;
+		}
+		estil=capa.estil[capa.i_estil];
+		if (!estil || !estil.component[0])
+		{
+			alert("Cannot find '" + query.name + "' extracted from the KVP '{DIM?' expression in the selected style");
+			break;
+		}
+		if (estil.component[0].i_valor)
+		{
+			valor=capa.valors[estil.component[0].i_valor];
+			if (!valor)
+			{
+				alert("Cannot find '" + query.name + "' extracted from the KVP '{DIM?' expression in the selected style");
+				break;
+			}
+		}
+		else if (estil.component[0].FormulaConsulta)
+		{
+			//Determinio si hi ha un sol v[i] a la fórmula i en aquest cas, no hi ha problema en continuar.
+			num_of_vs=0;
+			v=DeterminaArrayValorsNecessarisCapa(ParamCtrl.capa.indexOf(capa), capa.i_estil);
+			for (i_v=0; i_v<capa.valors.length; i_v++)
+			{
+				if (v[i_v])
+				{
+					valor=capa.valors[i_v];
+					num_of_vs++;
+					if (num_of_vs>1)
+						break;
+				}
+			}
+			if (num_of_vs!=1 || !valor)
+			{
+				alert("There is ambiguity in the values of '" + query.name + "' extracted from the KVP '{DIM?' expression. This is probably because this style is an expression. Try to select another style.");
+				break;
+			}
+		}
+		param=dims?dims:((valor && valor.param) ? valor.param : null);
+		if(param)
+		{
+			for (var i_param=0; i_param<param.length; i_param++)
+			{
+				if (query.name==param[i_param].clau.nom)
+				{
+					s=s.substring(0,i) + param[i_param].valor.nom + s.substring(i+5+ii+1);
+					break;
+				}
+			}
+			if (i_param==param.length)
+			{
+				alert("Cannot find '" + query.name + "' extracted from the KVP '{DIM?' expression in the selected style");
+				break;
+			}
+		}
+	}	
+	if (capa.tipus=="TipusHTTP_GET")
+	{
+		if(dims)
+		{
+			for (i=0; i<dims.length; i++)
+			{
+				var d=dims[i];
+				s=s.replaceAll("{"+d.clau.nom+"}", d.valor.nom);
+			}
+		}
+		else if (capa.dimensioExtra && capa.dimensioExtra.length)
+		{
+			for (i=0; i<capa.dimensioExtra.length; i++)
+			{
+				var d=capa.dimensioExtra[i];
+				s=s.replaceAll("{"+d.clau.nom+"}", d.valor[d.i_valor].nom);
+			}
 		}
 	}
 	return s;
@@ -1115,5 +1139,9 @@ var d=new Date(data_iso);
 var milliseg_a=d.getTime();
 	var i=data_capa.binarySearch(milliseg_a, sortAscendingISOiData);
 	if (i<0)  //Not present in the array
+	{
 		data_capa.splice(-i-1, 0, DonaDataJSONDesDeDate(d));
+		i=-i-1;
+	}
+	return i;
 }

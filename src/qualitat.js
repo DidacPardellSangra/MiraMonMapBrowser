@@ -1,4 +1,4 @@
-/*
+ï»¿/*
     This file is part of MiraMon Map Browser.
     MiraMon Map Browser is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -17,19 +17,19 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2021 Xavier Pons
+    Copyright 2001, 2023 Xavier Pons
 
-    Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
-    amb l'ajut de Núria Julià (n julia at creaf uab cat)
-    dins del grup del MiraMon. MiraMon és un projecte del
-    CREAF que elabora programari de Sistema d'Informació Geogràfica
-    i de Teledetecció per a la visualització, consulta, edició i anàlisi
-    de mapes ràsters i vectorials. Aquest programari inclou
-    aplicacions d'escriptori i també servidors i clients per Internet.
-    No tots aquests productes són gratuïts o de codi obert.
+    Aquest codi JavaScript ha estat idea de Joan MasÃ³ Pau (joan maso at uab cat)
+    amb l'ajut de NÃºria JuliÃ  (n julia at creaf uab cat)
+    dins del grup del MiraMon. MiraMon Ã©s un projecte del
+    CREAF que elabora programari de Sistema d'InformaciÃ³ GeogrÃ fica
+    i de TeledetecciÃ³ per a la visualitzaciÃ³, consulta, ediciÃ³ i anÃ lisi
+    de mapes rÃ sters i vectorials. Aquest programari inclou
+    aplicacions d'escriptori i tambÃ© servidors i clients per Internet.
+    No tots aquests productes sÃ³n gratuÃ¯ts o de codi obert.
 
     En particular, el Navegador de Mapes del MiraMon (client per Internet)
-    es distribueix sota els termes de la llicència GNU Affero General Public
+    es distribueix sota els termes de la llicÃ¨ncia GNU Affero General Public
     License, mireu https://www.gnu.org/licenses/licenses.html#AGPL.
 
     El Navegador de Mapes del MiraMon es pot actualitzar des de
@@ -41,6 +41,224 @@
 var QualityML=null;
 var ArrelURLQualityML="https://www.qualityml.org/";
 
+function LlegeixReportDataQualtity(quality_element, node_DQElement)
+{
+	if(!node_DQElement || !quality_element)
+		return false;
+	
+	//Â·$Â· Potser puc agafar mÃ©s propietats del id per omplir altre info
+	var result=node_DQElement.getElementsByTagName('gmd:result');
+	
+	if(!result || result.length<1)
+		return false;
+	
+	quality_element.result=[{qualityml:{measure:null, domain:null, metrics:null }}];
+	
+	var i, node, node2, cadena, quality_ml=quality_element.result[0].qualityml, index, nom, i_metric;
+	
+	//  Busco la mesura
+	node=node_DQElement.getElementsByTagName('gmd:measureIdentification');
+	if(node && node.length>0)
+	{
+		node2=node[0].getElementsByTagName('gmd:MD_Identifier');
+		if(!node2 ||  node2.length<1)
+			return false;
+		node2=node2[0].getElementsByTagName('gmd:code');
+		if(!node2 ||  node2.length<1)
+			return false;
+		node2=node2[0].getElementsByTagName('gmx:Anchor');
+		if(!node2 ||  node2.length<1)
+			return false;	
+		cadena=node2[0].getAttribute("xlink:href");	
+		
+		index=cadena.indexOf('?');		
+		// Potser que el nom de la mesura sigui una URL, miro d'eliminar-ho
+		nom=(index==-1) ? cadena : cadena.slice(0, index);
+		cadena=DonaAdreca(nom).toLowerCase();
+		if(cadena=="https://www.qualityml.org/1.0/measure" || cadena=="http://www.qualityml.org/1.0/measure" || cadena=="www.qualityml.org/1.0/measure")
+			nom=TreuAdreca(nom);			
+		quality_ml.measure={name: nom};
+		
+		// Busco el domini
+		if(index!=-1)
+		{
+			index=cadena.indexOf('domain=');
+			if(index!=-1)
+			{			
+				cadena=cadena.slice(index+7);
+				var matriu=cadena.split(',');
+				quality_ml.domain=[];
+				for(i=0; i<matriu.length;i++)
+					quality_ml.domain[i]={name: matriu[i]};
+			}
+			// Â·$Â· tambÃ© hi poden haver params
+		}
+	}
+	else
+	{
+		node=node_DQElement.getElementsByTagName('gmd:nameOfMeasure');
+		if(!node || node.length<1)
+			return false;
+		node2=node[0].getElementsByTagName('gco:CharacterString');
+		if(!node2 || node2.length<1)
+			return false;
+		cadena=node2[0].textContent;	
+		quality_ml.measure={name: cadena };
+	}		
+	
+	// busco la mÃ¨trica
+	quality_ml.metrics=[];
+	
+	for(i=0,i_metric=0; i<result.length; i++)
+	{
+		node=result[i].getElementsByTagName('gmd:DQ_QuantitativeResult');
+		if(!node || node.length<1)
+			continue;
+		
+		// metrica : errorStatistic no Ã©s obligatÃ²ri perÃ² value si
+		
+		//valor
+		node2=node[0].getElementsByTagName('gmd:value');
+		if(!node2 || node2.length<1)
+			continue;
+		node2=node2[0].getElementsByTagName('gco:Record');
+		if(!node2 || node2.length<1)
+			continue;
+		
+		quality_ml.metrics[i_metric]={name : null, values : {}};
+		quality_ml.metrics[i_metric].values.list=[node2[0].textContent];
+		// Â·$Â· els valors tambÃ© poden tenir units quality_ml.metrics[i].values.units="m";
+		// i tipus i param measure
+		
+		// nom de la mÃ¨trica a errorStatistic
+		node2=node[0].getElementsByTagName('gmd:errorStatistic');
+		if(node2 && node2.length>0)
+		{			
+			node2=node2[0].getElementsByTagName('gco:CharacterString');
+			if(node2 && node2.length>0)
+			{
+				nom=node2[0].textContent;
+				// Potser que el nom sigui una URL miro d'eliminar tot el que no cal i quedar-me nomÃ©s amb el nom			
+				cadena=DonaAdreca(nom).toLowerCase();
+				if(cadena=="https://www.qualityml.org/1.0/metrics" || cadena=="http://www.qualityml.org/1.0/metrics" || cadena=="www.qualityml.org/1.0/metrics")
+					nom=TreuAdreca(nom);			
+				quality_ml.metrics[i_metric].name=nom;
+			}
+		}		
+					
+		/*
+		Â·$Â· de moment no tenim tipus de metrica!! caldia afegir el type!!
+		node2=(node.getElementsByTagName('gmd:valueType')[0]).getElementsByTagName('gco:RecordType')[0];
+		if(node2)
+		{
+			//Double precision real (UoM=days)
+			cadena=node2.textContent;
+			var index=cadena.indexOf('(');
+			if(index!=-1)
+			{
+				quality_ml.metrics[i_metric].type=cadena.slice(0, index);
+				quality_ml.metrics[i_metric].params=[];
+				cadena=cadena.slice(index+1,cadena.indexOf(')'));
+				var matriu=cadena.split(','), matriu2;
+				for(var j=0;j<matriu.length;j++)
+				{
+					matriu2=matriu[j].split('=');
+					quality_ml.metrics[i_metric].params[j]={name: matriu2[0]
+												  value: matriu2[1]};
+				}
+			}
+			else
+			{
+				quality_ml.metrics[i_metric].type=cadena;
+			}
+		}*/
+		i_metric++;
+	}
+	return true;
+}
+
+function ParsejaDocMetadadesXMLPerOmplirQualitatCapa(doc, extra_param)
+{
+var root, node_quality, i, cadena, node, node2, node_report, i, j, k, quality_element;
+
+	if(!doc)
+	{
+		alert(GetMessage("CannotObtainValidResponseFromServer", "cntxmenu"));
+		return;
+	}
+	root=doc.documentElement;
+	if(!root) 
+	{
+		alert(GetMessage("CannotObtainValidResponseFromServer", "cntxmenu"));
+		return;
+	}
+	//Cal comprovar que Ã©s un document de capacitats, potser Ã©s un error, en aquest cas el llegeix-ho i el mostrarÃ© directament
+	if(root.nodeName!="gmd:MD_Metadata")
+	{
+		alert(GetMessage("CannotObtainValidResponseFromServer", "cntxmenu") + "rootNode: " + root.nodeName);
+		return;
+	}
+	node_quality=root.getElementsByTagName('gmd:dataQualityInfo');
+	if(!node_quality || node_quality.length<1)
+		return;
+	
+	extra_param.quality=[];
+	for(i=0; i<node_quality.length; i++)
+	{
+		node=node_quality[i].getElementsByTagName('gmd:DQ_DataQuality');
+		if(!node || node.length<1)
+			continue;
+		node_report=node[0].getElementsByTagName('gmd:report');
+		if(!node_report || node_report.length<1)
+			continue;
+		for(j=0; j<node_report.length; j++)
+		{
+			for(k=0; k<node_report[j].childNodes.length; k++)
+			{
+				quality_element={};
+				node2=node_report[j].childNodes[k];
+				if(node2.nodeName=="gmd:DQ_AbsoluteExternalPositionalAccuracy")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_GriddedDataPositionalAccuracy")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_RelativeInternalPositionalAccuracy")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_ThematicClassificationCorrectness")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_QuantitativeAttributeAccuracy")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_NonQuantitativeAttributeAccuracy") 
+					quality_element.indicator="DQ_NonQuantitativeAttributeAccuracy";
+				else if(node2.nodeName=="gmd:DQ_CompletenessCommission")
+					quality_element.indicator="DQ_CompletenessCommission";					
+				else if(node2.nodeName=="gmd:DQ_CompletenessOmission") 
+					quality_element.indicator="DQ_CompletenessOmission";
+				else if(node2.nodeName=="gmd:DQ_AccuracyOfATimeMeasurement") 
+					quality_element.indicator="DQ_AccuracyOfATimeMeasurement";
+				else if(node2.nodeName=="gmd:DQ_TemporalConsistency") 
+					quality_element.indicator="DQ_TemporalConsistency";
+				else if(node2.nodeName=="gmd:DQ_TemporalValidity")
+					quality_element.indicator="DQ_TemporalValidity";
+				else if(node2.nodeName=="gmd:DQ_DomainConsistency")
+					quality_element.indicator="DQ_DomainConsistency";					
+				else if(node2.nodeName=="gmd:DQ_FormatConsistency")
+					quality_element.indicator="DQ_FormatConsistency";
+				else if(node2.nodeName=="gmd:DQ_TopologicalConsistency")
+					quality_element.indicator="DQ_TopologicalConsistency";
+				else if(node2.nodeName=="gmd:DQ_ConceptualConsistency")
+					quality_element.indicator="DQ_ConceptualConsistency";
+				else
+					continue;
+				// En ISO19115 DQ_NonQuantitativeAttributeAccuracy i en ISO19157 DQ_NonQuantitativeAttributeCorrectness
+				//"DQ_NonQuantitativeAttributeCorrectness",","DQ_UsabilityElement","DQ_Confidence","DQ_Representativity","DQ_Homogeneity"]
+				
+				if(LlegeixReportDataQualtity(quality_element,node2))
+					extra_param.quality.push(quality_element);
+			}
+		}
+	}
+	MostraQualitatCapa(extra_param.elem, extra_param.quality, extra_param.capa, extra_param.i_estil);
+}
 
 // Funciona tant per capa com per capa_digi
 function AfegeixQualitatACapa(capa, quality)
@@ -52,7 +270,73 @@ function AfegeixQualitatACapa(capa, quality)
 	return capa.metadades.quality[capa.metadades.quality.length]=quality;
 }
 
-function FinestraMostraQualitatCapa(elem, capa, i_estil)
+
+function TancaFinestra_mostraQualitat()
+{
+	// Buido el contingut de la finestra
+	var elem=getFinestraLayer(window, "mostraQualitat");
+	if(elem)
+		contentLayer(elem, "");		
+	
+}
+
+function FinestraMostraQualitatCapa(elem, quality, capa, i_estil)
+{
+	var elem=ObreFinestra(window, "mostraQualitat", GetMessage("forShowingQualityInformation", "cntxmenu"));
+
+	if (!elem)
+		return;
+
+	MostraQualitatCapa(elem, quality, capa, i_estil);
+}
+
+function DonaIndexIndicatorQualityML(id)
+{
+const id_temp=id.toLowerCase();
+
+	for (var i=0; i<QualityML.indicator.length; i++)
+	{
+		if (QualityML.indicator[i].id.toLowerCase()==id_temp)
+			return i;
+	}
+	return -1;
+}
+
+function DonaIndexMeasureQualityML(id)
+{
+const id_temp=id.toLowerCase();
+
+	for (var i=0; i<QualityML.measure.length; i++)
+	{
+		if (QualityML.measure[i].id.toLowerCase()==id_temp)
+			return i;
+	}
+	return -1;
+}
+
+function DonaIndexDomainQualityML(id)
+{
+const id_temp=id.toLowerCase();
+	for (var i=0; i<QualityML.domain.length; i++)
+	{
+		if (QualityML.domain[i].id.toLowerCase()==id_temp)
+			return i;
+	}
+	return -1;
+}
+
+function DonaIndexMetricQualityML(id)
+{
+const id_temp=id.toLowerCase();
+	for (var i=0; i<QualityML.metric.length; i++)
+	{
+		if (QualityML.metric[i].id.toLowerCase()==id_temp)
+			return i;
+	}
+	return -1;
+}
+
+function MostraQualitatCapa(elem, quality, capa, i_estil)
 {
 	if (!QualityML)
 	{
@@ -60,53 +344,32 @@ function FinestraMostraQualitatCapa(elem, capa, i_estil)
 				// "qualityml.json",
 			function(quality_ml, extra_param) {
 				QualityML=quality_ml;
-				MostraQualitatCapa(extra_param.elem, extra_param.capa, extra_param.i_estil);
+				MostraQualitatCapa(extra_param.elem, extra_param.quality, extra_param.capa, extra_param.i_estil);
 			},
 			function(xhr) { alert(xhr); },
-			{elem:elem, capa:capa, i_estil: i_estil});
+			{elem:elem, quality: quality, capa:capa, i_estil: i_estil});
 	}
-	else
-		MostraQualitatCapa(elem, capa, i_estil);
-}
-
-function DonaIndexIndicatorQualityML(id)
-{
-	for (var i=0; i<QualityML.indicator.length; i++)
+	else if (!quality)
 	{
-		if (QualityML.indicator[i].id==id)
-			return i;
+		var ajax=new Ajax();
+		if (window.doAutenticatedHTTPRequest && capa.access)
+			doAutenticatedHTTPRequest(capa.access, "GET", 
+					ajax, DonaNomFitxerMetadades(capa, i_estil), null, null, 
+					ParsejaDocMetadadesXMLPerOmplirQualitatCapa, 
+					"text/xml", {elem: elem, quality: null, capa: capa, i_estil: i_estil});
+		else
+			ajax.doGet(DonaNomFitxerMetadades(capa, i_estil),
+					ParsejaDocMetadadesXMLPerOmplirQualitatCapa, "text/xml",{elem: elem, quality: null, capa: capa, i_estil: i_estil});
 	}
-	return -1;
-}
-
-function MostraQualitatCapa(elem, capa, i_estil)
-{
-	contentLayer(elem, DonaCadenaMostraQualitatCapa(capa, i_estil));
-}
-
-function DesplegaOPlegaIFramaQualityML(nom)
-{
-	if (document.getElementById(nom+"iframe").style.display=="none")
-	{
-		document.getElementById(nom+"iframe").style.display="inline";
-		document.getElementById(nom+"img").src=AfegeixAdrecaBaseSRC("boto_contract.png");
-	}
-	else
-	{
-		document.getElementById(nom+"iframe").style.display="none";
-		document.getElementById(nom+"img").src=AfegeixAdrecaBaseSRC("boto_expand.png");
-	}
+	else		
+		contentLayer(elem, DonaCadenaMostraQualitatCapa(quality, capa, i_estil));
 }
 
 function DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, concept, i, id_qml)
 {
-var cdns=[], nom="MostraQualitatCapa_"+i_q+"_"+i_r+"_"+concept+"_"+i+"_";
-	cdns.push(" <img src=\"",
-		 AfegeixAdrecaBaseSRC("boto_expand.png"), "\" id=\"",nom,"img\" ",
-		 "alt=\"", GetMessage("moreInfo") , "\" ",
-		 "title=\"",GetMessage("moreInfo"), "\" ",
-		 "onClick='DesplegaOPlegaIFramaQualityML(\"",nom,"\")'\"><iframe src=\"",ArrelURLQualityML, version, "/", concept,"/", id_qml, "\" id=\"",nom,"iframe\" style=\"display: none\" width=\"98%\" height=\"180\" scrolling=\"auto\"></iframe>");
-	return cdns.join("");
+var cdns=[], nom="MostraQualitatCapa_"+i_q+"_"+i_r+"_"+concept+"_"+i+"_", url= ArrelURLQualityML + version + "/" + concept + "/" + id_qml;
+
+	return BotoDesplegableIFrame(nom, url);
 }
 
 function DonaCadenaValorsComLlistaQualitatCapa(values)
@@ -138,15 +401,10 @@ var cdns=[];
 	return cdns.join("");
 }
 
-function DonaCadenaMostraQualitatCapa(capa, i_estil)
+function DonaCadenaMostraQualitatCapa(quality, capa, i_estil)
 {
-var quality;
-var i_indicator, cdns=[];
+var i_indicator, i_measure, i_domain, i_metric, cdns=[];
 
-	if (i_estil==-1)
-		quality=capa.metadades.quality;
-	else
-		quality=capa.estil[i_estil].metadades.quality;
     cdns.push("<form name=\"QualitatCapa\" onSubmit=\"return false;\">");
 	cdns.push("<div id=\"LayerQualitatCapa\" class=\"Verdana11px\" style=\"position:absolute;left:10px;top:10px;width:95%\">",
 			GetMessage("QualityOfLayer", "qualitat"), " \"",
@@ -166,14 +424,14 @@ var i_indicator, cdns=[];
 		if (quality[i_q].scope && quality[i_q].scope.env && quality[i_q].scope.env.EnvCRS)
 		{
 			var env=quality[i_q].scope.env.EnvCRS, decimals;
-			if (DonaUnitatsCoordenadesProj(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS)=="m" && DonaUnitatsCoordenadesProj(quality[i_q].scope.env.CRS)=="°")
+			if (DonaUnitatsCoordenadesProj(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS)=="m" && DonaUnitatsCoordenadesProj(quality[i_q].scope.env.CRS)=="Â°")
 				decimals=ParamCtrl.NDecimalsCoordXY+4;
-			else if (DonaUnitatsCoordenadesProj(quality[i_q].scope.env.CRS)=="m" && DonaUnitatsCoordenadesProj(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS)=="°")
+			else if (DonaUnitatsCoordenadesProj(quality[i_q].scope.env.CRS)=="m" && DonaUnitatsCoordenadesProj(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS)=="Â°")
 				decimals=ParamCtrl.NDecimalsCoordXY-4;
 			else
 				decimals=ParamCtrl.NDecimalsCoordXY;
 			cdns.push("<b>Scope:</b> Dataset fragment of this area: x=[", OKStrOfNe(env.MinX, decimals), ",", OKStrOfNe(env.MaxX, decimals), "], y=[", OKStrOfNe(env.MinY, decimals), ",", OKStrOfNe(env.MaxY, decimals), "] ");
-			if (quality[i_q].scope.env.CRS.toUpperCase()==ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS.toUpperCase())
+			if (DonaCRSRepresentaQuasiIguals(quality[i_q].scope.env.CRS, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS))
 				cdns.push("<input type=\"button\" class=\"Verdana11px\" value=\"",
 				  	GetMessage("GoTo", "capavola"),
 					"\" onClick='PortamAAmbit(",JSON.stringify(env),")' />");
@@ -195,15 +453,21 @@ var i_indicator, cdns=[];
 					var version=(qualityml.version) ? qualityml.version : "1.0";
 					if (qualityml.measure)
 					{
-						cdns.push("<b>Measure:</b> ", qualityml.measure.name, DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "measure", 0, qualityml.measure.name), "<br/>",
-									DonaCadenaParamQualitatCapa(qualityml.measure.param));
+						cdns.push("<b>Measure:</b> ", qualityml.measure.name);
+						i_measure=DonaIndexMeasureQualityML(qualityml.measure.name);
+						if(i_measure!=-1)
+							cdns.push(DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "measure", 0, qualityml.measure.name));
+						cdns.push("<br/>", DonaCadenaParamQualitatCapa(qualityml.measure.param));
 					}
 					if (qualityml.domain)
 					{
 						for (var i_d=0; i_d<qualityml.domain.length; i_d++)
 						{
-							cdns.push("<b>Domain:</b> ", qualityml.domain[i_d].name, DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "domain", i_d, qualityml.domain[i_d].name), "<br/>",
-									DonaCadenaParamQualitatCapa(qualityml.domain[i_d].param),
+							cdns.push("<b>Domain:</b> ", qualityml.domain[i_d].name);
+							i_domain=DonaIndexDomainQualityML(qualityml.domain[i_d].name);
+							if(i_domain!=-1)
+								cdns.push(DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "domain", i_d, qualityml.domain[i_d].name));
+							cdns.push("<br/>", DonaCadenaParamQualitatCapa(qualityml.domain[i_d].param),
 									DonaCadenaValorsComLlistaQualitatCapa(qualityml.domain[i_d].values));
 						}
 					}
@@ -211,8 +475,15 @@ var i_indicator, cdns=[];
 					{
 						for (var i_m=0; i_m<qualityml.metrics.length; i_m++)
 						{
-							cdns.push("<b>Metrics:</b> ", qualityml.metrics[i_m].name, DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "metrics", i_m, qualityml.metrics[i_m].name), "<br/>",
-									DonaCadenaParamQualitatCapa(qualityml.metrics[i_m].param),
+							if(qualityml.metrics[i_m].name) // Potser que no tinguem nom de metrica
+							{
+								cdns.push("<b>Metrics:</b> ", qualityml.metrics[i_m].name);
+								i_metric=DonaIndexMetricQualityML( qualityml.metrics[i_m].name);
+								if(i_metric!=-1)
+									cdns.push(DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "metrics", i_m, qualityml.metrics[i_m].name));
+								cdns.push("<br/>");
+							}
+							cdns.push(DonaCadenaParamQualitatCapa(qualityml.metrics[i_m].param),
 									DonaCadenaValorsComLlistaQualitatCapa(qualityml.metrics[i_m].values));
 						}
 					}
@@ -282,8 +553,8 @@ function DonaCodeUnComponentCapaEstilFeedback(capa, i_estil, i_component, descri
 					break;
 				}
 				nou_valor+=fragment.substring(0, inici);
-				cadena=fragment.substring(inici+2, final); //-> inici+2 perquè no vull ni "v[" ni "]"
-				//aquí "cadena" conté el i_valor que vull
+				cadena=fragment.substring(inici+2, final); //-> inici+2 perquÃ¨ no vull ni "v[" ni "]"
+				//aquÃ­ "cadena" contÃ© el i_valor que vull
 				var index = cadena.match(/\d+/g).map(Number);
 				nou_valor+=DonaCodeComponentBasatEnValorParam(capa.valors[index]);
 
@@ -311,7 +582,7 @@ var capa=ParamCtrl.capa[i_capa];
 var s=capa.nom;
 
 	if (ParamCtrl.capa[i_capa].FormatImatge=="image/tiff" && (ParamCtrl.capa[i_capa].tipus=="TipusHTTP_GET" || !ParamCtrl.capa[i_capa].tipus))
-		return DonaUrlLecturaTiff(i_capa, 0, capa.i_data);
+		return DonaUrlLecturaTiff(i_capa, 0, capa.i_data, null);
 
 	if (i_estil==-1)
 		return s;
@@ -332,19 +603,19 @@ var s=capa.nom;
 		else if (capa.estil[i_estil].component[0].FormulaConsulta)
 		{
 			var s2=null, i_capes;
-			if (!capa.estil[i_estil].component[0].calcul)	//per indexos predefinits el "calcul" no existeix, però puc entrar perquè segur que la FormulaConsulta només té v[] d'aquesta capa.
+			if (!capa.estil[i_estil].component[0].calcul)	//per indexos predefinits el "calcul" no existeix, perÃ² puc entrar perquÃ¨ segur que la FormulaConsulta nomÃ©s tÃ© v[] d'aquesta capa.
 				//s2=capa.estil[i_estil].component[0].FormulaConsulta;
 				s2=DonaCodeUnComponentCapaEstilFeedback(capa, i_estil, 0, true);
 			else
 			{
 				i_capes=DonaIndexosACapesDeCalcul(capa.estil[i_estil].component[0].calcul, i_capa);
-				if (i_capes.length==1) //per indexos calculats per l'usuari, el "calcul" sí que existeix, i amb el darrer if he comprovat que en aquest càlcul només entren bandes d'aquesta capa (és a dir que i_capes==1)
+				if (i_capes.length==1) //per indexos calculats per l'usuari, el "calcul" sÃ­ que existeix, i amb el darrer if he comprovat que en aquest cÃ lcul nomÃ©s entren bandes d'aquesta capa (Ã©s a dir que i_capes==1)
 					//s2=capa.estil[i_estil].component[0].FormulaConsulta;
 					s2=DonaCodeUnComponentCapaEstilFeedback(capa, i_estil, 0, true);
 			}
 
 			if (s2)
-			{	//ho fem així per unificar la descripció a un sol, lloc, encara que vinguem de dos casos diferents a dalt
+			{	//ho fem aixÃ­ per unificar la descripciÃ³ a un sol, lloc, encara que vinguem de dos casos diferents a dalt
 					s+="_CALC(" + s2 + ")";
 					if (s.length < MAX_LEN_IDENTIFICADOR_CAPA_O_ESTIL)
 						return s;
@@ -353,38 +624,38 @@ var s=capa.nom;
 					return s;
 			}
 
-			//aquí arribo només si tinc calcul i quan l'analitzo em diu que hi ha capes "externes a la pròpia" implicades
+			//aquÃ­ arribo nomÃ©s si tinc calcul i quan l'analitzo em diu que hi ha capes "externes a la prÃ²pia" implicades
 			alert(GetMessage("ComplexDefinitionOfStyle", "qualitat") + ".");
-			return null; //si no sé donar identificador a l'estil, no deixo posar feedback sobre ell
+			return null; //si no sÃ© donar identificador a l'estil, no deixo posar feedback sobre ell
 
-		//només arribo aquí (i.e. no surto) si tinc 1 sol component però aquest no té ni i_valor ni FormulaConsulta
+		//nomÃ©s arribo aquÃ­ (i.e. no surto) si tinc 1 sol component perÃ² aquest no tÃ© ni i_valor ni FormulaConsulta
 
-			/*notes sobre com fer això:
+			/*notes sobre com fer aixÃ²:
 
-			1/ La idea és que si ara filtro espacialment amb una banda de la mateixa capa (p.ex per scl), a formula és
+			1/ La idea Ã©s que si ara filtro espacialment amb una banda de la mateixa capa (p.ex per scl), a formula Ã©s
 				"(v[12]!=11)?((v[10]-v[11])/(v[10]+v[11])):null"
 			i a d'alt ja m'ha tornat i_capes=1 i ho he fet
 
-			2/ si filtro amb una altra capa(pex), la idea és que la formula diu
+			2/ si filtro amb una altra capa(pex), la idea Ã©s que la formula diu
 					"(v[        13                    ]!=11)?((v[10]-v[11])/(v[10]+v[11])):null"
-			pero aquest v[13] s'ha creat pel programa i ha de ser substituit en primera instància per
+			pero aquest v[13] s'ha creat pel programa i ha de ser substituit en primera instÃ ncia per
 					"(v[{\"i_capa\":228,\"i_valor\":0}]!=11)?((v[10]-v[11])/(v[10]+v[11])):null"
-			però com els índexs de capa son super volàlits, realment hauré d'anar a alguna cosa tipus
+			perÃ² com els Ã­ndexs de capa son super volÃ lits, realment haurÃ© d'anar a alguna cosa tipus
 				"(v[{\"servidor\":"http://maps-***.cgi",\"nom_capa\":"SwissNationalParkLULC",\"i_valor\":0}]!=11)?((v[10]-v[11])/(v[10]+v[11])):null"
-			(el servidor al meu config.json pot ser "null" que vol dir el servidor_local que és una variable global. si ñes null puc no posar-lo pq s'entenc que la nom_capa :"SwissNationalParkLULC" és al amteix servidor que la capa de la qual faig el FB/estil (és a dir la que té els v[10], etc). Si relament ve d0un lloc diferent, aleshores si ho poso
-			o bé, en un exemple diferent usar el mapa usos nostres 2019 per a filtra espacial el SwissNationalParkSen2 de \"servidor\":"http://maps-***.cgi"
+			(el servidor al meu config.json pot ser "null" que vol dir el servidor_local que Ã©s una variable global. si Ã±es null puc no posar-lo pq s'entenc que la nom_capa :"SwissNationalParkLULC" Ã©s al amteix servidor que la capa de la qual faig el FB/estil (Ã©s a dir la que tÃ© els v[10], etc). Si relament ve d0un lloc diferent, aleshores si ho poso
+			o bÃ©, en un exemple diferent usar el mapa usos nostres 2019 per a filtra espacial el SwissNationalParkSen2 de \"servidor\":"http://maps-***.cgi"
 				"(v[{\"servidor\":"http://MCSC....***.cgi",\"nom_capa\":"MUSC_2019",\"i_valor\":0}]!=11)?((v[10]-v[11])/(v[10]+v[11])):null"
 
 			"calcul": "({\"i_valor\":12}!=11)?(({\"i_capa\":232,\"i_valor\":10}-{\"i_capa\":232,\"i_valor\":11})/({\"i_capa\":232,\"i_valor\":10}+{\"i_capa\":232,\"i_valor\":11})):null",
 
 			capa nova
-			FormulaConsulta -> i_capes diferents -> similar a aaixò -> unic cas amb i_valor
-			"(v[{\"nom_capa\":\"SwissNationalParkLULC\",\"i_valor\":0}]!=11)?((v[10]-v[11])/(v[10]+v[11])):null" però amb NOMS CAPES DFE
+			FormulaConsulta -> i_capes diferents -> similar a aaixÃ² -> unic cas amb i_valor
+			"(v[{\"nom_capa\":\"SwissNationalParkLULC\",\"i_valor\":0}]!=11)?((v[10]-v[11])/(v[10]+v[11])):null" perÃ² amb NOMS CAPES DFE
 
-			calcul sobre calcul no tinc nom de capa, però no passa res pq les formules s'expandeixen*/
+			calcul sobre calcul no tinc nom de capa, perÃ² no passa res pq les formules s'expandeixen*/
 		}
 	}
-	else //if (capa.estil[i_estil].component.length==3) //si tinc tres és que és RGB i per tant tres i_valor -> si per alguna no tinc i_valor, cosa teòricament no possible ara, aquell no l'afegeixo i el Identificador quedarà "amb menys components"
+	else //if (capa.estil[i_estil].component.length==3) //si tinc tres Ã©s que Ã©s RGB i per tant tres i_valor -> si per alguna no tinc i_valor, cosa teÃ²ricament no possible ara, aquell no l'afegeixo i el Identificador quedarÃ  "amb menys components"
 	{
 		var i, s2;
 
@@ -415,11 +686,11 @@ var s=capa.nom;
 			s+="_RGB(" + "v[" + capa.estil[i_estil].component[0].i_valor + "],"+ "v[" + capa.estil[i_estil].component[1].i_valor + "],"+ "v[" + capa.estil[i_estil].component[2].i_valor + "])";
 			return s;
 		}	*/
-		//·$· poter salvar aquest cas per si un dia volen fer RGB de formules?
+		//Â·$Â· poter salvar aquest cas per si un dia volen fer RGB de formules?
 	}
 
-	/*Aquí arribo si tinc 1 sol component però aquest no té ni i_valor ni FormulaConsulta; si tinc 3 components però alguna no té i_valor,
-	o bé si tinc un nombre de components diferent de 1 o de 3 no té sentit
+	/*AquÃ­ arribo si tinc 1 sol component perÃ² aquest no tÃ© ni i_valor ni FormulaConsulta; si tinc 3 components perÃ² alguna no tÃ© i_valor,
+	o bÃ© si tinc un nombre de components diferent de 1 o de 3 no tÃ© sentit
 
 	-> codi per si un dia volem desar un ID com a llista dels N valors, un darrera l'altre
 	var i;
@@ -429,8 +700,41 @@ var s=capa.nom;
 			s+="_" + "v[" + capa.estil[i_estil].component[i].i_valor + "]";
 	}*/
 	alert(GetMessage("UnexpectedDefinitionOfStyle", "qualitat") + ".");
-	return null; //si no sé donar identificador a l'estil, no deixo posar feedback sobre ell
+	return null; //si no sÃ© donar identificador a l'estil, no deixo posar feedback sobre ell
 }
+
+//Si la capa te un tokenType associat es fa servir aquest, i si no el primer que estigui actiu, i si no n'hi ha cap, el primer que tingui possibilitat de fer-se servir
+function DonaAccessTokenTypeFeedback(capa)
+{
+	if (!ParamCtrl.accessClientId)
+		return null;
+
+	if (capa.access)
+		return capa.access.tokenType;
+
+	for (var tokenType in ParamCtrl.accessClientId)
+	{
+		if (ParamCtrl.accessClientId.hasOwnProperty(tokenType))
+		{
+			if (!ParamInternCtrl.tokenType)
+			{
+				alert("authen.js not included in index.htm");
+				return null;
+			}
+			if (ParamInternCtrl.tokenType[tokenType].userAlreadyWelcomed)
+				return tokenType;
+		}
+	}
+	for (var tokenType in ParamCtrl.accessClientId)
+	{
+		if (ParamCtrl.accessClientId.hasOwnProperty(tokenType))
+		{
+			return tokenType;
+		}
+	}
+	return null;
+}
+
 
 function FinestraFeedbackCapa(elem, i_capa, i_estil)
 {
@@ -449,7 +753,7 @@ var capa=ParamCtrl.capa[i_capa];
 		return;
 	}
 
-	/*if (s.indexOf("Sentinel2Level2a")!=-1) //és una Sentinel2
+	/*if (s.indexOf("Sentinel2Level2a")!=-1) //Ã©s una Sentinel2
 	{
 		var targets=[{title: DonaCadena(capa.desc) + (i_estil==-1 ? "": ", " + DonaCadena(capa.estil[i_estil].desc)), code: s, codespace: DonaServidorCapa(capa), role: "primary"},
 				{title: "Sentinel 2 L2A Collection", code: "Sentinel2Level2aCollection", codespace: "http://datacube.uab.cat/cgi-bin/ecopotential/miramon.cgi", role: "secondary"}];
@@ -459,10 +763,12 @@ var capa=ParamCtrl.capa[i_capa];
 		GUFShowFeedbackInHTMLDiv(elem,
 				"LayerFeedbackCapa",
 				cdns.join(""),
-				DonaCadena(capa.desc) + (i_estil==-1 ? "": ", " + DonaCadena(capa.estil[i_estil].desc)),  //desc, es pot haver canviat, però no és crític
+				DonaCadena(capa.desc) + (i_estil==-1 ? "": ", " + DonaCadena(capa.estil[i_estil].desc)),  //desc, es pot haver canviat, perÃ² no Ã©s crÃ­tic
 				s, //identificador unic
 				DonaAdrecaAbsoluta(DonaServidorCapa(capa)).replace("//ecopotential.grumets.cat/", "//maps.ecopotential-project.eu/"),
-				ParamCtrl.idioma);
+				ParamCtrl.idioma,
+				DonaAccessTokenTypeFeedback(capa),
+				"MostraFinestraFeedbackAmbScope");
 }
 
 function AdoptaEstil(params_function, guf)
@@ -520,8 +826,8 @@ var capa=ParamCtrl.capa[i_capa];
 
 	GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv(elem, "LayerFeedbackAmbEstilsCapa", s, DonaServidorCapa(capa),
 		{ru_platform: encodeURI(ToolsMMN), ru_version: VersioToolsMMN.Vers+"."+VersioToolsMMN.SubVers,
-			ru_schema: encodeURIComponent(config_schema_estil) /*, ru_sugg_app: location.href -> no cal passar-ho perquè s'omple per defecte*/},
-		ParamCtrl.idioma, "" /*access_token_type*/, "AdoptaEstil"/*callback_function*/, {i_capa: i_capa});
+			ru_schema: encodeURIComponent(config_schema_estil) /*, ru_sugg_app: location.href -> no cal passar-ho perquÃ¨ s'omple per defecte*/},
+		ParamCtrl.idioma, DonaAccessTokenTypeFeedback(capa) /*access_token_type*/, "AdoptaEstil"/*callback_function*/, {i_capa: i_capa});
 }
 
 function CalculaValidessaTemporal(param)
@@ -531,15 +837,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n=0, n_dins=0, 
 	if (!capa_digi.objectes.features)
 		return false;
 
-	for (i_camp=0; i_camp<capa_digi.atributs.length; i_camp++)
-	{
-		if (capa_digi.atributs[i_camp].nom==param.atribut)
-		{
-			camp=capa_digi.atributs[i_camp];
-			break;
-		}
-	}
-	if (i_camp==capa_digi.atributs.length)
+	if (!capa_digi.attributes[param.attribute_name])
 		return false;
 
 	for (var i_obj=0; i_obj<capa_digi.objectes.features.length; i_obj++)
@@ -555,22 +853,22 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n=0, n_dins=0, 
 		    feature.properties.__om_time__=="" ||
 			feature.properties.__om_time__==null)
 			continue;*/
-		if (typeof feature.properties[param.atribut]==="undefined" ||
-			feature.properties[param.atribut]=="" ||
-			feature.properties[param.atribut]==null)
+		if (typeof feature.properties[param.attribute]==="undefined" ||
+			feature.properties[param.attribute]=="" ||
+			feature.properties[param.attribute]==null)
 			continue;
 
 		n++;
 
-		if (camp.format=="dd/mm/yyyy")
+		if (camp.presentation=="dd/mm/yyyy")
 		{
-			var dateParts = feature.properties[param.atribut].split("/");
+			var dateParts = feature.properties[param.attribute].split("/");
 			if (!dateParts || dateParts.length!=3)
 				continue;
-			data_obj=new Date(dateParts[2]+"-"+dateParts[1]+"-"+dateParts[0]);  //fet així pensa que el text és hora UTC que és el mateix que passa amb la lectura dels formularis
+			data_obj=new Date(dateParts[2]+"-"+dateParts[1]+"-"+dateParts[0]);  //fet aixÃ­ pensa que el text Ã©s hora UTC que Ã©s el mateix que passa amb la lectura dels formularis
 		}
 		else
-			data_obj=new Date(feature.properties[param.atribut]);
+			data_obj=new Date(feature.properties[param.attribute]);
 		if(data_obj>= param.data_ini && data_obj<=param.data_fi)
 			n_valids++;
 	}
@@ -584,7 +882,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n=0, n_dins=0, 
 		scope: ((n_dins==capa_digi.objectes.features.length) ? null : {env: {EnvCRS: JSON.parse(JSON.stringify(ParamInternCtrl.vista.EnvActual)), CRS: ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS}}),
 		indicator: "DQ_TemporalValidity",
 		statement: GetMessage("ConsistencyBasedOnComparisonObservation","qualitat") +
-			" \'"+param.atribut+"\' "+
+			" \'"+param.attribute+"\' "+
 			GetMessage("dataIntervalSpecified", "qualitat")+ ". " +
 			GetMessage("ThereAre") +
 			" " + (n_dins-n) + " "+
@@ -609,7 +907,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n=0, n_dins=0, 
 						value: param.data_fi.toJSON()
 					}],
 					values:{
-						list:[param.atribut]
+						list:[param.attribute]
 					}
 				}],
 				metrics: [{
@@ -694,7 +992,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n_dins=0;
 
 /*function CercaCombinacioCL(objecte)
 {
-	if((!objecte[0] && !this[0]) || (objecte[0].toLowerCase()==this[0].toLowerCase()))   // no hauria de passar que una combinació fós tot null, però ho protegeixo per si de cas
+	if((!objecte[0] && !this[0]) || (objecte[0].toLowerCase()==this[0].toLowerCase()))   // no hauria de passar que una combinaciÃ³ fÃ³s tot null, perÃ² ho protegeixo per si de cas
 	{
 		if((!objecte[1] && !this[1]) || (objecte[1] && this[1] && this[1].toLowerCase()==objecte[1].toLowerCase()))
 		{
@@ -714,16 +1012,16 @@ function CercaCombinacioCamps(llista_comb, combinacio)
 	/*try
 	{*/
 		return llista_comb.find(function (objecte) {
-			if(((!objecte[0] && !combinacio[0]) || objecte[0].toLowerCase()==combinacio[0].toLowerCase()) &&   // no hauria de passar que una combinació fós tot null, però ho protegeixo per si de cas
+			if(((!objecte[0] && !combinacio[0]) || objecte[0].toLowerCase()==combinacio[0].toLowerCase()) &&   // no hauria de passar que una combinaciÃ³ fÃ³s tot null, perÃ² ho protegeixo per si de cas
 			   ((!objecte[1] && !combinacio[1]) || (objecte[1] && combinacio[1] && combinacio[1].toLowerCase()==objecte[1].toLowerCase())) &&
                 	   ((!objecte[2] && !combinacio[2]) || (objecte[2] && combinacio[2] && combinacio[2].toLowerCase()==objecte[2].toLowerCase())))
 				return true;
 			return false;
-		});  //tools1.js afageix suport a find() si no hi és.
+		});  //tools1.js afegeix suport a find() si no hi Ã©s.
 	/*}
 	catch(ex)
 	{
-		// En funció de la versió potser que no existeixi la funció find()
+		// En funciÃ³ de la versiÃ³ potser que no existeixi la funciÃ³ find()
 		for(var i=0; i<llista_comb.length; i++)
 		{
 			if (CercaCombinacioCL(llista_comb[i]))
@@ -748,8 +1046,8 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], combinacio=[], n_consistent
 			continue;
 		n_dins++;
 
-		// El primer atribut a avaluar la consistència lògica és obligatòri, per tant, si l'objecte que vaig a mirar no té aquest
-		// atribut no el considero dins de l'avalució
+		// El primer attribute a avaluar la consistÃ¨ncia lÃ²gica Ã©s obligatÃ²ri, per tant, si l'objecte que vaig a mirar no tÃ© aquest
+		// attribute no el considero dins de l'avaluciÃ³
 		if (typeof feature.properties[param.atributlogic1]==="undefined" ||
 		    feature.properties[param.atributlogic1]=="" ||
 			feature.properties[param.atributlogic1]==null)
@@ -823,7 +1121,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], combinacio=[], n_consistent
 
 function CalculaQualExacPosicDesDeCampUncertainty(param)
 {
-var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, i, unitats;
+var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, i, UoM;
 
 	if (!capa_digi.objectes.features)
 		return false;
@@ -836,11 +1134,11 @@ var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, 
 			continue;
 		n_dins++;
 
-		if (typeof feature.properties[param.atribut]!=="undefined" &&
-			feature.properties[param.atribut]!=null)
+		if (typeof feature.properties[param.attribute_name]!=="undefined" &&
+			feature.properties[param.attribute_name]!=null)
 		{
-			desv_tip+=(feature.properties[param.atribut]*
-				feature.properties[param.atribut])
+			desv_tip+=(feature.properties[param.attribute_name]*
+				feature.properties[param.attribute_name])
 			n++;
 		}
 	}
@@ -852,23 +1150,23 @@ var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, 
 
 	desv_tip=Math.sqrt(desv_tip/n);
 
-	i=DonaIAtributsDesDeNomAtribut(capa_digi, param.atribut);
+	i=DonaIAttributesDesDeNomAttribute(capa_digi, capa_digi.attributes, param.attribute_name);
 	if (i==-1)
 	{
 		alert(GetMessage("WrongAttributeName", "qualitat") + " " +
-				param.atribut + "  " +
+				param.attribute_name + "  " +
 				GetMessage("computeDataQuality", "qualitat") + " " +
 				DonaCadenaNomDesc(capa_digi));
-		unitats=null;
+		UoM=null;
 	}
 	else
-		unitats=capa_digi.atributs[i].unitats;
+		UoM=capa_digi.attributes[param.attribute_name].UoM;
 
 	AfegeixQualitatACapa(capa_digi, {
 		scope: ((n_dins==capa_digi.objectes.features.length) ? null : {env: {EnvCRS: JSON.parse(JSON.stringify(ParamInternCtrl.vista.EnvActual)), CRS: ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS}}),
 		indicator: "DQ_AbsoluteExternalPositionalAccuracy",
 		statement: GetMessage("AccuracyPositionalUncertainty", "quality") +
-			" " +param.atribut+". " +
+			" " +param.attribute_name+". " +
 			GetMessage("ThereAre") +
 			" " + (n_dins-n) + " "+
 			GetMessage("of") +
@@ -883,8 +1181,8 @@ var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, 
 				domain: [{
 					name: "DifferentialErrors2D",
 					values: {
-						list: [param.atribut],
-						units : (unitats ? unitats : null)
+						list: [param.attribute_name],
+						units : (UoM ? UoM : null)
 					}
 				}],
 				metrics: [{
@@ -895,7 +1193,7 @@ var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, 
 					}],
 					values: {
 						list: [desv_tip],
-						units: (unitats ? unitats : null)
+						units: (UoM ? UoM : null)
 					}
 				}]
 			}
@@ -915,7 +1213,7 @@ var sel=form.metode_eval_qual, i, capa=ParamCtrl.capa[i_capa], retorn=false, par
 			var sel_camp=form.camp_incertesa;
 			if(sel_camp.selectedIndex<sel_camp.length)
 			{
-				param={i_capa: i_capa, intencions: "qualitat", atribut: sel_camp.options[sel_camp.selectedIndex].value};
+				param={i_capa: i_capa, intencions: "qualitat", attribute_name: sel_camp.options[sel_camp.selectedIndex].value};
 				if(DescarregaPropietatsCapaDigiVistaSiCal(CalculaQualExacPosicDesDeCampUncertainty, param))
 					return;
 				retorn=CalculaQualExacPosicDesDeCampUncertainty(param);
@@ -974,15 +1272,15 @@ var sel=form.metode_eval_qual, i, capa=ParamCtrl.capa[i_capa], retorn=false, par
 		}
 		/*else if (sel.options[sel.selectedIndex].value=="ThematicAccuracyGroundTruth")
 		{
-			//·$·
+			//Â·$Â·
 			;
 		}*/
 		else if (sel.options[sel.selectedIndex].value=="TemporalValidityOfObservationData")
 		{
-			// SORPRESA: Les dates s'enmagatzemen com a data UTC, però sorpresa que si escric 2018-12-01 acaba sent 2018-12-01 01:00 i en canvi si escric 2018/12/01 acaba sent 2018-12-01 00:00.
-			// Hi ha una hora de diferència!!! Això fa que quan comparo les dates aquestes poden estar escrites de diferent manera i per tant tenir una hora de diferència.
-			// Com que la data s'enmagatzema com a hora UTC això fa que si comparo 2018-12-01 < 2018/12/01 en realitat estigui comparant 2018-12-01 1:00 < 2017-01-31 23:00.
-			// Buscant més he trobat que si li passes una cadena amb '-' estas indicant el format UTC i si ho fas amb '/' fas el format local
+			// SORPRESA: Les dates s'enmagatzemen com a data UTC, perÃ² sorpresa que si escric 2018-12-01 acaba sent 2018-12-01 01:00 i en canvi si escric 2018/12/01 acaba sent 2018-12-01 00:00.
+			// Hi ha una hora de diferÃ¨ncia!!! AixÃ² fa que quan comparo les dates aquestes poden estar escrites de diferent manera i per tant tenir una hora de diferÃ¨ncia.
+			// Com que la data s'enmagatzema com a hora UTC aixÃ² fa que si comparo 2018-12-01 < 2018/12/01 en realitat estigui comparant 2018-12-01 1:00 < 2017-01-31 23:00.
+			// Buscant mÃ©s he trobat que si li passes una cadena amb '-' estas indicant el format UTC i si ho fas amb '/' fas el format local
 
 			var sel_camp=form.camp_temporal;
 			if(sel_camp.selectedIndex>=sel_camp.length)
@@ -1003,7 +1301,7 @@ var sel=form.metode_eval_qual, i, capa=ParamCtrl.capa[i_capa], retorn=false, par
 				alert(GetMessage("FinalDateNotBlank", "qualitat"));
 				return;
 			}
-			var date_fi=new Date(form.data_final.value+"T23:59:59.999Z");  // form.data_final.value està com a hora UTC en format cadena. Necessito que estigui al final del dia per a fer comparacions.
+			var date_fi=new Date(form.data_final.value+"T23:59:59.999Z");  // form.data_final.value estÃ  com a hora UTC en format cadena. Necessito que estigui al final del dia per a fer comparacions.
 
 			if(date_fi<=date_ini)
 			{
@@ -1011,8 +1309,8 @@ var sel=form.metode_eval_qual, i, capa=ParamCtrl.capa[i_capa], retorn=false, par
 				return;
 			}
 
-			param= {i_capa: i_capa, intencions: "qualitat", atribut: sel_camp.options[sel_camp.selectedIndex].value, data_ini: date_ini, data_fi: date_fi};
-			if(DescarregaPropietatsCapaDigiVistaSiCal(CalculaValidessaTemporal,param))
+			param= {i_capa: i_capa, intencions: "qualitat", attribute_name: sel_camp.options[sel_camp.selectedIndex].value, data_ini: date_ini, data_fi: date_fi};
+			if(DescarregaPropietatsCapaDigiVistaSiCal(CalculaValidessaTemporal, param))
 				return;
 			retorn=CalculaValidessaTemporal(param);
 
@@ -1049,11 +1347,12 @@ var cdns=[];
 				GetMessage("FieldPositionalUncertainty", "qualitat"),
 			  "</legend>");
 	cdns.push("<select name=\"camp_incertesa\" class=\"Verdana11px\" >");
-	if(capa.atributs)
+	if(capa.attributes)
 	{
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\"", (i==0 ? " selected ":""), "\>",
-					(DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		var attributesArray=Object.keys(capa.attributes);
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i], "\"", (i==0 ? " selected ":""), "\>",
+					DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select></fieldset>");
 	return cdns.join("");
@@ -1068,30 +1367,31 @@ var cdns=[];
 			  "</legend>");
 
 	cdns.push("<select name=\"camp_logic1\" class=\"Verdana11px\" >");
-	if(capa.atributs)
+	if(capa.attributes)
 	{
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\"", (i==0 ? " selected ":""), "\>",
-				(DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		var attributesArray=Object.keys(capa.attributes);
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i],"\"", (i==0 ? " selected ":""), "\>",
+				DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select><br>");
 	cdns.push("<select name=\"camp_logic2\" class=\"Verdana11px\">");
-	if(capa.atributs)
+	if(capa.attributes)
 	{
 		cdns.push("<option value=\"camp_logic_empty\" selected \>", "--", GetMessage("empty"), "--");
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\" \>",
-					(DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i], "\" \>",
+					DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select><br>");
 	cdns.push("<select name=\"camp_logic3\" class=\"Verdana11px\">");
 
-	if(capa.atributs)
+	if(capa.attributes)
 	{
 		cdns.push("<option value=\"camp_logic_empty\" selected \>", "--", GetMessage("empty"), "--");
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\" \>",
-				   (DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i], "\" \>",
+				   DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select><br>");
 	cdns.push(GetMessage("ListPossibleValues", "qualitat"), " (", GetMessage("separatedBy"), " ;)",
@@ -1107,7 +1407,7 @@ function DonaCadenaCampsThematicAccuracyGroundTruth(capa)
 	cdns.push("<fieldset><legend>",
 				GetMessage("GroundTruthLayer", "qualitat"),
 			  "</legend>");
-	//·$·
+	//Â·$Â·
 	cdns.push("</fieldset>");
 	return cdns.join("");
 }
@@ -1121,11 +1421,12 @@ var cdns=[];
 				GetMessage("TemporalField"),
 			  "</legend>");
 	cdns.push("<select name=\"camp_temporal\" class=\"Verdana11px\" >");
-	if(capa.atributs)
+	if(capa.attributes)
 	{
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\"", (i==0 ? " selected ":""), "\>",
-					(DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		var attributesArray=Object.keys(capa.attributes);
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i], "\"", (i==0 ? " selected ":""), "\>",
+					DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select></fieldset>");
 
@@ -1213,7 +1514,7 @@ var capa;
 	cdns.push("\"<b><br/><br/>");
 
 	cdns.push("<fieldset><legend>",
-			  GetMessage("QualityAssesment", qualitat),
+			  GetMessage("QualityAssessment", "qualitat"),
 			  "</legend>");
 
 	cdns.push("<select name=\"metode_eval_qual\" class=\"Verdana11px\" onChange=\"ActualitzaCampsEnFuncioMetodeAvaluacioQualitat(form,",i_capa,",",i_estil,");\" >");
@@ -1222,10 +1523,10 @@ var capa;
 	cdns.push("<option value=\"LogicalConsistencyFromThematicAttributes\" \>",
 			GetMessage("LogicalConsistencyThematicAttr", "qualitat"));
 	/*cdns.push("<option value=\"ThematicAccuracyGroundTruth\" \>",
-			DonaCadenaLang({"cat":"Exactitud temàtica comparant amb la veritat terreny",
-				   "spa":"Exactitud temática comparando con la verdad terreno",
+			DonaCadenaLang({"cat":"Exactitud temÃ tica comparant amb la veritat terreny",
+				   "spa":"Exactitud temÃ¡tica comparando con la verdad terreno",
 				   "eng":"Thematic accuracy comparing with the ground truth",
-				   "fre": "Exactitude thématique par rapport à la vérité du terrain"}));*/
+				   "fre": "Exactitude thÃ©matique par rapport Ã  la vÃ©ritÃ© du terrain"}));*/
 	cdns.push("<option value=\"TemporalValidityOfObservationData\" \>",
 			GetMessage("TemporalValidityObsDate", "qualitat"));
 	cdns.push("<option value=\"BBoxPositionalValidity\" \>",

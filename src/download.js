@@ -1,4 +1,4 @@
-/*
+ï»¿/*
     This file is part of MiraMon Map Browser.
     MiraMon Map Browser is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -17,26 +17,26 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2021 Xavier Pons
+    Copyright 2001, 2023 Xavier Pons
 
-    Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
-    amb l'ajut de Núria Julià (n julia at creaf uab cat)
-    dins del grup del MiraMon. MiraMon és un projecte del
-    CREAF que elabora programari de Sistema d'Informació Geogràfica
-    i de Teledetecció per a la visualització, consulta, edició i anàlisi
-    de mapes ràsters i vectorials. Aquest programari inclou
-    aplicacions d'escriptori i també servidors i clients per Internet.
-    No tots aquests productes són gratuïts o de codi obert.
+    Aquest codi JavaScript ha estat idea de Joan MasÃ³ Pau (joan maso at uab cat)
+    amb l'ajut de NÃºria JuliÃ  (n julia at creaf uab cat)
+    dins del grup del MiraMon. MiraMon Ã©s un projecte del
+    CREAF que elabora programari de Sistema d'InformaciÃ³ GeogrÃ fica
+    i de TeledetecciÃ³ per a la visualitzaciÃ³, consulta, ediciÃ³ i anÃ lisi
+    de mapes rÃ sters i vectorials. Aquest programari inclou
+    aplicacions d'escriptori i tambÃ© servidors i clients per Internet.
+    No tots aquests productes sÃ³n gratuÃ¯ts o de codi obert.
 
     En particular, el Navegador de Mapes del MiraMon (client per Internet)
-    es distribueix sota els termes de la llicència GNU Affero General Public
+    es distribueix sota els termes de la llicÃ¨ncia GNU Affero General Public
     License, mireu https://www.gnu.org/licenses/licenses.html#AGPL.
 
     El Navegador de Mapes del MiraMon es pot actualitzar des de
     https://github.com/grumets/MiraMonMapBrowser.
 */
 
-//Mòduls sobre la descàrrega.
+//MÃ²duls sobre la descÃ rrega.
 
 "use strict"
 
@@ -80,7 +80,7 @@ var percentatge=-1, s="";
 var nom_fitxer, descp_fitxer;
 var node, node2;
 
-	//en cas d'error crec que hauria de modificar el formulari perquè no estigui esperant indefinidament el fitxer
+	//en cas d'error crec que hauria de modificar el formulari perquÃ¨ no estigui esperant indefinidament el fitxer
 	if(doc)
 	{
 		var root=doc.documentElement;
@@ -151,7 +151,7 @@ var cdns=[], cdns_req=[], capa=ParamCtrl.capa[i_capa_wcs];
 						")</small><br>"+
 						GetMessage("PreparingRequestedLayer", "download") +
 						":<br>");
-//canvi d'ambit si la consulta és completa i hi ha sel·leccionat x,y o ambit.
+//canvi d'ambit si la consulta Ã©s completa i hi ha selÂ·leccionat x,y o ambit.
 	cdns.push(DonaCadena(capa.desc));
 	cdns.push("</CENTER>");
 	contentLayer(getLayer(window, "finestra_download_opcions"), cdns.join(""));
@@ -160,7 +160,7 @@ var cdns=[], cdns_req=[], capa=ParamCtrl.capa[i_capa_wcs];
 	var res_cov=ParamCtrl.ResGetCoverage[capa.ResCoverage];
 	var crs;
 
-	if (res_cov.CRS && res_cov.CRS!=ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS)
+	if (res_cov.CRS && DonaCRSRepresentaQuasiIguals(res_cov.CRS, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS))
 	{
 		crs=res_cov.CRS;
 		env=DonaEnvolupantCRS(env, crs);
@@ -252,7 +252,7 @@ var cdns=[], cdns_req=[], capa=ParamCtrl.capa[i_capa_wcs];
 				if (form_ctipica.ctipica.capa[i].checked)
 				{
 				     //triar l'ambit del objecte.
-					//·$·NJ: això no crec que funcioni està malament, en un estil molt antic
+					//Â·$Â·NJ: aixÃ² no crec que funcioni estÃ  malament, en un estil molt antic
 					 cdns_req.push("&TYPENAME=", capa_consulta[i].nom, "&FILTER=(<Filter xmlns=\"http://www.opengis.net/ogc\"><PropertyIsEqualTo><PropertyName>", capa_consulta[i].nom, ".", capa_consulta[i].camp, "</PropertyName><Literal>", capa_consulta[i].proj_camp[ctipica_valor].valor, "</Literal></PropertyIsEqualTo></Filter>)");
 					 break;
 				}
@@ -340,7 +340,7 @@ function ParamCoverageGrisos(i_par, i_capa_wcs)
 						if (param_cov.ll[i_par+1].valors[k].nom=="3-R" ||  //TM o ETM
 						        param_cov.l[i_par+1].valors[k].nom=="2-G" ||
 							param_cov.l[i_par+1].valors[k].nom=="1-B" ||
-							param_cov.ll[i_par+1].valors[k].nom=="4-R" ||  //Combinació color_natural landsat 8
+							param_cov.ll[i_par+1].valors[k].nom=="4-R" ||  //CombinaciÃ³ color_natural landsat 8
 							param_cov.ll[i_par+1].valors[k].nom=="3-G" ||
 							param_cov.ll[i_par+1].valors[k].nom=="2-B")
 						{
@@ -478,7 +478,7 @@ function DibuixaOpcionsWCS(i_capa_wcs)
 {
 var cdns=[], capa=ParamCtrl.capa[i_capa_wcs];
 
-	if ( typeof capa.ParamCoverage!=="undefined" && ParamCtrl.ParGetCoverage!=null &&  // Cal fer !=null perquè ParGetCoverage pot valer 0 i ho interpreta com a false i no entra quan ho hauria de fer
+	if ( typeof capa.ParamCoverage!=="undefined" && ParamCtrl.ParGetCoverage!=null &&  // Cal fer !=null perquÃ¨ ParGetCoverage pot valer 0 i ho interpreta com a false i no entra quan ho hauria de fer
   		ParamCtrl.ParGetCoverage[capa.ParamCoverage].ll)
 	{
 		cdns.push("<form name=\"botons_param_wcs\" onSubmit=\"DibuixaOpcionsDescarregaWCS("+i_capa_wcs+");return false;\">"+
@@ -539,7 +539,7 @@ var cdns=[], capa=ParamCtrl.capa[i_capa_wcs];
 
 		ParamCoverageGrisos(0, i_capa_wcs);
 
-		//Provisional fins que disposem de les imatges corregides radiomètricament.
+		//Provisional fins que disposem de les imatges corregides radiomÃ¨tricament.
 		var param_cov=ParamCtrl.ParGetCoverage[capa.ParamCoverage];
 		if (param_cov.ll[0].nom.nom=="RADIOMET")
 		{
@@ -600,12 +600,12 @@ var cdns=[], missatge_mmz=false;
 	if (missatge_mmz)
 		cdns.push(DonaMissatgeSiMMZCalMiraMon())
 
-	/* Els sistema de descàrrega se simplifica donat que la opció "Generar i obrir" només funciona amb Internet explorer.
+	/* Els sistema de descÃ rrega se simplifica donat que la opciÃ³ "Generar i obrir" nomÃ©s funciona amb Internet explorer.
 	cdns.push("<br><center>",
 			"<input name=\"obrir\" TYPE=\"submit\" VALUE=\"",
-			DonaCadenaLang({"cat":"Generar i obrir directament","spa":"Generar y ofrecer directamente","eng":"Generate and offer directly","fre":"Créer et ouvrir directement"}),
+			DonaCadenaLang({"cat":"Generar i obrir directament","spa":"Generar y ofrecer directamente","eng":"Generate and offer directly","fre":"CrÃ©er et ouvrir directement"}),
 			"\"></br><input TYPE=\"button\" VALUE=\"",
-			DonaCadenaLang({"cat":"Preparar i oferir","spa":"Preparar y ofrecer","eng":"Prepare and offer","fre":"Préparer et télécharger"}),
+			DonaCadenaLang({"cat":"Preparar i oferir","spa":"Preparar y ofrecer","eng":"Prepare and offer","fre":"PrÃ©parer et tÃ©lÃ©charger"}),
 			"\" onClick=\"DescarregaWCS(true, ",i_capa_wcs,")\">",
 			" (",DonaCadenaLang({"cat":"per a guardar el fitxer", "spa":"para guardar el fichero", "eng":"to save file", "fre":"pour enregistrer le fichier"}),")</center>");*/
 
@@ -617,9 +617,9 @@ var cdns=[], missatge_mmz=false;
 	contentLayer(getLayer(window, "finestra_download_opcions"), cdns.join(""));
 }
 
-function EsCapaDecarregableIndividualment(capa)
+function EsCapaDescarregableIndividualment(capa)
 {
-	if ((typeof capa.FormatCoverage!=="undefined" && capa.FormatCoverage!=null) ||  // Cal fer expressament diferent de null perquè si fem només fem capa.FormatCoverage, com que val 0 és false i no entra
+	if ((typeof capa.FormatCoverage!=="undefined" && capa.FormatCoverage!=null) ||  // Cal fer expressament diferent de null perquÃ¨ si fem nomÃ©s fem capa.FormatCoverage, com que val 0 Ã©s false i no entra
 		 capa.DescarregaTot)
 		return true;
 	return false;
@@ -644,7 +644,7 @@ var i, s, capa=ParamCtrl.capa[i_capa];
 			}
 		}
 	}
-	return OfereixOpcionsDescarregaTot(i_capa, null); //Això no hauria de passar mai, però per si de cas.
+	return OfereixOpcionsDescarregaTot(i_capa, null); //AixÃ² no hauria de passar mai, perÃ² per si de cas.
 }
 
 function DibuixaTimeDescarregaTot(i_capa)
@@ -660,22 +660,21 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 				GetMessage("DownloadLayerCompleted", "download"),"<br>",
 				"</center>");
 
-		if (capa.data)
-		{
-			//Aquesta part es part fer millor
-			cdns.push("<fieldset><legend><b>")
+		//Aquesta part es part fer millor
+		cdns.push("<fieldset><legend><b>")
 
-			if (typeof capa.FlagsData==="undefined" || capa.FlagsData===null ||
-				(capa.DataMostraDia && capa.DataMostraHora))
-				cdns.push(GetMessage("DateTime"));
-			else if (capa.DataMostraHora)
-				cdns.push(GetMessage("Time"));
-			else
-				cdns.push(GetMessage("Date"));
-			cdns.push(":</b></legend>");
-			cdns.push(CreaSelectorAPartirDeLesDatesCapa(i_capa, "TIME", -1));
-			cdns.push("</fieldset>")
-		}
+		if (typeof capa.FlagsData==="undefined" || capa.FlagsData===null ||
+			(capa.DataMostraDia && capa.DataMostraHora))
+			cdns.push(GetMessage("DateTime"));
+		else if (capa.DataMostraHora)
+			cdns.push(GetMessage("Time"));
+		else
+			cdns.push(GetMessage("Date"));
+		
+		cdns.push(":</b></legend>");
+		cdns.push(CreaSelectorAPartirDeLesDatesCapa(i_capa, "TIME", -1));
+		cdns.push("</fieldset>")
+		
 		cdns.push("<center><input NAME=\"seguent\" ID=\"seguent\" TYPE=\"submit\" VALUE=\""+GetMessage("Next")+"\"></center>"+
 						   "</font></form>");
 		contentLayer(getLayer(window, "finestra_download_opcions"), cdns.join(""));
@@ -687,7 +686,7 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 function DonaNomFitxerDescarregaTot(i_capa, i_des, i_format, i_data)
 {
 var capa=ParamCtrl.capa[i_capa];
-var s=CanviaVariablesDeCadena(capa.DescarregaTot[i_des].url, capa, i_data);
+var s=CanviaVariablesDeCadena(capa.DescarregaTot[i_des].url, capa, i_data, null);
 
 	if (ParamCtrl.FormatDescarregaTot[capa.DescarregaTot[i_des].format[i_format]].extension)
 	{
@@ -776,6 +775,17 @@ var cdns=[];
 	return;
 }
 
+function DibuixaDescarregaVector(i_capa)
+{
+const cdns=[], capa=ParamCtrl.capa[i_capa];
+	cdns.push("<form name=\"botons_descarrega_vectorial\" onSubmit=\"GuardarCapaVectorialJSON(", i_capa,");return false;\">", 
+	"<center><font size=\"3\"><b>"+GetMessage("Layer")+" "+
+	DonaCadena(capa.desc)+"</b></font><br>",
+	GetMessage("DownloadLayerCompleted", "download"),"<br><br>",
+	"<input type=\"submit\" name=\"descarregaCapa\" id=\"descarregaCapa\" value=\"" + GetMessage("Download") + "\"></center></form>");
+	contentLayer(getLayer(window, "finestra_download_opcions"), cdns.join(""));
+}
+
 function OmpleFinestraDownload(i_capa)
 {
 var cdns=[], capa;
@@ -783,8 +793,8 @@ var cdns=[], capa;
 	//<div class=\"Verdana11px\">
 	cdns.push("<center>", DonaCadena(ParamCtrl.TitolCaixa), "</center>");
 	cdns.push("<div id=\"finestra_download_opcions\" style=\"overflow-y: auto; height:250px;\"></div>");
-	cdns.push("<iframe id=\"finestra_download_hidden\" width=\"1\" height=\"1\" style=\"display:none\"></iframe>");
-	cdns.push(GetMessage("Status"), ":<div id=\"finestra_download_status\" style=\"height: 52px; width: 98%; background-color: #EEEEEE\"></div>");
+	cdns.push("<iframe id=\"finestra_download_hidden\" width=\"1\" height=\"1\" style=\"display:none;\"></iframe>");
+	cdns.push(GetMessage("Status"), ":<div id=\"finestra_download_status\" style=\"height: 52px; width: 98%; background-color: #EEEEEE;\"></div>");
 	cdns.push("<div align=\"right\"><a href=\"javascript:void(0);\" onclick='TancaFinestraLayer(\"download\");'>",
 		GetMessage("Close"),"</a></div>");
 
@@ -799,7 +809,8 @@ var cdns=[], capa;
 		DibuixaOpcionsWCS(i_capa);
 	else if (typeof capa.DescarregaTot!=="undefined" && capa.DescarregaTot!=null)
 		DibuixaTimeDescarregaTot(i_capa);
-
+	else if (capa.model==model_vector)
+		DibuixaDescarregaVector(i_capa);
 	return;
 }
 
@@ -808,4 +819,12 @@ function MostraFinestraDownload(i_capa)
 	if (!ObreFinestra(window, "download", GetMessage("ofDownloading", "download")))
 		return;
 	OmpleFinestraDownload(i_capa);
+}
+
+function GuardarCapaVectorialJSON(i_capa)
+{
+	const capa = ParamCtrl.capa[i_capa];
+	const dadesCapaExporta = {"type": capa.objectes.type, "bbox": capa.objectes.bbox, "features": capa.objectes.features};
+	const nomFitxer=GetMessage("layer")+"_"+GetMessage("vectorial", "download")+"_"+Date.now();
+	GuardaDadesJSONFitxerExtern(dadesCapaExporta, nomFitxer);
 }
