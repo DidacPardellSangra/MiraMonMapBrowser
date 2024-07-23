@@ -1887,7 +1887,7 @@ function EsCampCalculat(attributes, nom_camp)
 	{
 		if(attributes[nom_camp].FormulaConsulta)
 		{
-			attributesArray=Object.keys(attributes)
+			const attributesArray=Object.keys(attributes);
 			for (var i=0; i<attributesArray.length; i++)
 			{
 				if (attributesArray[i]==nom_camp)

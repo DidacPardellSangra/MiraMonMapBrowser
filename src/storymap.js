@@ -1198,7 +1198,7 @@ var hihacanvis, attribute;
 										GetMessage("ParameterValueFoundIs", "storymap") + ": " + mmtime);
 							break;
 						}
-						if (0==CommandMMNSetChangeDateTime(datejson))
+						if (0==CommandMMNSetDateTime(datejson))
 							hihacanvis=true;
 					}
 				}
