@@ -22,7 +22,7 @@
     The NiMMbus JavaScript Client can be updated from
     https://github.com/grumets/NiMMbus.
 
-    Copyright 2014, 2023 Xavier Pons
+    Copyright 2014, 2024 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat) 
     amb l'ajut de l'Alaitz Zabala (alaitz zabala at uab cat)
@@ -97,41 +97,35 @@ function GUFCreateFeedbackWithReproducibleUsage(targets, reprod_usage, lang, acc
 	return GUFAfegirFeedbackCapaMultipleTargets(targets, lang, access_token_type, reprod_usage);
 }
 
-function GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv(elem, seed_div_id, code, codespace, reprod_usage, lang, access_token_type, callback_function, params_function)
-{	
-	var cdns=[];
-	
-	cdns.push("<form name=\"FeedbackWithReproducibleUsageResourceForm\" onSubmit=\"return false;\">");
-	cdns.push("<div id=\"",seed_div_id,"\" style=\"width:98%\">", "</div></fieldset></div>", "</div></form>");
-	elem.innerHTML = cdns.join("")
-
+function GUFGetURLPreviousFeedbackWithReproducibleUsage(code, codespace, reprod_usage, lang, access_token_type)
+{
 	if (!code || !codespace)
 	{
-		alert("code and codespace are mandatory in GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv()");
+		alert("'code' and 'codespace' parameters are mandatory in calling GetURLPreviousFeedbackWithReproducibleUsage()");
 		return;
 	}
-	
+
 	var url=ServerGUF+"?SERVICE=WPS&REQUEST=EXECUTE&IDENTIFIER=NB_RESOURCE:ENUMERATE";
 	if (lang)
 		url+="&LANGUAGE=" + lang;
 		
 	//decidim que els codespace han de ser independent del protocol i per això els posarem sense S sempre ara 
-	codespace = codespace.replace("https://","http://"); 
 	url+="&STARTINDEX=1&COUNT=100&FORMAT=text/xml&TYPE=FEEDBACK&TRG_TYPE_1=CITATION&TRG_FLD_1=CODE&TRG_VL_1=" + DonaCadenaPerValorDeFormulari(code) + 
-					"&TRG_OPR_1=EQ&TRG_NXS_1=AND&TRG_TYPE_2=CITATION&TRG_FLD_2=NAMESPACE&TRG_VL_2=" + encodeURI(codespace) + "&TRG_OPR_2=EQ";
+					"&TRG_OPR_1=EQ&TRG_NXS_1=AND&TRG_TYPE_2=CITATION&TRG_FLD_2=NAMESPACE&TRG_VL_2=" + encodeURIComponent(codespace.replace("https://","http://")) + "&TRG_OPR_2=EQ";
 	
 	var i_cond=1;
 	if (reprod_usage.ru_platform)
 	{		
-		url+="&RSC_FLD_" + i_cond + "=RU_PLATFORM&RSC_VL_" + i_cond + "=" + /*encodeURI(*/reprod_usage.ru_platform/*)*/ + "&RSC_OPR_" + i_cond + "=EQ"; //no needed
+		url+="&RSC_FLD_" + i_cond + "=RU_PLATFORM&RSC_VL_" + i_cond + "=" + reprod_usage.ru_platform + "&RSC_OPR_" + i_cond + "=EQ";
 		i_cond++;
 	}
+
 	if (reprod_usage.ru_version)
 	{
 		if (i_cond>1)
 			url+="&RSC_NXS_"+ (i_cond-1) + "=AND";
 			
-		url+="&RSC_FLD_" + i_cond + "=RU_VERSION&RSC_VL_" + i_cond + "=" + /*DonaCadenaPerValorDeFormulari(*/reprod_usage.ru_version/*)*/ + "&RSC_OPR_" + i_cond + "=EQ"; //no needed
+		url+="&RSC_FLD_" + i_cond + "=RU_VERSION&RSC_VL_" + i_cond + "=" + reprod_usage.ru_version + "&RSC_OPR_" + i_cond + "=EQ";
 		i_cond++;
 	}
 	
@@ -140,7 +134,7 @@ function GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv(elem, seed_div_id
 		if (i_cond>1)
 			url+="&RSC_NXS_"+ (i_cond-1) + "=AND";
 			
-		url+="&RSC_FLD_" + i_cond + "=RU_SCHEMA&RSC_VL_" + i_cond + "=" + /*encodeURIComponent(*/reprod_usage.ru_schema/*)*/ + "&RSC_OPR_" + i_cond + "=EQ"; //no needed
+		url+="&RSC_FLD_" + i_cond + "=RU_SCHEMA&RSC_VL_" + i_cond + "=" + reprod_usage.ru_schema + "&RSC_OPR_" + i_cond + "=EQ";
 		i_cond++;
 	}
 	
@@ -158,23 +152,56 @@ function GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv(elem, seed_div_id
 		url+="&RSC_FLD_" + i_cond + "=RU_SUGG_APP&RSC_VL_" + i_cond + "=" + /*encodeURI(*/intern_sugg_app/*)*/ + "&RSC_OPR_" + i_cond + "=EQ";	 //no needed			
 		i_cond++;
 	}
-	loadFile(url, "text/xml", CarregaFeedbacksAnteriors, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: url, div_id: seed_div_id, lang: lang, access_token_type: access_token_type, callback_function: callback_function, params_function: params_function, edit_button: false});
+
+	return url;
 }
 
-function GUFShowFeedbackInHTMLDiv(elem, seed_div_id, rsc_type, title, code, codespace, lang, access_token_type)
+function GUFLoadLastPreviousReproducibleUsageCode(code, codespace, reprod_usage, lang, access_token_type, callback_function, params_function)
+{	
+	if (!code || !codespace)
+	{
+		alert("'code' and 'codespace' parameters are mandatory in calling GUFLoadLastPreviousFeedbackWithReproducibleUsage()");
+		return;
+	}
+	
+	loadFile(GUFGetURLPreviousFeedbackWithReproducibleUsage(code, codespace, reprod_usage, lang, access_token_type), 
+			"text/xml", GUFLoadLastPreviousReproducibleUsageCodeCallback, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, 
+			{lang: lang, access_token_type: access_token_type, callback_function: callback_function, params_function: params_function});
+}
+
+function GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv(elem, seed_div_id, code, codespace, reprod_usage, lang, access_token_type, callback_function, params_function)
+{	
+	var cdns=[];
+	
+	cdns.push("<form name=\"FeedbackWithReproducibleUsageResourceForm\" onSubmit=\"return false;\">");
+	cdns.push("<div id=\"",seed_div_id,"\" style=\"width:98%\">", "</div></fieldset></div>", "</div></form>");
+	elem.innerHTML = cdns.join("")
+
+	if (!code || !codespace)
+	{
+		alert("'code' and 'codespace' parameters are mandatory in calling GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv()");
+		return;
+	}
+	
+	loadFile(GUFGetURLPreviousFeedbackWithReproducibleUsage(code, codespace, reprod_usage, lang, access_token_type), 
+			"text/xml", GUFCarregaFeedbacksAnteriorsCallback, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, 
+			{url: url, div_id: seed_div_id, lang: lang, access_token_type: access_token_type, callback_function: callback_function, params_function: params_function, edit_button: false});
+}
+
+function GUFShowFeedbackInHTMLDiv(elem, seed_div_id, rsc_type, title, code, codespace, lang, access_token_type, name_scope_function)
 {
 var targets=[{title: title, code: code, codespace: codespace, role: "primary"}];
-	return GUFShowFeedbackMultipleTargetsInHTMLDiv(elem, seed_div_id, rsc_type, targets, lang, access_token_type);
+	return GUFShowFeedbackMultipleTargetsInHTMLDiv(elem, seed_div_id, rsc_type, targets, lang, access_token_type, name_scope_function);
 }
 
-function GUFShowFeedbackMultipleTargetsInHTMLDiv(elem, seed_div_id, rsc_type, targets, lang, access_token_type)
+function GUFShowFeedbackMultipleTargetsInHTMLDiv(elem, seed_div_id, rsc_type, targets, lang, access_token_type, name_scope_function)
 {
 	for (var i=0; i<targets.length; i++)	
 	{
 		if (targets[i].codespace) //decidim que els codespace han de ser independent del protocol i per això els posarem sense S sempre ara
 			targets[i].codespace=targets[i].codespace.replace("https://","http://");
 	}
-	elem.innerHTML = GUFDonaCadenaFinestraFeedbackResourceMultipleTargets(seed_div_id, rsc_type, targets, lang, access_token_type);
+	elem.innerHTML = GUFDonaCadenaFinestraFeedbackResourceMultipleTargets(seed_div_id, rsc_type, targets, lang, access_token_type, name_scope_function);
 	//demano el fitxer atom de feedbacks previs
 	GUFShowPreviousFeedbackMultipleTargetsInHTMLDiv(seed_div_id, rsc_type, targets, lang, access_token_type);
 }
@@ -206,7 +233,7 @@ function GUFShowPreviousFeedbackMultipleTargetsInHTMLDiv(div_id, rsc_type, targe
 		}
 	}
 	//l'espai de FB previs sobre el target primari el poso sempre, perquè sempre en tinc un	
-	loadFile(url, "text/xml", CarregaFeedbacksAnteriors, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: url, div_id: div_id+"Previ", rsc_type:rsc_type, lang: lang, access_token_type: access_token_type});
+	loadFile(url, "text/xml", GUFCarregaFeedbacksAnteriorsCallback, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: url, div_id: div_id+"Previ", rsc_type:rsc_type, lang: lang, access_token_type: access_token_type});
 
 	//busco el target secundari i l'envio a la segona part de la finestra
 	for (var i=0; i<targets.length; i++)	
@@ -220,7 +247,7 @@ function GUFShowPreviousFeedbackMultipleTargetsInHTMLDiv(div_id, rsc_type, targe
 		}
 	}	
 	if (tinc_target_secondary)
-		loadFile(url2, "text/xml", CarregaFeedbacksAnteriors, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: url2, div_id: div_id+"Previ_secundari", rsc_type:rsc_type, lang: lang, access_token_type: access_token_type});
+		loadFile(url2, "text/xml", GUFCarregaFeedbacksAnteriorsCallback, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: url2, div_id: div_id+"Previ_secundari", rsc_type:rsc_type, lang: lang, access_token_type: access_token_type});
 }
 
 function GUFDonaCadenaLang(cadena_lang, lang)
@@ -302,10 +329,41 @@ function DonaCadenaDataHoraDesDeElementCompost(elem)
 function CridaACallBackFunctionAmbEstructuraGUF(lang, resource_id, callback_function, params_function)
 {
 	var url=ServerGUF+"?SERVICE=WPS&REQUEST=EXECUTE&IDENTIFIER=NB_RESOURCE:RETRIEVE&LANGUAGE="+lang+"&RESOURCE="+resource_id;		
-	loadFile(url, "text/xml", CarregaFeedbackAnterior, function(xhr, extra_param) { alert(url + ": " + xhr ); }, {url: url, lang: lang, callback_function: callback_function, params_function: params_function});
+	loadFile(url, "text/xml", GUFCarregaFeedbackAnteriorCallback, function(xhr, extra_param) { alert(url + ": " + xhr ); }, {url: url, lang: lang, callback_function: callback_function, params_function: params_function});
 }
 
-function CarregaFeedbacksAnteriors(doc, extra_param)
+function GUFLoadLastPreviousReproducibleUsageCodeCallback(doc, extra_param)
+{
+	if (!doc || !doc.documentElement)
+	{
+		alert (extra_param.url + ": " + GUFDonaCadenaLang({"cat":"El retorn no és xml", "spa":"El retorno no es xml", "eng":"Return is not xml", "fre":"Le retour n'est pas xml"}, extra_param.lang));
+		return ;
+	}
+	var root=doc.documentElement;
+
+	if (GUFAnalitzaExceptionReport(root, extra_param.url))
+		return;
+		
+	var owc=ParseOWSContextAtom(root);
+	if (owc.properties.totalResults==0 || !owc.features)
+		return;
+
+	var type;
+	var i_feature=-1
+	for (var i=0; i<owc.features.length; i++)
+	{
+		type=GetNimmbusTypeOfAOWCFeature(owc.features[i]);
+		if (type=="FEEDBACK" && owc.features[i].properties && owc.features[i].properties.links && owc.features[i].properties.links.alternates && owc.features[i].properties.links.alternates.length && owc.features[i].properties.links.alternates[0].href)
+			i_feature=i;
+	}
+	
+	if (i_feature==-1)
+		return;
+
+	loadFile(owc.features[i_feature].properties.links.alternates[0].href, "text/xml", GUFLoadOnePreviousReproducibleUsageCodeCallback, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: owc.features[i_feature].properties.links.alternates[0].href, callback_function: extra_param.callback_function, params_function: extra_param.params_function});
+}
+
+function GUFCarregaFeedbacksAnteriorsCallback(doc, extra_param)
 {
 var cdns=[];
 
@@ -341,6 +399,15 @@ var cdns=[];
 		document.getElementById(extra_param.div_id).innerHTML=cdns.join("");
 		return;
 	}
+	//OG: canviem de posició el botó edit, que inicialment estava al final de tot de la llista de FB
+	if (typeof extra_param.edit_button!=="undefined" && extra_param.edit_button==false)
+	; //si el param no existeix o diu que no vull botó no el poso
+	else
+		cdns.push("<div class=\"guf_edit user\"><input type=\"button\" class=\"guf_button user\" value=\"",
+			GUFDonaCadenaLang({"cat":"Edita", "spa":"Edita", "eng":"Edit", "fre":"Éditer"}, extra_param.lang), "\"",
+			" onClick='GUFOpenNimmbus(\"", extra_param.lang, "\",\"", extra_param.access_token_type, "\");' /> ",
+			GUFDonaCadenaLang({"cat":"les teves entrades prèvies", "spa":"tus entradas previas", "eng":"your previous entries", "fre":"vos entrées précédentes"}, extra_param.lang), "</div><!-- guf_edit -->"); 
+			//fi de  "</div><!-- guf_report -->");
 	var type;
 	//cdns.push("<div class=\"guf_report user\">");
 	for (var i=0; i<owc.features.length; i++)
@@ -373,20 +440,12 @@ var cdns=[];
 			cdns.push("</fieldset>");		
 		}
 	}
-	if (typeof extra_param.edit_button!=="undefined" && extra_param.edit_button==false)
-		; //si el param no existeix o diu que no vull botó no el poso
-	else
-		cdns.push("<div class=\"guf_edit user\"><input type=\"button\" class=\"guf_button user\" value=\"",
-			GUFDonaCadenaLang({"cat":"Edita", "spa":"Edita", "eng":"Edit", "fre":"Éditer"}, extra_param.lang), "\"",
-			" onClick='GUFOpenNimmbus(\"", extra_param.lang, "\",\"", extra_param.access_token_type, "\");' /> ",
-			GUFDonaCadenaLang({"cat":"les teves entrades prèvies", "spa":"tus entradas previas", "eng":"your previous entries", "fre":"vos entrées précédentes"}, extra_param.lang), "</div><!-- guf_edit -->"); 
-	//fi de  "</div><!-- guf_report -->");
 	document.getElementById(extra_param.div_id).innerHTML=cdns.join("");
 	for (var i=0; i<owc.features.length; i++)
 	{
 		type=GetNimmbusTypeOfAOWCFeature(owc.features[i]);
 		if (type=="FEEDBACK" && owc.features[i].properties && owc.features[i].properties.links && owc.features[i].properties.links.alternates && owc.features[i].properties.links.alternates.length && owc.features[i].properties.links.alternates[0].href)
-			loadFile(owc.features[i].properties.links.alternates[0].href, "text/xml", CarregaFeedbackAnterior, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: owc.features[i].properties.links.alternates[0].href, div_id: extra_param.div_id + "_" + i, lang: extra_param.lang});
+			loadFile(owc.features[i].properties.links.alternates[0].href, "text/xml", GUFCarregaFeedbackAnteriorCallback, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: owc.features[i].properties.links.alternates[0].href, div_id: extra_param.div_id + "_" + i, lang: extra_param.lang});
 	}
 }
 
@@ -536,7 +595,7 @@ function ConstrueixCadenaDesdeCitationOPublication(cdns, cit_o_pub, i_cit_o_pub,
 	return;
 }
 
-function HiHaReprodUsage(usage_descr)
+function GUFHiHaReprodUsage(usage_descr)
 {
 	if (usage_descr.code || usage_descr.codeLink || usage_descr.codeMediaType ||
 			usage_descr.platform || usage_descr.version || usage_descr.schema || usage_descr.suggestedApplication ||
@@ -545,7 +604,43 @@ function HiHaReprodUsage(usage_descr)
 	return false; 
 }
 
-function CarregaFeedbackAnterior(doc, extra_param)
+function GUFLoadOnePreviousReproducibleUsageCodeCallback(doc, extra_param)
+{
+	if (!doc || !doc.documentElement)
+	{
+		alert (extra_param.url + ": " + GUFDonaCadenaLang({"cat":"El retorn no és xml", "spa":"El retorno no es xml", "eng":"Return is not xml", "fre":"Le retour n'est pas xml"}, extra_param.lang)); 
+		return ;
+	}
+	var root=doc.documentElement;
+
+	if (GUFAnalitzaExceptionReport(root, extra_param.url))
+		return;
+
+	var guf=GetRetrieveResourceFeedbackOutputs(root);
+
+	if (!guf)
+	{	
+		alert (extra_param.url + ": " + GUFDonaCadenaLang({"cat":"El retorn no és un xml guf", "spa":"El retorno no es xml guf", "eng":"Return is not xml guf", "fre":"Le retour n'est pas xml guf"}, extra_param.lang)); 
+		return;
+	}
+		
+	if (guf.usage && 
+		guf.usage.usage_descr &&
+		GUFHiHaReprodUsage(guf.usage.usage_descr))
+	{
+		//guf.usage.usage_descr.codeMediaType			
+		//guf.usage.usage_descr.schema)
+		//guf.usage.usage_descr.code
+		//guf.usage.usage_descr.codeLink.linkage)
+		if (extra_param.callback_function && typeof extra_param.callback_function==="function")
+		{		
+			extra_param.callback_function(guf.usage.usage_descr, extra_param.params_function);		
+			return;
+		}	
+	}
+}
+
+function GUFCarregaFeedbackAnteriorCallback(doc, extra_param)
 {
 var cdns=[];
 
@@ -659,7 +754,7 @@ var cdns=[];
 				cdns.push("</div><!-- guf_add_doc -->");
 			}
 			
-			if (HiHaReprodUsage(guf.usage.usage_descr))
+			if (GUFHiHaReprodUsage(guf.usage.usage_descr))
 			{
 				cdns.push("<div class=\"guf_reprodUsage user\">");
 				cdns.push("<span class=\"guf_key user\">", GUFDonaCadenaLang({"cat":"Ús reproduïble", "spa":"Uso reproducible", "eng":"Reproducible usage", "fre":"Utilisation reproductible"}, extra_param.lang), ":</span>");								
@@ -817,6 +912,13 @@ var cdns=[];
 	  			for (var i_id=0; i_id<guf.target[i_target].identifier.length; i_id++)
 	  				cdns.push(ConstrueixURLDesdeIdentifierSiDOIoNiMMbus(guf.target[i_target].identifier[i_id], extra_param.lang, false));
 			}
+			if (guf.target[i_target].scope) //comprovem que a l'xml hi ha la secció scope
+			{
+				if (guf.target[i_target].minlong) //comprovem que hi ha dades de coordenades. No cal comprovar que hi siguin totes.
+					cdns.push("<span class=\"guf_key_2 user\">", GUFDonaCadenaLang({"cat":"Envolupant", "spa":"Envolvente", "eng":"Bounding box", "fre":"Extension géographique"}, extra_param.lang),":</span>"," ",guf.target[i_target].minlong,", ",guf.target[i_target].maxlong,", ",guf.target[i_target].minlat,", ",guf.target[i_target].maxlat,"<br>");
+				if (guf.target[i_target].gmlpol) //comprovem si tenim un poligon gml
+					cdns.push("<span class=\"guf_key_2 user\">", GUFDonaCadenaLang({"cat":"Polígon GML", "spa":"Polígono GML", "eng":"GML polygon", "fre":"GML polygone"}, extra_param.lang),":</span>"," ", GUFDonaCadenaLang({"cat":"definit", "spa":"definido", "eng":"defined", "fre":"défini"}, extra_param.lang),"<br>");
+			}
 			//cdns.push("</div><label for=\""+extra_param.div_id+"_"+i_target+"\"><i>Click to show/hide more information</i></label></input>");
 			//cdns.push("<br/>");
 		}
@@ -885,12 +987,17 @@ function GUFDonaNomFitxerAddFeedbackMutipleTargets(targets, lang, access_token_t
 	{		
 		if (targets[i].title && targets[i].title!="" && targets[i].code && targets[i].code!="" && targets[i].codespace && targets[i].codespace!="")
 		{	//aquest target és vàlid
+			//OG: aquí afegim el bbox i el gml pol a la query que rebrà el nimmbus
 			if (n_targets==0) //i és el primer
-				url+="?target_title=" + targets[i].title + "&target_code=" + targets[i].code + "&target_codespace=" + targets[i].codespace + (targets[i].role ? ("&target_role=" + targets[i].role) : ""); 	
+				url+="?target_title=" + targets[i].title + "&target_code=" + targets[i].code + "&target_codespace=" + targets[i].codespace + (targets[i].role ? ("&target_role=" + targets[i].role) : "") +
+				 (targets[i].bbox ? ("&target_geo_bbox=" + targets[i].bbox.xmin+","+targets[i].bbox.xmax+","+targets[i].bbox.ymin+","+targets[i].bbox.ymax ): "")+
+				 (targets[i].gmlpol ? ("&target_bnd_pol=" + targets[i].gmlpol.gml) : ""); 	
 			else
 				url+="&target_title_" + (n_targets+1) + "=" + targets[i].title + "&target_code_" + (n_targets+1) + "=" + targets[i].code + 
 						"&target_codespace_" + (n_targets+1) + "=" + targets[i].codespace + 
-						(targets[i].role ? ("&target_role_" + (n_targets+1) + "=" + targets[i].role) : ""); 	
+						(targets[i].role ? ("&target_role_" + (n_targets+1) + "=" + targets[i].role) : "")+
+						(targets[i].bbox ? ("&target_geo_bbox_" + (n_targets+1) + "=" + targets[i].bbox.xmin+","+targets[i].bbox.xmax+","+targets[i].bbox.ymin+","+targets[i].bbox.ymax ): "") +
+				 		(targets[i].gmlpol ? ("&target_bnd_pol_"+ (n_targets+1) + "=" + targets[i].gmlpol.gml) : "")	; 	
 			n_targets++;
 		}		
 		
@@ -979,7 +1086,7 @@ function TornaNTargetsSecundaris(targets)
 	return n_targets_secundaris;
 }
 
-function GUFDonaCadenaFinestraFeedbackResourceMultipleTargets(div_id, rsc_type, targets, lang, access_token_type)
+function GUFDonaCadenaFinestraFeedbackResourceMultipleTargets(div_id, rsc_type, targets, lang, access_token_type, name_scope_function) 
 {
 var cdns=[];
 var n_targets_secundaris=0;
@@ -996,8 +1103,15 @@ var n_targets_secundaris=0;
 
 	cdns.push("<input type=\"button\" class=\"guf_button user\" value=\"",
 				  GUFDonaCadenaLang({"cat":"Afegir una valoració", "spa":"Añadir una valoración", "eng":"Add a user feedback", "fre":"Ajouter une rétroaction de l'utilisateur"}, lang), "\"",
-				  " onClick='GUFAfegirFeedbackCapaMultipleTargets(\"", JSON.stringify(targets).replaceAll("\"","\\\""), "\", \"", lang, "\", \"", access_token_type, "\");' />");
+				  " onClick='GUFAfegirFeedbackCapaMultipleTargets(\"", JSON.stringify(targets).replaceAll("\"","\\\"").replaceAll("'","%27"), "\", \"", lang, "\", \"", access_token_type, "\");' />");
 
+//OG: nou botó per afegir scope a un FB
+	if (name_scope_function)
+	{
+		cdns.push("<input type=\"button\" class=\"guf_button user\" value=\"",
+				  GUFDonaCadenaLang({"cat":"Valoració d'una àrea específica", "spa":"Valoración de un área específica", "eng":"Feedback of a specific area", "fre":"Rétroaction d'un domaine spécifique"}, lang), "\"",
+				  " onClick='"+name_scope_function+"(\"", JSON.stringify(targets).replaceAll("\"","\\\"").replaceAll("'","%27"), "\", \"", lang, "\", \"", access_token_type, "\");' />");
+	}
 	if (rsc_type != "")
 		cdns.push("</fieldset></div>");
 	else

@@ -17,7 +17,7 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2023 Xavier Pons
+    Copyright 2001, 2024 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
     amb l'ajut de Núria Julià (n julia at creaf uab cat)
@@ -87,8 +87,9 @@ function MostraFinestraAnarCoordenada()
 
 function MostraFinestraAnarCoordenadaEvent(event) //Afegit Cristian 19/01/2016
 {
-	MostraFinestraAnarCoordenada()
-	dontPropagateEvent(event)
+	ComprovaCalTancarFeedbackAmbScope();
+	MostraFinestraAnarCoordenada();
+	dontPropagateEvent(event);
 }//Fi de MostraFinestraAnarCoordenada()
 
 //No usar: Useu TancaFinestraLayer("anarCoord");
@@ -100,7 +101,280 @@ function TancaFinestra_anarCoord()
 	   CreaVistes();
 	}
 }//Fi de TancaFinestra_anarCoord()
+//OG: mostra finestra que permetrà afegir envolupant a un FB
+function MostraFinestraFeedbackAmbScope(targets, lang, access_token_type)
+{
+	
+	var trg=targets;
+	var lng=lang;
+	var tkn=access_token_type;
 
+	if (!ObreFinestra(window, "fbScope", GetMessage("ofUserFeedbackScope", "capavola")))
+		return;
+	
+
+	
+	TancaFinestraLayer("feedback");
+	OmpleFinestraFeedbackAmbScope(trg, lng, tkn);
+
+	//per defecte deixo marcat que volem un fbScope rectangular
+	mostraSelecFBScope(0);
+
+	return;
+}
+
+//OG: aquesta funció és la que haurà d'omplir la finestra escrivint el codi hmtl
+function OmpleFinestraFeedbackAmbScope(targets, lang, access_token_type)
+{
+	var trg=JSON.stringify(targets);
+	var lng=lang;
+	var tkn=access_token_type;
+
+	var cdns=[];
+	//escollim si volem un punt o un rectangle:
+	cdns.push('<form name="FeedbackScope_win" onSubmit="return false;">',
+		'<table class="Verdana11px" width="100%" align="center">',
+			'<td><span>',GetMessage("ScopeUseMouse","capavola"),'</span></td>',
+			'<td><input type="radio" id="FBarea" name="FB_scope_type" value="area" checked onclick="mostraSelecFBScope(0);TancaFinestraEmergent_multi_consulta();"><label for="area">',GetMessage("ScopeTypeArea","capavola"),'</label></td>',
+			'<td><input type="radio" id="FBpoint" name="FB_scope_type" value="punt" onclick="mostraSelecFBScope(1);"><label for="point">',GetMessage("ScopeTypePoint","capavola"),'</label></td>',
+		'</table>',
+		'<div id=fbScopeType></div><br>',
+		'<table class="Verdana11px" width="50%" align="center">',
+			'<tr>',
+				'<td align="center"><input class="Verdana11px" type="button" name="Acceptar" value="',GetMessage("OK"),'"'," onClick='AfegirFeedbackScopeCapaMultipleTargets(",trg,", \"",lng, "\", \"",tkn,"\"",");TancaFinestraLayer(\"fbScope\");'",'></td>',
+				'<td align="center"><input class="Verdana11px" type="button" name="Tancar" value="',GetMessage("Cancel"),'"'," onClick='TancaFinestraLayer(\"fbScope\");'",'></td>',
+			'</tr>',
+		'</table>',
+	'</form>');
+	contentFinestraLayer(window, "fbScope", cdns.join(""));
+}
+
+//OG: en funció de si l'usuari vol fer FB sobre un punt o una àrea, mostrem un formulari o un altre.
+function mostraSelecFBScope(type)
+{
+	var tp=type;
+	var cdns=[];
+	
+	if (tp==0)
+	{
+		CanviaPolsatEnBotonsAlternatius("pan","pan","","moumig","moumig","","zoomfin","zoomfin","","novavista","novavista","","conloc","conloc",""); 
+		CanviaEstatClickSobreVista("ClickRecFB1");
+
+		document.getElementById("fbScopeType").innerHTML='<br><br>'+
+			'<table class="Verdana11px" width="50%" align="center">'+
+				'<tr>'+
+					'<td colspan="2">'+ DonaDescripcioCRS(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS)+'</td>'+
+					'<td style="text-align:center;">Ymax</td>'+
+					'<td></td>'+
+					'<td></td>'+
+				'</tr>'+
+				'<tr>'+
+					'<td></td>'+
+					'<td></td>'+
+					'<td><input class="Verdana11px" id="fbscope_ymax" name="fbscope_ymax" type="text" size="8" value="" disabled></td>'+
+					'<td></td>'+
+					'<td></td>'+
+				'</tr>'+
+				'<tr>'+
+					'<td style="text-align:rigth;">Xmin</td>'+
+					'<td><input class="Verdana11px" id="fbscope_xmin" name="fbscope_xmin" type="text" size="8" value="" disabled></td>'+
+					'<td></td>'+
+					'<td><input class="Verdana11px" id="fbscope_xmax" name="fbscope_xmax" type="text" size="8" value="" disabled></td>'+
+					'<td style="text-align:left;">Xmax</td>'+
+				'</tr>'+
+				'<tr>'+
+					'<td></td>'+
+					'<td></td>'+
+					'<td><input class="Verdana11px" id="fbscope_ymin" name="fbscope_ymin" type="text" size="8" value="" disabled></td>'+
+					'<td></td>'+
+					'<td></td>'+
+				'</tr>'+
+				'<tr>'+
+					'<td></td>'+
+					'<td></td>'+
+					'<td style="text-align:center;">Ymin</td>'+
+					'<td></td>'+
+					'<td></td>'+
+				'</tr>'+
+			'</table>';
+	}
+		
+	//si "punt":
+	if (tp==1){
+
+		CanviaPolsatEnBotonsAlternatius("pan","pan","","moumig","moumig","","zoomfin","zoomfin","","novavista","novavista","","conloc","conloc",""); 
+		CanviaEstatClickSobreVista("ClickPointFB");
+
+		document.getElementById("fbScopeType").innerHTML='<br><br>'+
+		'<table class="Verdana11px" width="75%" align="center">'+
+		'<tr>'+
+			'<td colspan="2">'+ DonaDescripcioCRS(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS)+'</td>'+
+			'<td></td>'+
+			'<td></td>'+
+		'</tr>'+
+		'<tr>'+
+			'<td style="text-align:rigth;">X:</td>'+
+			'<td><input class="Verdana11px" id="fbscope_x" name="fbscope_x" type="text" size="8" value="" disabled></td>'+
+			'<td style="text-align:rigth;">Y:</td>'+
+			'<td><input class="Verdana11px" id="fbscope_y" name="fbscope_y" type="text" size="8" value="" disabled></td>'+
+		'</tr>'+
+		'<tr>'+
+			'<td><input class="Verdana11px" id="fbscope_xmin" name="fbscope_xmin" type="hidden" size="8" value="" disabled></td>'+
+			'<td><input class="Verdana11px" id="fbscope_ymin" name="fbscope_ymin" type="hidden" size="8" value="" disabled></td>'+
+			'<td><input class="Verdana11px" id="fbscope_xmax" name="fbscope_xmax" type="hidden" size="8" value="" disabled></td>'+
+			'<td><input class="Verdana11px" id="fbscope_ymax" name="fbscope_ymax" type="hidden" size="8" value="" disabled></td>'+
+		'</tr>'+
+		'</table>';
+	}
+}
+
+//OG: afegim el bbox i el gmlpol als attributes del target abans d'enviar-ho al NiMMbus.
+function AfegirFeedbackScopeCapaMultipleTargets(targets, lang, access_token_type)
+{
+	var crs=ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS; //mirem el SR
+	var trg=JSON.parse(targets);
+	var dec=ParamCtrl.NDecimalsCoordXY; //per defecte agafarem els decimals configurats
+	//comprovem que tenim totes les coordenades
+	if (!document.getElementById("fbscope_xmin").value || !document.getElementById("fbscope_ymax").value || !document.getElementById("fbscope_xmin").value || !document.getElementById("fbscope_ymax").value)
+	{
+		alert(GetMessage("MissingCoordinates","capavola"));
+		TancaFinestraLayer("fbScope");
+	}
+	else
+	{
+	
+		//ulc: upper left corner lrc: lower rigth corner
+		var ulc={"x": document.getElementById("fbscope_xmin").value, "y":document.getElementById("fbscope_ymax").value};
+		var lrc={"x": document.getElementById("fbscope_xmax").value, "y":document.getElementById("fbscope_ymin").value};
+	}
+	
+	//comprovem si el que volem enviar correspon a un punt
+	if ((document.getElementById("fbscope_x")) && (document.getElementById("fbscope_y")))
+	{
+		// si les coordenades no són en lon/lat, les transformem
+		if (crs !="EPSG:4326" && crs !="CRS:84")
+		{
+			//ulc:upper left corner. lrc: lower right corner
+			//convertim coordenades a lon/lat
+			var ulc_ll=DonaCoordenadesLongLat(ulc.x, ulc.y, crs);
+			var lrc_ll=DonaCoordenadesLongLat(lrc.x, lrc.y, crs);
+
+			for (var i=0; i<trg.length; i++)
+			{
+				//afegim el bbox i el gmlpol només al primary target
+				if (trg[i].role=="primary")
+				{
+					//afegim el bounding box en lon/lat
+					//al fer la transformació a graus no podem deixar el mateix nombre de decimals definit per al sistema de referència original pq es perd precissió. 
+					//Podria passar que el sistema de referència original tingués definits 0 decimals i això ens podria portar a una situació on les lats i/o les long fossin idèntiques entre elles i la CGI no les guardés (la CGI sempre comprova que minLat<maxLat i minLong<maxLong, en cas contrari no es guarda el bbox)
+					var dec_g=9;
+					var dif_g=0.0000000045;
+					trg[i].bbox={"xmin":OKStrOfNe((parseFloat(ulc_ll.x)-dif_g).toString(),dec_g),"xmax":OKStrOfNe((parseFloat(lrc_ll.x)+dif_g).toString(),dec_g),"ymin": OKStrOfNe((parseFloat(lrc_ll.y)-dif_g).toString(),dec_g),"ymax":OKStrOfNe((parseFloat(ulc_ll.y)+dif_g).toString(),dec_g)};
+					//afegim el GMLpol en el crs original
+					//modifiquem les coordenades per generar un pol de 1 mm de costat
+					var dec_m=3;
+					var dif_m=0.0005;
+					trg[i].gmlpol={"gml": '<gml:Polygon srsName="'+crs+'"><gml:exterior><gml:LinearRing><gml:posList srsDimension="2">' + " " + OKStrOfNe((parseFloat(ulc.x)-dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(ulc.y)-dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(lrc.x)+dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(ulc.y)-dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(lrc.x)+dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(lrc.y)+dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(ulc.x)-dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(lrc.y)+dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(ulc.x)-dif_m).toString(),dec_m) + " " + OKStrOfNe((parseFloat(ulc.y)-dif_m).toString(),dec_m) + "</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon>"};
+				}
+			}
+		}
+		else // les coordenades son en lon/lat,per tant, tant el bbox com el GMLpol s'ecriuen en lon/lat
+		{
+			for (var i=0; i<trg.length; i++)
+			{
+				//afegim el bbox i el gmlpol només al primary target
+				if (trg[i].role=="primary")
+				{
+					//afegim el bounding box en lon/lat
+					var dec_g=9;
+					var dif=0.0000000045;
+					// li sumem/restem un diferencial de 0.0000000045 a les coordenades en graus, que és l'equivalent de 0.5 mm per generar micropols de 1 mm de costat.
+					trg[i].bbox={"xmin":OKStrOfNe((parseFloat(ulc.x)-dif).toString(),dec_g),"xmax":OKStrOfNe((parseFloat(lrc.x)+dif).toString(),dec_g),"ymin": OKStrOfNe((parseFloat(lrc.y)-dif).toString(),dec_g),"ymax":OKStrOfNe((parseFloat(ulc.y)+dif).toString(),dec_g)};
+					//afegim el GMLpol
+					trg[i].gmlpol={"gml": '<gml:Polygon srsName="'+crs+'"><gml:exterior><gml:LinearRing><gml:posList srsDimension="2">' + " " + OKStrOfNe((parseFloat(ulc.x)-dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(ulc.y)-dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(lrc.x)+dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(ulc.y)-dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(lrc.x)+dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(lrc.y)+dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(ulc.x)-dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(lrc.y)+dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(ulc.x)-dif).toString(),dec_g) + " " + OKStrOfNe((parseFloat(ulc.y)-dif).toString(),dec_g) + "</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon>"};
+				}
+			}
+		}
+		GUFAfegirFeedbackCapaMultipleTargets(trg, lang, access_token_type);
+	}
+	//estem en el cas d'un pol
+	else
+	{
+		// si les coordenades no són en lon/lat, les transformem
+		if (crs !="EPSG:4326" && crs !="CRS:84")
+		{
+			var ulc_ll=DonaCoordenadesLongLat(ulc.x, ulc.y, crs);
+			var lrc_ll=DonaCoordenadesLongLat(lrc.x, lrc.y, crs);
+			for (var i=0; i<trg.length; i++)
+			{
+				//afegim el bbox i el gmlpol només al primary target
+				if (trg[i].role=="primary")
+				{
+					//afegim el bounding box en lon/lat
+			//al fer la transformació a graus no podem deixar el mateix nombre de decimals definit per al sistema de referència original pq es perd precissió. 
+			//Podria passar que el sistema de referència original tingués definits 0 decimals i això ens podria portar a una situació on les lats i/o les long fossin idèntiques entre elles i la CGI no les guardés (la CGI sempre comprova que minLat<maxLat i minLong<maxLong, en cas contrari no es guarda el bbox)
+			var dec_trans=9;
+			trg[i].bbox={"xmin":OKStrOfNe(ulc_ll.x,dec_trans),"xmax":OKStrOfNe(lrc_ll.x,dec_trans),"ymin": OKStrOfNe(lrc_ll.y,dec_trans),"ymax":OKStrOfNe(ulc_ll.y,dec_trans)};
+			//afegim el GMLpol en el crs original
+					trg[i].gmlpol={"gml": '<gml:Polygon srsName="'+crs+'"><gml:exterior><gml:LinearRing><gml:posList srsDimension="2">' + " " + OKStrOfNe(ulc.x,dec) + " " + OKStrOfNe(ulc.y,dec) + " " + OKStrOfNe(lrc.x,dec) + " " + OKStrOfNe(ulc.y,dec) + " " + OKStrOfNe(lrc.x,dec) + " " + OKStrOfNe(lrc.y,dec) + " " + OKStrOfNe(ulc.x,dec) + " " + OKStrOfNe(lrc.y,dec) + " " + OKStrOfNe(ulc.x,dec) + " " + OKStrOfNe(ulc.y,dec) + "</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon>"};
+				}
+			}
+		}
+		else // les coordenades son en lon/lat,per tant, tant el bbox com el GMLpol s'ecriuen en lon/lat
+		{
+			//comprovem que les coordenades min/maxLat i min/maxLong no siguin iguals entre elles. En cas que ho siguin demanem a l'uruari que modifiqui el nombre de decimals a la configuració del navegador
+			if ((OKStrOfNe(ulc.x,dec)==OKStrOfNe(lrc.x,dec)) || (OKStrOfNe(lrc.y,dec)==OKStrOfNe(ulc.y,dec)))
+			{
+				alert(GetMessage("CheckNDecimalFigures", "capavola"));
+				TancaFinestraLayer("fbScope");
+				return;
+			}
+			else
+			{
+				for (var i=0; i<trg.length; i++)
+				{
+					//afegim el bbox i el gmlpol només al primary target
+					if (trg[i].role=="primary")
+					{
+						//afegim el bounding box en lon/lat
+						trg[i].bbox={"xmin":OKStrOfNe(ulc.x,dec),"xmax":OKStrOfNe(lrc.x,dec),"ymin": OKStrOfNe(lrc.y,dec),"ymax":OKStrOfNe(ulc.y,dec)};
+						//afegim el GMLpol
+						trg[i].gmlpol={"gml": '<gml:Polygon srsName="'+crs+'"><gml:exterior><gml:LinearRing><gml:posList srsDimension="2">' + " " + OKStrOfNe(ulc.x,dec) + " " + OKStrOfNe(ulc.y,dec) + " " + OKStrOfNe(lrc.x,dec) + " " + OKStrOfNe(ulc.y,dec) + " " + OKStrOfNe(lrc.x,dec) + " " + OKStrOfNe(lrc.y,dec) + " " + OKStrOfNe(ulc.x,dec) + " " + OKStrOfNe(lrc.y,dec) + " " + OKStrOfNe(ulc.x,dec) + " " + OKStrOfNe(ulc.y,dec) + "</gml:posList></gml:LinearRing></gml:exterior></gml:Polygon>"};
+					}
+				}
+			}
+		}	
+		GUFAfegirFeedbackCapaMultipleTargets(trg, lang, access_token_type);
+	}
+	return;
+}
+
+
+function TancaFinestraFeedbackAmbScope()
+{
+	//Per defecte, al tancar la finestra de fbScope deixem les consultes per localització.
+	//Aquí estem en la situació que hem tancat la caixa des del botó tancar.
+	//primer comprovem si estàvem digitalitzant un punt. Si és així, esborrem la creu:
+	if (document.getElementById("FBpoint").checked)
+		TancaFinestra_multi_consulta();
+	ParamCtrl.EstatClickSobreVista="ClickConLoc";
+	CanviaEstatClickSobreVista("ClickConLoc");
+}
+
+function ComprovaCalTancarFeedbackAmbScope(estat)
+{
+	//si estem fent un FB amb Scope i clickem sobre algun botó de la barra d'eines que obra una finestra nova (anar a coord, config, calc, etc.) tanquem la finestra fbScope i posem per defecte el mouse a ConLoc
+	if (((ParamCtrl.EstatClickSobreVista=="ClickRecFB1" || ParamCtrl.EstatClickSobreVista=="ClickRecFB2") && ((estat!="ClickPointFB")&&(estat!="ClickRecFB1"))) || ((ParamCtrl.EstatClickSobreVista=="ClickPointFB")&&(estat!="ClickRecFB1")))
+	{
+		TancaFinestraLayer("fbScope");
+		//Per defecte, al tancar la finestra de fbScope deixem les consultes per localització.
+		if(!estat) //Aquí estem en una situació en què estem tancant la caixa pq estem entrant a una nova finestra de l'estil anar a coord, config, calc, etc.
+		{
+			CanviaEstatClickSobreVista("ClickConLoc");
+			CanviaPolsatEnBotonsAlternatius("pan","pan","","moumig","moumig","","zoomfin","zoomfin","","novavista","novavista","","conloc","conloc","p");
+		} // si sí que hi ha "estat", vol dir que estem seleccionant una eina de zoom, pan, etc i que CanviaEstatClickSobreVista segueix en seu curs normal.
+	}
+}
 function CanviaEtiquetesAnarCoord(sel)
 {
 	if(sel == 0)
@@ -115,41 +389,40 @@ function CanviaEtiquetesAnarCoord(sel)
 	}
 }//Fi de CanviaEtiquetesAnarCoord()
 
-function AnarAObjVectorialTaula(longitud, latitud)
+function AnarAObjVectorialTaula(x, y, crs_obj, minX, maxX, minY, maxY)
 {
-var d, punt_coord;
-
-	if(isNaN(longitud) || isNaN(latitud))
+	if(isNaN(x) || isNaN(y))
 	{
   	   alert(GetMessage("CoordIncorrectFormat", "capavola") + ":\n" + GetMessage("NumericalValueMustBeIndicated", "capavola") + ".");
 	   return;
 	}
-	punt_coord=DonaCoordenadesCRS(longitud, latitud, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);	
+	
+	var punt_coord={x:x, y:y}, env_obj={MinX: minX, MaxX: maxX, MinY: minY, MaxY: maxY};
+	
+	TransformaCoordenadesPunt(punt_coord, crs_obj, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
 
 	if(!EsPuntDinsAmbitNavegacio(punt_coord))
 	{
-  	   alert(GetMessage("RequestedPointOutsideBrowserEnvelope", "capavola"));
-	   return;
+		// La capa no es visible en el sistema de referència actual ni en el CRS actual, per tant he de canviar-ho i mirar en quina imatge de situació està continguda.
+		// Calculo un envolupant amb uns 		
+		EstableixNouCRSEnv(crs_obj, env_obj);
+		
+		// Recalculo el punt en el sistema que cal
+		punt_coord={x:x, y:y};
+		TransformaCoordenadesPunt(punt_coord, crs_obj, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
 	}
+	env_obj=TransformaEnvolupant(env_obj, crs_obj, ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
 
-	//Dibuixo la icona per mostrar el punt consultat
-	if (typeof ParamCtrl.ICapaVolaAnarCoord !== "undefined")
+	// Dibuixo la icona per mostrar el punt de l'objecte
+	if (typeof ParamCtrl.ICapaVolaAnarObj !== "undefined")
 	{
-		var capa=ParamCtrl.capa[ParamCtrl.ICapaVolaAnarCoord];
+		var capa=ParamCtrl.capa[ParamCtrl.ICapaVolaAnarObj];
 		capa.objectes.features[0].geometry.coordinates[0]=punt_coord.x;
 		capa.objectes.features[0].geometry.coordinates[1]=punt_coord.y;
-		//capa.objectes.features[0].properties.radius=d;
 		capa.visible="si";
 		CreaVistes();
-	}
-	// Constant a 1000m per a una bona visualització del punt i dels voltants.
-	d=1000;
-	if (EsProjLongLat(ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS))
-		d/=FactorGrausAMetres;
-	var env=DonaEnvDeXYAmpleAlt(punt_coord.x, punt_coord.y, d, d);
-	PortamAAmbit(env);
-	
-	//PortamAPunt(punt_coord.x,punt_coord.y);
+	}	
+	PortamAAmbit(env_obj);
 }
 
 function AnarACoordenada(form)
@@ -214,7 +487,7 @@ var punt_coord={x: parseFloat(form.coordX.value), y: parseFloat(form.coordY.valu
 	{
 	   PortamAPunt(punt_coord.x,punt_coord.y);
 	}
-}//Fi de AnarACoordenada()
+}
 
 function TransformaCoordenadesCapaVolatil(capa, crs_ori, crs_dest)
 {
@@ -233,6 +506,8 @@ function TransformaCoordenadesCapesVolatils(crs_ori, crs_dest)
 		TransformaCoordenadesCapaVolatil(ParamCtrl.capa[ParamCtrl.ICapaVolaPuntConsult], crs_ori, crs_dest);
 	if (typeof ParamCtrl.ICapaVolaAnarCoord !== "undefined")
 		TransformaCoordenadesCapaVolatil(ParamCtrl.capa[ParamCtrl.ICapaVolaAnarCoord], crs_ori, crs_dest);
+	if (typeof ParamCtrl.ICapaVolaAnarObj !== "undefined")
+		TransformaCoordenadesCapaVolatil(ParamCtrl.capa[ParamCtrl.ICapaVolaAnarObj], crs_ori, crs_dest);
 	if (typeof ParamCtrl.ICapaVolaEdit !== "undefined")
 	{
 		TransformaCoordenadesCapaVolatil(ParamCtrl.capa[ParamCtrl.ICapaVolaEdit], crs_ori, crs_dest);
@@ -245,10 +520,9 @@ function TransformaCoordenadesCapesVolatils(crs_ori, crs_dest)
 
 function EsIndexCapaVolatil(i_capa, param_ctrl)
 {
-	if (param_ctrl.ICapaVolaPuntConsult==i_capa || param_ctrl.ICapaVolaAnarCoord==i_capa || param_ctrl.ICapaVolaEdit==i_capa || param_ctrl.ICapaVolaGPS==i_capa)
+	if (param_ctrl.ICapaVolaPuntConsult==i_capa || param_ctrl.ICapaVolaAnarCoord==i_capa || param_ctrl.ICapaVolaAnarObj==i_capa  || param_ctrl.ICapaVolaEdit==i_capa || param_ctrl.ICapaVolaGPS==i_capa)
 		return true;
-	else
-		return false;
+	return false;
 }
 
 function EliminaIndexDeCapesVolatils(param_ctrl)
@@ -257,11 +531,14 @@ function EliminaIndexDeCapesVolatils(param_ctrl)
 		delete param_ctrl.ICapaVolaPuntConsult;
 	if(typeof param_ctrl.ICapaVolaAnarCoord !== "undefined")
 		delete param_ctrl.ICapaVolaAnarCoord;
+	if(typeof param_ctrl.ICapaVolaAnarObj !== "undefined")
+		delete param_ctrl.ICapaVolaAnarObj;
 	if(typeof param_ctrl.ICapaVolaEdit !== "undefined")
 		delete param_ctrl.ICapaVolaEdit;
 	if(typeof param_ctrl.ICapaVolaGPS !== "undefined")
 		delete param_ctrl.ICapaVolaGPS;
 }
+
 
 function NumeroDeCapesVolatils(i_capa)
 {
@@ -273,6 +550,8 @@ function NumeroDeCapesVolatils(i_capa)
 			i++;
 		if (typeof ParamCtrl.ICapaVolaAnarCoord !== "undefined")
 			i++;
+		if (typeof ParamCtrl.ICapaVolaAnarObj !== "undefined")
+			i++;
 		if (typeof ParamCtrl.ICapaVolaEdit !== "undefined")
 			i++;
 		if (typeof ParamCtrl.ICapaVolaGPS !== "undefined")
@@ -283,6 +562,8 @@ function NumeroDeCapesVolatils(i_capa)
 	if (typeof ParamCtrl.ICapaVolaPuntConsult !== "undefined" && ParamCtrl.ICapaVolaPuntConsult<i_capa)
 		i++;
 	if (typeof ParamCtrl.ICapaVolaAnarCoord !== "undefined" && ParamCtrl.ICapaVolaAnarCoord<i_capa)
+		i++;
+	if (typeof ParamCtrl.ICapaVolaAnarObj !== "undefined" && ParamCtrl.ICapaVolaAnarObj<i_capa)
 		i++;
 	if (typeof ParamCtrl.ICapaVolaEdit !== "undefined" && ParamCtrl.ICapaVolaEdit<i_capa)
 		i++;
@@ -298,6 +579,8 @@ function EliminaCapaVolatil(i_capa, param_ctrl)
 		delete param_ctrl.ICapaVolaPuntConsult;
 	if (param_ctrl.ICapaVolaAnarCoord==i_capa)
 		delete param_ctrl.ICapaVolaAnarCoord;
+	if (param_ctrl.ICapaVolaAnarObj==i_capa)
+		delete param_ctrl.ICapaVolaAnarObj;
 	if (param_ctrl.ICapaVolaEdit==i_capa)
 		delete param_ctrl.ICapaVolaEdit;
 	if (param_ctrl.ICapaVolaGPS==i_capa)
@@ -317,6 +600,8 @@ function CanviaIndexosCapesVolatils(n_moviment, i_capa_ini, i_capa_fi_per_sota, 
 		param_ctrl.ICapaVolaPuntConsult+=n_moviment;
 	if (typeof param_ctrl.ICapaVolaAnarCoord !== "undefined" && param_ctrl.ICapaVolaAnarCoord>=i_capa_ini && param_ctrl.ICapaVolaAnarCoord<i_capa_fi_per_sota)
 		param_ctrl.ICapaVolaAnarCoord+=n_moviment;
+	if (typeof param_ctrl.ICapaVolaAnarObj !== "undefined" && param_ctrl.ICapaVolaAnarObj>=i_capa_ini && param_ctrl.ICapaVolaAnarObj<i_capa_fi_per_sota)
+		param_ctrl.ICapaVolaAnarObj+=n_moviment;
 	if (typeof param_ctrl.ICapaVolaEdit !== "undefined" && param_ctrl.ICapaVolaEdit>=i_capa_ini && param_ctrl.ICapaVolaEdit<i_capa_fi_per_sota)
 		param_ctrl.ICapaVolaEdit+=n_moviment;
 	if (typeof param_ctrl.ICapaVolaGPS !== "undefined" && param_ctrl.ICapaVolaGPS>=i_capa_ini && param_ctrl.ICapaVolaGPS<i_capa_fi_per_sota)
@@ -344,8 +629,6 @@ function CreaCapesVolatils()
 						"type": "FeatureCollection",
 						"features":[{
 							"id": null,
-							"data": null,
-							//"i_simbol": 0,
 							"geometry": {
 								"type": "Point",
 								"coordinates": [0,0]
@@ -374,7 +657,8 @@ function CreaCapesVolatils()
 					"consultable": "no",
 					"editable": "no",
 					"FuncioEdicio": null,
-					"metadades": null
+					"metadades": null,
+					"explanation": null
 				});
 		CanviaIndexosCapesSpliceCapa(1, i_nova_capa, -1, ParamCtrl);
 	}
@@ -395,8 +679,6 @@ function CreaCapesVolatils()
 						"type": "FeatureCollection",
 						"features": [{
 							"id": null,
-							"data": null,
-							//"i_simbol": 0,
 							"geometry": {
 								"type": "Point",
 								"coordinates": [0,0]
@@ -428,7 +710,8 @@ function CreaCapesVolatils()
 					"consultable": "no",
 					"editable": "no",
 					"FuncioEdicio": null,
-					"metadades": null
+					"metadades": null,
+					"explanation": null
 				});
 		CanviaIndexosCapesSpliceCapa(1, i_nova_capa, -1, ParamCtrl);
 	}
@@ -449,8 +732,6 @@ function CreaCapesVolatils()
 						"type": "FeatureCollection",
 						"features": [{
 							"id": null,
-							"data": null,
-							//"i_simbol": 0,
 							"geometry": {
 								"type": "Point",
 								"coordinates": [0, 0]
@@ -460,14 +741,13 @@ function CreaCapesVolatils()
 							},
 						}]
 					},
-					"atributs": [
+					"attributes": { "radius":
 						{
-							"nom": "radius",
-							"descripcio": "Buffer",
-							"unitats": "m",
+							"description": "Buffer",
+							"UoM": "m",
 							"mostrar": "si"
 						}
-					],
+					},
 					"estil": [{
 						"nom": null,
 						"desc":	null,
@@ -516,7 +796,58 @@ function CreaCapesVolatils()
 					"consultable": "no",
 					"editable": "no",
 					"FuncioEdicio": null,
-					"metadades": null
+					"metadades": null,
+					"explanation": null
+				});
+		CanviaIndexosCapesSpliceCapa(1, i_nova_capa, -1, ParamCtrl);
+	}
+	if (!ParamCtrl.IconaAnarObj)
+		ParamCtrl.IconaAnarObj={"icona": "mes.gif", "ncol": 9, "nfil": 9, "i": 5, "j": 5};
+	if (typeof ParamCtrl.ICapaVolaAnarObj === "undefined")
+	{
+		ParamCtrl.ICapaVolaAnarObj=i_nova_capa;
+		i_nova_capa++;
+		ParamCtrl.capa.splice(ParamCtrl.ICapaVolaAnarObj, 0, {
+					"servidor": null,
+					"versio": null,
+					"model": model_vector,
+					"nom": null,
+					"desc": null,
+					"CRSgeometry": ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS,
+					"objectes": {
+						"type": "FeatureCollection",
+						"features":[{
+							"id": null,
+							"geometry": {
+								"type": "Point",
+								"coordinates": [0,0]
+							},
+							"properties": {},
+						}]
+					},
+					"estil": [{
+						"nom": null,
+						"desc":	null,
+						"DescItems": null,
+						"simbols": [{
+							"NomCamp": null,
+							"simbol": [{"ValorCamp": null, "icona": JSON.parse(JSON.stringify(ParamCtrl.IconaAnarObj))}]
+						}],
+						"ItemLleg": null,
+						"ncol": 1
+					}],
+					"i_estil": 0,
+					"NColEstil": 1,
+					"separa": null,
+					"DescLlegenda": null,
+					"LlegDesplegada": false,
+					"VisibleALaLlegenda": false,
+					"visible": "no",
+					"consultable": "no",
+					"editable": "no",
+					"FuncioEdicio": null,
+					"metadades": null,
+					"explanation": null
 				});
 		CanviaIndexosCapesSpliceCapa(1, i_nova_capa, -1, ParamCtrl);
 	}
@@ -539,8 +870,6 @@ function CreaCapesVolatils()
 						"type": "FeatureCollection",
 						"features": [{
 							"id": null,
-							"data": null,
-							//"i_simbol": 0,
 							"geometry": {
 								"type": "Point",
 								"coordinates": [0, 0]
@@ -550,14 +879,13 @@ function CreaCapesVolatils()
 							},
 						}]
 					},
-					"atributs": [
+					"attributes": { "uncertainty":
 						{
-							"nom": "uncertainty",
-							"descripcio": "Uncertainty",
-							"unitats": "m",
+							"description": "Uncertainty",
+							"UoM": "m",
 							"mostrar": "si"
 						}
-					],
+					},
 					"estil": [{
 						"nom": null,
 						"desc":	null,
@@ -606,7 +934,8 @@ function CreaCapesVolatils()
 					"consultable": "no",
 					"editable": "no",
 					"FuncioEdicio": null,
-					"metadades": null
+					"metadades": null,
+					"explanation": null
 				});
 			CanviaIndexosCapesSpliceCapa(1, i_nova_capa, -1, ParamCtrl);
 		}

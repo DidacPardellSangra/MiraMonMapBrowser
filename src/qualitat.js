@@ -17,7 +17,7 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2023 Xavier Pons
+    Copyright 2001, 2024 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
     amb l'ajut de Núria Julià (n julia at creaf uab cat)
@@ -41,6 +41,224 @@
 var QualityML=null;
 var ArrelURLQualityML="https://www.qualityml.org/";
 
+function LlegeixReportDataQualtity(quality_element, node_DQElement)
+{
+	if(!node_DQElement || !quality_element)
+		return false;
+	
+	//·$· Potser puc agafar més propietats del id per omplir altre info
+	var result=node_DQElement.getElementsByTagName('gmd:result');
+	
+	if(!result || result.length<1)
+		return false;
+	
+	quality_element.result=[{qualityml:{measure:null, domain:null, metrics:null }}];
+	
+	var i, node, node2, cadena, quality_ml=quality_element.result[0].qualityml, index, nom, i_metric;
+	
+	//  Busco la mesura
+	node=node_DQElement.getElementsByTagName('gmd:measureIdentification');
+	if(node && node.length>0)
+	{
+		node2=node[0].getElementsByTagName('gmd:MD_Identifier');
+		if(!node2 ||  node2.length<1)
+			return false;
+		node2=node2[0].getElementsByTagName('gmd:code');
+		if(!node2 ||  node2.length<1)
+			return false;
+		node2=node2[0].getElementsByTagName('gmx:Anchor');
+		if(!node2 ||  node2.length<1)
+			return false;	
+		cadena=node2[0].getAttribute("xlink:href");	
+		
+		index=cadena.indexOf('?');		
+		// Potser que el nom de la mesura sigui una URL, miro d'eliminar-ho
+		nom=(index==-1) ? cadena : cadena.slice(0, index);
+		cadena=DonaAdreca(nom).toLowerCase();
+		if(cadena=="https://www.qualityml.org/1.0/measure" || cadena=="http://www.qualityml.org/1.0/measure" || cadena=="www.qualityml.org/1.0/measure")
+			nom=TreuAdreca(nom);			
+		quality_ml.measure={name: nom};
+		
+		// Busco el domini
+		if(index!=-1)
+		{
+			index=cadena.indexOf('domain=');
+			if(index!=-1)
+			{			
+				cadena=cadena.slice(index+7);
+				var matriu=cadena.split(',');
+				quality_ml.domain=[];
+				for(i=0; i<matriu.length;i++)
+					quality_ml.domain[i]={name: matriu[i]};
+			}
+			// ·$· també hi poden haver params
+		}
+	}
+	else
+	{
+		node=node_DQElement.getElementsByTagName('gmd:nameOfMeasure');
+		if(!node || node.length<1)
+			return false;
+		node2=node[0].getElementsByTagName('gco:CharacterString');
+		if(!node2 || node2.length<1)
+			return false;
+		cadena=node2[0].textContent;	
+		quality_ml.measure={name: cadena };
+	}		
+	
+	// busco la mètrica
+	quality_ml.metrics=[];
+	
+	for(i=0,i_metric=0; i<result.length; i++)
+	{
+		node=result[i].getElementsByTagName('gmd:DQ_QuantitativeResult');
+		if(!node || node.length<1)
+			continue;
+		
+		// metrica : errorStatistic no és obligatòri però value si
+		
+		//valor
+		node2=node[0].getElementsByTagName('gmd:value');
+		if(!node2 || node2.length<1)
+			continue;
+		node2=node2[0].getElementsByTagName('gco:Record');
+		if(!node2 || node2.length<1)
+			continue;
+		
+		quality_ml.metrics[i_metric]={name : null, values : {}};
+		quality_ml.metrics[i_metric].values.list=[node2[0].textContent];
+		// ·$· els valors també poden tenir units quality_ml.metrics[i].values.units="m";
+		// i tipus i param measure
+		
+		// nom de la mètrica a errorStatistic
+		node2=node[0].getElementsByTagName('gmd:errorStatistic');
+		if(node2 && node2.length>0)
+		{			
+			node2=node2[0].getElementsByTagName('gco:CharacterString');
+			if(node2 && node2.length>0)
+			{
+				nom=node2[0].textContent;
+				// Potser que el nom sigui una URL miro d'eliminar tot el que no cal i quedar-me només amb el nom			
+				cadena=DonaAdreca(nom).toLowerCase();
+				if(cadena=="https://www.qualityml.org/1.0/metrics" || cadena=="http://www.qualityml.org/1.0/metrics" || cadena=="www.qualityml.org/1.0/metrics")
+					nom=TreuAdreca(nom);			
+				quality_ml.metrics[i_metric].name=nom;
+			}
+		}		
+					
+		/*
+		·$· de moment no tenim tipus de metrica!! caldia afegir el type!!
+		node2=(node.getElementsByTagName('gmd:valueType')[0]).getElementsByTagName('gco:RecordType')[0];
+		if(node2)
+		{
+			//Double precision real (UoM=days)
+			cadena=node2.textContent;
+			var index=cadena.indexOf('(');
+			if(index!=-1)
+			{
+				quality_ml.metrics[i_metric].type=cadena.slice(0, index);
+				quality_ml.metrics[i_metric].params=[];
+				cadena=cadena.slice(index+1,cadena.indexOf(')'));
+				var matriu=cadena.split(','), matriu2;
+				for(var j=0;j<matriu.length;j++)
+				{
+					matriu2=matriu[j].split('=');
+					quality_ml.metrics[i_metric].params[j]={name: matriu2[0]
+												  value: matriu2[1]};
+				}
+			}
+			else
+			{
+				quality_ml.metrics[i_metric].type=cadena;
+			}
+		}*/
+		i_metric++;
+	}
+	return true;
+}
+
+function ParsejaDocMetadadesXMLPerOmplirQualitatCapa(doc, extra_param)
+{
+var root, node_quality, i, cadena, node, node2, node_report, i, j, k, quality_element;
+
+	if(!doc)
+	{
+		alert(GetMessage("CannotObtainValidResponseFromServer", "cntxmenu"));
+		return;
+	}
+	root=doc.documentElement;
+	if(!root) 
+	{
+		alert(GetMessage("CannotObtainValidResponseFromServer", "cntxmenu"));
+		return;
+	}
+	//Cal comprovar que és un document de capacitats, potser és un error, en aquest cas el llegeix-ho i el mostraré directament
+	if(root.nodeName!="gmd:MD_Metadata")
+	{
+		alert(GetMessage("CannotObtainValidResponseFromServer", "cntxmenu") + "rootNode: " + root.nodeName);
+		return;
+	}
+	node_quality=root.getElementsByTagName('gmd:dataQualityInfo');
+	if(!node_quality || node_quality.length<1)
+		return;
+	
+	extra_param.quality=[];
+	for(i=0; i<node_quality.length; i++)
+	{
+		node=node_quality[i].getElementsByTagName('gmd:DQ_DataQuality');
+		if(!node || node.length<1)
+			continue;
+		node_report=node[0].getElementsByTagName('gmd:report');
+		if(!node_report || node_report.length<1)
+			continue;
+		for(j=0; j<node_report.length; j++)
+		{
+			for(k=0; k<node_report[j].childNodes.length; k++)
+			{
+				quality_element={};
+				node2=node_report[j].childNodes[k];
+				if(node2.nodeName=="gmd:DQ_AbsoluteExternalPositionalAccuracy")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_GriddedDataPositionalAccuracy")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_RelativeInternalPositionalAccuracy")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_ThematicClassificationCorrectness")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_QuantitativeAttributeAccuracy")
+					quality_element.indicator="DQ_AbsoluteExternalPositionalAccuracy";
+				else if(node2.nodeName=="gmd:DQ_NonQuantitativeAttributeAccuracy") 
+					quality_element.indicator="DQ_NonQuantitativeAttributeAccuracy";
+				else if(node2.nodeName=="gmd:DQ_CompletenessCommission")
+					quality_element.indicator="DQ_CompletenessCommission";					
+				else if(node2.nodeName=="gmd:DQ_CompletenessOmission") 
+					quality_element.indicator="DQ_CompletenessOmission";
+				else if(node2.nodeName=="gmd:DQ_AccuracyOfATimeMeasurement") 
+					quality_element.indicator="DQ_AccuracyOfATimeMeasurement";
+				else if(node2.nodeName=="gmd:DQ_TemporalConsistency") 
+					quality_element.indicator="DQ_TemporalConsistency";
+				else if(node2.nodeName=="gmd:DQ_TemporalValidity")
+					quality_element.indicator="DQ_TemporalValidity";
+				else if(node2.nodeName=="gmd:DQ_DomainConsistency")
+					quality_element.indicator="DQ_DomainConsistency";					
+				else if(node2.nodeName=="gmd:DQ_FormatConsistency")
+					quality_element.indicator="DQ_FormatConsistency";
+				else if(node2.nodeName=="gmd:DQ_TopologicalConsistency")
+					quality_element.indicator="DQ_TopologicalConsistency";
+				else if(node2.nodeName=="gmd:DQ_ConceptualConsistency")
+					quality_element.indicator="DQ_ConceptualConsistency";
+				else
+					continue;
+				// En ISO19115 DQ_NonQuantitativeAttributeAccuracy i en ISO19157 DQ_NonQuantitativeAttributeCorrectness
+				//"DQ_NonQuantitativeAttributeCorrectness",","DQ_UsabilityElement","DQ_Confidence","DQ_Representativity","DQ_Homogeneity"]
+				
+				if(LlegeixReportDataQualtity(quality_element,node2))
+					extra_param.quality.push(quality_element);
+			}
+		}
+	}
+	MostraQualitatCapa(extra_param.elem, extra_param.quality, extra_param.capa, extra_param.i_estil);
+}
 
 // Funciona tant per capa com per capa_digi
 function AfegeixQualitatACapa(capa, quality)
@@ -52,7 +270,73 @@ function AfegeixQualitatACapa(capa, quality)
 	return capa.metadades.quality[capa.metadades.quality.length]=quality;
 }
 
-function FinestraMostraQualitatCapa(elem, capa, i_estil)
+
+function TancaFinestra_mostraQualitat()
+{
+	// Buido el contingut de la finestra
+	var elem=getFinestraLayer(window, "mostraQualitat");
+	if(elem)
+		contentLayer(elem, "");		
+	
+}
+
+function FinestraMostraQualitatCapa(elem, quality, capa, i_estil)
+{
+	var elem=ObreFinestra(window, "mostraQualitat", GetMessage("forShowingQualityInformation", "cntxmenu"));
+
+	if (!elem)
+		return;
+
+	MostraQualitatCapa(elem, quality, capa, i_estil);
+}
+
+function DonaIndexIndicatorQualityML(id)
+{
+const id_temp=id.toLowerCase();
+
+	for (var i=0; i<QualityML.indicator.length; i++)
+	{
+		if (QualityML.indicator[i].id.toLowerCase()==id_temp)
+			return i;
+	}
+	return -1;
+}
+
+function DonaIndexMeasureQualityML(id)
+{
+const id_temp=id.toLowerCase();
+
+	for (var i=0; i<QualityML.measure.length; i++)
+	{
+		if (QualityML.measure[i].id.toLowerCase()==id_temp)
+			return i;
+	}
+	return -1;
+}
+
+function DonaIndexDomainQualityML(id)
+{
+const id_temp=id.toLowerCase();
+	for (var i=0; i<QualityML.domain.length; i++)
+	{
+		if (QualityML.domain[i].id.toLowerCase()==id_temp)
+			return i;
+	}
+	return -1;
+}
+
+function DonaIndexMetricQualityML(id)
+{
+const id_temp=id.toLowerCase();
+	for (var i=0; i<QualityML.metric.length; i++)
+	{
+		if (QualityML.metric[i].id.toLowerCase()==id_temp)
+			return i;
+	}
+	return -1;
+}
+
+function MostraQualitatCapa(elem, quality, capa, i_estil)
 {
 	if (!QualityML)
 	{
@@ -60,53 +344,32 @@ function FinestraMostraQualitatCapa(elem, capa, i_estil)
 				// "qualityml.json",
 			function(quality_ml, extra_param) {
 				QualityML=quality_ml;
-				MostraQualitatCapa(extra_param.elem, extra_param.capa, extra_param.i_estil);
+				MostraQualitatCapa(extra_param.elem, extra_param.quality, extra_param.capa, extra_param.i_estil);
 			},
 			function(xhr) { alert(xhr); },
-			{elem:elem, capa:capa, i_estil: i_estil});
+			{elem:elem, quality: quality, capa:capa, i_estil: i_estil});
 	}
-	else
-		MostraQualitatCapa(elem, capa, i_estil);
-}
-
-function DonaIndexIndicatorQualityML(id)
-{
-	for (var i=0; i<QualityML.indicator.length; i++)
+	else if (!quality)
 	{
-		if (QualityML.indicator[i].id==id)
-			return i;
+		var ajax=new Ajax();
+		if (window.doAutenticatedHTTPRequest && capa.access)
+			doAutenticatedHTTPRequest(capa.access, "GET", 
+					ajax, DonaNomFitxerMetadades(capa, i_estil), null, null, 
+					ParsejaDocMetadadesXMLPerOmplirQualitatCapa, 
+					"text/xml", {elem: elem, quality: null, capa: capa, i_estil: i_estil});
+		else
+			ajax.doGet(DonaNomFitxerMetadades(capa, i_estil),
+					ParsejaDocMetadadesXMLPerOmplirQualitatCapa, "text/xml",{elem: elem, quality: null, capa: capa, i_estil: i_estil});
 	}
-	return -1;
-}
-
-function MostraQualitatCapa(elem, capa, i_estil)
-{
-	contentLayer(elem, DonaCadenaMostraQualitatCapa(capa, i_estil));
-}
-
-function DesplegaOPlegaIFramaQualityML(nom)
-{
-	if (document.getElementById(nom+"iframe").style.display=="none")
-	{
-		document.getElementById(nom+"iframe").style.display="inline";
-		document.getElementById(nom+"img").src=AfegeixAdrecaBaseSRC("boto_contract.png");
-	}
-	else
-	{
-		document.getElementById(nom+"iframe").style.display="none";
-		document.getElementById(nom+"img").src=AfegeixAdrecaBaseSRC("boto_expand.png");
-	}
+	else		
+		contentLayer(elem, DonaCadenaMostraQualitatCapa(quality, capa, i_estil));
 }
 
 function DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, concept, i, id_qml)
 {
-var cdns=[], nom="MostraQualitatCapa_"+i_q+"_"+i_r+"_"+concept+"_"+i+"_";
-	cdns.push(" <img src=\"",
-		 AfegeixAdrecaBaseSRC("boto_expand.png"), "\" id=\"",nom,"img\" ",
-		 "alt=\"", GetMessage("moreInfo") , "\" ",
-		 "title=\"",GetMessage("moreInfo"), "\" ",
-		 "onClick='DesplegaOPlegaIFramaQualityML(\"",nom,"\")'\"><iframe src=\"",ArrelURLQualityML, version, "/", concept,"/", id_qml, "\" id=\"",nom,"iframe\" style=\"display: none\" width=\"98%\" height=\"180\" scrolling=\"auto\"></iframe>");
-	return cdns.join("");
+var cdns=[], nom="MostraQualitatCapa_"+i_q+"_"+i_r+"_"+concept+"_"+i+"_", url= ArrelURLQualityML + version + "/" + concept + "/" + id_qml;
+
+	return BotoDesplegableIFrame(nom, url);
 }
 
 function DonaCadenaValorsComLlistaQualitatCapa(values)
@@ -138,15 +401,10 @@ var cdns=[];
 	return cdns.join("");
 }
 
-function DonaCadenaMostraQualitatCapa(capa, i_estil)
+function DonaCadenaMostraQualitatCapa(quality, capa, i_estil)
 {
-var quality;
-var i_indicator, cdns=[];
+var i_indicator, i_measure, i_domain, i_metric, cdns=[];
 
-	if (i_estil==-1)
-		quality=capa.metadades.quality;
-	else
-		quality=capa.estil[i_estil].metadades.quality;
     cdns.push("<form name=\"QualitatCapa\" onSubmit=\"return false;\">");
 	cdns.push("<div id=\"LayerQualitatCapa\" class=\"Verdana11px\" style=\"position:absolute;left:10px;top:10px;width:95%\">",
 			GetMessage("QualityOfLayer", "qualitat"), " \"",
@@ -195,15 +453,21 @@ var i_indicator, cdns=[];
 					var version=(qualityml.version) ? qualityml.version : "1.0";
 					if (qualityml.measure)
 					{
-						cdns.push("<b>Measure:</b> ", qualityml.measure.name, DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "measure", 0, qualityml.measure.name), "<br/>",
-									DonaCadenaParamQualitatCapa(qualityml.measure.param));
+						cdns.push("<b>Measure:</b> ", qualityml.measure.name);
+						i_measure=DonaIndexMeasureQualityML(qualityml.measure.name);
+						if(i_measure!=-1)
+							cdns.push(DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "measure", 0, qualityml.measure.name));
+						cdns.push("<br/>", DonaCadenaParamQualitatCapa(qualityml.measure.param));
 					}
 					if (qualityml.domain)
 					{
 						for (var i_d=0; i_d<qualityml.domain.length; i_d++)
 						{
-							cdns.push("<b>Domain:</b> ", qualityml.domain[i_d].name, DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "domain", i_d, qualityml.domain[i_d].name), "<br/>",
-									DonaCadenaParamQualitatCapa(qualityml.domain[i_d].param),
+							cdns.push("<b>Domain:</b> ", qualityml.domain[i_d].name);
+							i_domain=DonaIndexDomainQualityML(qualityml.domain[i_d].name);
+							if(i_domain!=-1)
+								cdns.push(DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "domain", i_d, qualityml.domain[i_d].name));
+							cdns.push("<br/>", DonaCadenaParamQualitatCapa(qualityml.domain[i_d].param),
 									DonaCadenaValorsComLlistaQualitatCapa(qualityml.domain[i_d].values));
 						}
 					}
@@ -211,8 +475,15 @@ var i_indicator, cdns=[];
 					{
 						for (var i_m=0; i_m<qualityml.metrics.length; i_m++)
 						{
-							cdns.push("<b>Metrics:</b> ", qualityml.metrics[i_m].name, DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "metrics", i_m, qualityml.metrics[i_m].name), "<br/>",
-									DonaCadenaParamQualitatCapa(qualityml.metrics[i_m].param),
+							if(qualityml.metrics[i_m].name) // Potser que no tinguem nom de metrica
+							{
+								cdns.push("<b>Metrics:</b> ", qualityml.metrics[i_m].name);
+								i_metric=DonaIndexMetricQualityML( qualityml.metrics[i_m].name);
+								if(i_metric!=-1)
+									cdns.push(DonaCadenaBotoExpandQualitatCapa(i_q, i_r, version, "metrics", i_m, qualityml.metrics[i_m].name));
+								cdns.push("<br/>");
+							}
+							cdns.push(DonaCadenaParamQualitatCapa(qualityml.metrics[i_m].param),
 									DonaCadenaValorsComLlistaQualitatCapa(qualityml.metrics[i_m].values));
 						}
 					}
@@ -310,8 +581,8 @@ var MAX_LEN_IDENTIFICADOR_CAPA_O_ESTIL=254;
 var capa=ParamCtrl.capa[i_capa];
 var s=capa.nom;
 
-	if (ParamCtrl.capa[i_capa].FormatImatge=="image/tiff" && (ParamCtrl.capa[i_capa].tipus=="TipusHTTP_GET" || !ParamCtrl.capa[i_capa].tipus))
-		return DonaUrlLecturaTiff(i_capa, 0, capa.i_data);
+	if (capa.FormatImatge=="image/tiff" && (capa.tipus=="TipusHTTP_GET" || !capa.tipus))
+		return DonaUrlLecturaTiff(i_capa, 0, capa.i_data, null);
 
 	if (i_estil==-1)
 		return s;
@@ -445,6 +716,11 @@ function DonaAccessTokenTypeFeedback(capa)
 	{
 		if (ParamCtrl.accessClientId.hasOwnProperty(tokenType))
 		{
+			if (!ParamInternCtrl.tokenType)
+			{
+				alert("authen.js not included in index.htm");
+				return null;
+			}
 			if (ParamInternCtrl.tokenType[tokenType].userAlreadyWelcomed)
 				return tokenType;
 		}
@@ -491,7 +767,8 @@ var capa=ParamCtrl.capa[i_capa];
 				s, //identificador unic
 				DonaAdrecaAbsoluta(DonaServidorCapa(capa)).replace("//ecopotential.grumets.cat/", "//maps.ecopotential-project.eu/"),
 				ParamCtrl.idioma,
-				DonaAccessTokenTypeFeedback(capa));
+				DonaAccessTokenTypeFeedback(capa),
+				"MostraFinestraFeedbackAmbScope");
 }
 
 function AdoptaEstil(params_function, guf)
@@ -560,15 +837,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n=0, n_dins=0, 
 	if (!capa_digi.objectes.features)
 		return false;
 
-	for (i_camp=0; i_camp<capa_digi.atributs.length; i_camp++)
-	{
-		if (capa_digi.atributs[i_camp].nom==param.atribut)
-		{
-			camp=capa_digi.atributs[i_camp];
-			break;
-		}
-	}
-	if (i_camp==capa_digi.atributs.length)
+	if (!capa_digi.attributes[param.attribute_name])
 		return false;
 
 	for (var i_obj=0; i_obj<capa_digi.objectes.features.length; i_obj++)
@@ -584,22 +853,22 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n=0, n_dins=0, 
 		    feature.properties.__om_time__=="" ||
 			feature.properties.__om_time__==null)
 			continue;*/
-		if (typeof feature.properties[param.atribut]==="undefined" ||
-			feature.properties[param.atribut]=="" ||
-			feature.properties[param.atribut]==null)
+		if (typeof feature.properties[param.attribute]==="undefined" ||
+			feature.properties[param.attribute]=="" ||
+			feature.properties[param.attribute]==null)
 			continue;
 
 		n++;
 
-		if (camp.format=="dd/mm/yyyy")
+		if (camp.presentation=="dd/mm/yyyy")
 		{
-			var dateParts = feature.properties[param.atribut].split("/");
+			var dateParts = feature.properties[param.attribute].split("/");
 			if (!dateParts || dateParts.length!=3)
 				continue;
 			data_obj=new Date(dateParts[2]+"-"+dateParts[1]+"-"+dateParts[0]);  //fet així pensa que el text és hora UTC que és el mateix que passa amb la lectura dels formularis
 		}
 		else
-			data_obj=new Date(feature.properties[param.atribut]);
+			data_obj=new Date(feature.properties[param.attribute]);
 		if(data_obj>= param.data_ini && data_obj<=param.data_fi)
 			n_valids++;
 	}
@@ -613,7 +882,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n=0, n_dins=0, 
 		scope: ((n_dins==capa_digi.objectes.features.length) ? null : {env: {EnvCRS: JSON.parse(JSON.stringify(ParamInternCtrl.vista.EnvActual)), CRS: ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS}}),
 		indicator: "DQ_TemporalValidity",
 		statement: GetMessage("ConsistencyBasedOnComparisonObservation","qualitat") +
-			" \'"+param.atribut+"\' "+
+			" \'"+param.attribute+"\' "+
 			GetMessage("dataIntervalSpecified", "qualitat")+ ". " +
 			GetMessage("ThereAre") +
 			" " + (n_dins-n) + " "+
@@ -638,7 +907,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], n_valids=0, n=0, n_dins=0, 
 						value: param.data_fi.toJSON()
 					}],
 					values:{
-						list:[param.atribut]
+						list:[param.attribute]
 					}
 				}],
 				metrics: [{
@@ -777,8 +1046,8 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], combinacio=[], n_consistent
 			continue;
 		n_dins++;
 
-		// El primer atribut a avaluar la consistència lògica és obligatòri, per tant, si l'objecte que vaig a mirar no té aquest
-		// atribut no el considero dins de l'avalució
+		// El primer attribute a avaluar la consistència lògica és obligatòri, per tant, si l'objecte que vaig a mirar no té aquest
+		// attribute no el considero dins de l'avalució
 		if (typeof feature.properties[param.atributlogic1]==="undefined" ||
 		    feature.properties[param.atributlogic1]=="" ||
 			feature.properties[param.atributlogic1]==null)
@@ -852,7 +1121,7 @@ var punt={}, capa_digi=ParamCtrl.capa[param.i_capa], combinacio=[], n_consistent
 
 function CalculaQualExacPosicDesDeCampUncertainty(param)
 {
-var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, i, unitats;
+var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, i, UoM;
 
 	if (!capa_digi.objectes.features)
 		return false;
@@ -865,11 +1134,11 @@ var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, 
 			continue;
 		n_dins++;
 
-		if (typeof feature.properties[param.atribut]!=="undefined" &&
-			feature.properties[param.atribut]!=null)
+		if (typeof feature.properties[param.attribute_name]!=="undefined" &&
+			feature.properties[param.attribute_name]!=null)
 		{
-			desv_tip+=(feature.properties[param.atribut]*
-				feature.properties[param.atribut])
+			desv_tip+=(feature.properties[param.attribute_name]*
+				feature.properties[param.attribute_name])
 			n++;
 		}
 	}
@@ -881,23 +1150,23 @@ var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, 
 
 	desv_tip=Math.sqrt(desv_tip/n);
 
-	i=DonaIAtributsDesDeNomAtribut(capa_digi, capa_digi.atributs, param.atribut);
+	i=DonaIAttributesDesDeNomAttribute(capa_digi, capa_digi.attributes, param.attribute_name);
 	if (i==-1)
 	{
 		alert(GetMessage("WrongAttributeName", "qualitat") + " " +
-				param.atribut + "  " +
+				param.attribute_name + "  " +
 				GetMessage("computeDataQuality", "qualitat") + " " +
 				DonaCadenaNomDesc(capa_digi));
-		unitats=null;
+		UoM=null;
 	}
 	else
-		unitats=capa_digi.atributs[i].unitats;
+		UoM=capa_digi.attributes[param.attribute_name].UoM;
 
 	AfegeixQualitatACapa(capa_digi, {
 		scope: ((n_dins==capa_digi.objectes.features.length) ? null : {env: {EnvCRS: JSON.parse(JSON.stringify(ParamInternCtrl.vista.EnvActual)), CRS: ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS}}),
 		indicator: "DQ_AbsoluteExternalPositionalAccuracy",
 		statement: GetMessage("AccuracyPositionalUncertainty", "quality") +
-			" " +param.atribut+". " +
+			" " +param.attribute_name+". " +
 			GetMessage("ThereAre") +
 			" " + (n_dins-n) + " "+
 			GetMessage("of") +
@@ -912,8 +1181,8 @@ var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, 
 				domain: [{
 					name: "DifferentialErrors2D",
 					values: {
-						list: [param.atribut],
-						units : (unitats ? unitats : null)
+						list: [param.attribute_name],
+						units : (UoM ? UoM : null)
 					}
 				}],
 				metrics: [{
@@ -924,7 +1193,7 @@ var capa_digi=ParamCtrl.capa[param.i_capa], n=0, n_dins=0, desv_tip=0, punt={}, 
 					}],
 					values: {
 						list: [desv_tip],
-						units: (unitats ? unitats : null)
+						units: (UoM ? UoM : null)
 					}
 				}]
 			}
@@ -944,7 +1213,7 @@ var sel=form.metode_eval_qual, i, capa=ParamCtrl.capa[i_capa], retorn=false, par
 			var sel_camp=form.camp_incertesa;
 			if(sel_camp.selectedIndex<sel_camp.length)
 			{
-				param={i_capa: i_capa, intencions: "qualitat", atribut: sel_camp.options[sel_camp.selectedIndex].value};
+				param={i_capa: i_capa, intencions: "qualitat", attribute_name: sel_camp.options[sel_camp.selectedIndex].value};
 				if(DescarregaPropietatsCapaDigiVistaSiCal(CalculaQualExacPosicDesDeCampUncertainty, param))
 					return;
 				retorn=CalculaQualExacPosicDesDeCampUncertainty(param);
@@ -1040,8 +1309,8 @@ var sel=form.metode_eval_qual, i, capa=ParamCtrl.capa[i_capa], retorn=false, par
 				return;
 			}
 
-			param= {i_capa: i_capa, intencions: "qualitat", atribut: sel_camp.options[sel_camp.selectedIndex].value, data_ini: date_ini, data_fi: date_fi};
-			if(DescarregaPropietatsCapaDigiVistaSiCal(CalculaValidessaTemporal,param))
+			param= {i_capa: i_capa, intencions: "qualitat", attribute_name: sel_camp.options[sel_camp.selectedIndex].value, data_ini: date_ini, data_fi: date_fi};
+			if(DescarregaPropietatsCapaDigiVistaSiCal(CalculaValidessaTemporal, param))
 				return;
 			retorn=CalculaValidessaTemporal(param);
 
@@ -1078,11 +1347,12 @@ var cdns=[];
 				GetMessage("FieldPositionalUncertainty", "qualitat"),
 			  "</legend>");
 	cdns.push("<select name=\"camp_incertesa\" class=\"Verdana11px\" >");
-	if(capa.atributs)
+	if(capa.attributes)
 	{
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\"", (i==0 ? " selected ":""), "\>",
-					(DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		var attributesArray=Object.keys(capa.attributes);
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i], "\"", (i==0 ? " selected ":""), "\>",
+					DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select></fieldset>");
 	return cdns.join("");
@@ -1097,30 +1367,31 @@ var cdns=[];
 			  "</legend>");
 
 	cdns.push("<select name=\"camp_logic1\" class=\"Verdana11px\" >");
-	if(capa.atributs)
+	if(capa.attributes)
 	{
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\"", (i==0 ? " selected ":""), "\>",
-				(DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		var attributesArray=Object.keys(capa.attributes);
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i],"\"", (i==0 ? " selected ":""), "\>",
+				DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select><br>");
 	cdns.push("<select name=\"camp_logic2\" class=\"Verdana11px\">");
-	if(capa.atributs)
+	if(capa.attributes)
 	{
 		cdns.push("<option value=\"camp_logic_empty\" selected \>", "--", GetMessage("empty"), "--");
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\" \>",
-					(DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i], "\" \>",
+					DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select><br>");
 	cdns.push("<select name=\"camp_logic3\" class=\"Verdana11px\">");
 
-	if(capa.atributs)
+	if(capa.attributes)
 	{
 		cdns.push("<option value=\"camp_logic_empty\" selected \>", "--", GetMessage("empty"), "--");
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\" \>",
-				   (DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i], "\" \>",
+				   DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select><br>");
 	cdns.push(GetMessage("ListPossibleValues", "qualitat"), " (", GetMessage("separatedBy"), " ;)",
@@ -1150,11 +1421,12 @@ var cdns=[];
 				GetMessage("TemporalField"),
 			  "</legend>");
 	cdns.push("<select name=\"camp_temporal\" class=\"Verdana11px\" >");
-	if(capa.atributs)
+	if(capa.attributes)
 	{
-		for(var i=0; i<capa.atributs.length; i++)
-			cdns.push("<option value=\"",capa.atributs[i].nom,"\"", (i==0 ? " selected ":""), "\>",
-					(DonaCadena(capa.atributs[i].descripcio) ? DonaCadena(capa.atributs[i].descripcio) : capa.atributs[i].nom));
+		var attributesArray=Object.keys(capa.attributes);
+		for(var i=0; i<attributesArray.length; i++)
+			cdns.push("<option value=\"", attributesArray[i], "\"", (i==0 ? " selected ":""), "\>",
+					DonaCadenaDescripcioAttribute(attributesArray[i], capa.attributes[attributesArray[i]], false));
 	}
 	cdns.push("</select></fieldset>");
 

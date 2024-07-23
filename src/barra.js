@@ -17,7 +17,7 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2023 Xavier Pons
+    Copyright 2001, 2024 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
     amb l'ajut de Núria Julià (n julia at creaf uab cat)
@@ -37,6 +37,10 @@
 */
 
 "use strict"
+// Variable global on desarem els img del sgv de la barra i la llegenda per així només fer un fetch per cada imatge una vegada
+// Hem vist que el nombre de vegades que es pot fer un fetch d'una imatge és finit (sembla que en Chrome és aprox. de 6000) i tal i com estava
+// fet fins ara superavem aquest límit (NJ 04-07-2023)
+var SGVBarra=[];
 
 function DonaTextImgGifSvg(id, name, filename, size, title, onclick_function_name)
 {
@@ -54,9 +58,8 @@ var cdns=[];
 	if (onclick_function_name)
 		cdns.push("onClick='", onclick_function_name,"' ");
 	if (!ParamCtrl.BarraEstil || !ParamCtrl.BarraEstil.colors)
-		cdns.push("border=\"0\" ");
-	if (!ParamCtrl.BarraEstil || !ParamCtrl.BarraEstil.colors)
 	{
+		cdns.push("border=\"0\" ");
 		if (title)
 			cdns.push("alt=\"", title, "\" title=\"", title,"\" align=\"middle\" ",
 				"onMouseOver='if (document.getElementById(\"", id, "\").alt) window.status=document.getElementById(\"", id, "\").alt; return true;' ",
@@ -74,11 +77,55 @@ var cdns=[];
 	return cdns.join("");
 }
 
+
+
 function DonaTextBotoBarraFinestraLayer(nom_fin, nom_boto, size, title, onclick_function_name)
 {
 	return DonaTextImgGifSvg("id_"+nom_fin+"_"+nom_boto, nom_fin+"_"+nom_boto, nom_boto, size, title, onclick_function_name);
 }
 
+
+function ParseAndAssingTextSGV(img, f_next, params, text)
+{
+	var imgID = img.id;
+	
+	var parser = new DOMParser();
+	var xmlDoc = parser.parseFromString(text, "text/xml");
+
+	// Get the SVG tag, ignore the rest
+	var svg = xmlDoc.getElementsByTagName('svg')[0];
+
+	// Add replaced image's ID to the new SVG
+	if(typeof imgID !== 'undefined') 
+		svg.setAttribute('id', imgID);
+	// Add replaced image's classes to the new SVG
+	if(typeof img.className !== 'undefined') 
+		svg.setAttribute('class', img.className+' replaced-svg');
+	
+	// Remove any invalid XML tags as per http://validator.w3.org
+	svg.removeAttribute('xmlns:a');
+
+	// Check if the viewport is set, if the viewport is not set the SVG wont't scale.
+	if(!svg.getAttribute('viewBox') && svg.getAttribute('height') && svg.getAttribute('width')) 
+		svg.setAttribute('viewBox', '0 0 ' + svg.getAttribute('height') + ' ' + svg.getAttribute('width'))
+
+	if (img.height)
+		svg.setAttribute('height', img.height);
+	if (img.width)
+		svg.setAttribute('width', img.width);
+	if (img.onclick)
+		svg.onclick=img.onclick;
+	if (img.onmouseover)
+		svg.onmouseover=img.onmouseover;
+	if (img.onmouseout)
+		svg.onmouseout=img.onmouseout;
+	// Replace image with new SVG
+	if(img.parentNode) // NJ: ho protegeixo perquè a vegades arribem aquí i això és null
+		img.parentNode.replaceChild(svg, img);
+
+	if (f_next)
+		f_next(imgID, params);
+}
 /*
  * Replace an SVG img src with inline XML SVG 
  */
@@ -86,55 +133,32 @@ function DonaTextBotoBarraFinestraLayer(nom_fin, nom_boto, size, title, onclick_
 //This code will be to replace them all: document.querySelectorAll('img.svg').forEach(ChangeSVGToInlineSVG())
 function ChangeSVGToInlineSVG(img, f_next, params)
 {
-	var imgID = img.id;
-
 	if (img.src.substring(img.src.lastIndexOf(".")).toLowerCase()!=".svg")
 		return true;
+	
+	
+	// Busco la imatge si ja ha estat carregada
+	let i_sgv;
+	for (i_sgv=0; i_sgv<SGVBarra.length; i_sgv++)
+	{
+		if(SGVBarra[i_sgv].src && img.src.toLowerCase()==SGVBarra[i_sgv].src.toLowerCase())
+		{
+			if(SGVBarra[i_sgv].text)
+				ParseAndAssingTextSGV(img, f_next, params, SGVBarra[i_sgv].text);
+			else
+				setTimeout(ChangeSVGToInlineSVG, 100, img, f_next, params);
+			return;
+		}
+	}	
+	i_sgv=SGVBarra.push({src: img.src})-1;
 
 	fetch(img.src).then(function(response) {
-        	return response.text();
+        return response.text();
 	}).then(function(text){
-
-	        var parser = new DOMParser();
-	        var xmlDoc = parser.parseFromString(text, "text/xml");
-		
-	        // Get the SVG tag, ignore the rest
-        	var svg = xmlDoc.getElementsByTagName('svg')[0];
-
-	        // Add replaced image's ID to the new SVG
-	        if(typeof imgID !== 'undefined') {
-        		svg.setAttribute('id', imgID);
-	        }
-	        // Add replaced image's classes to the new SVG
-        	if(typeof img.className !== 'undefined') {
-			svg.setAttribute('class', img.className+' replaced-svg');
-        	}
-
-	        // Remove any invalid XML tags as per http://validator.w3.org
-        	svg.removeAttribute('xmlns:a');
-
-	        // Check if the viewport is set, if the viewport is not set the SVG wont't scale.
-        	if(!svg.getAttribute('viewBox') && svg.getAttribute('height') && svg.getAttribute('width')) {
-        		svg.setAttribute('viewBox', '0 0 ' + svg.getAttribute('height') + ' ' + svg.getAttribute('width'))
-	        }
-
-		if (img.height)
-			svg.setAttribute('height', img.height);
-		if (img.width)
-			svg.setAttribute('width', img.width);
-		if (img.onclick)
-			svg.onclick=img.onclick;
-		if (img.onmouseover)
-			svg.onmouseover=img.onmouseover;
-		if (img.onmouseout)
-			svg.onmouseout=img.onmouseout;
-	        // Replace image with new SVG
-        	img.parentNode.replaceChild(svg, img);
-
-		if (f_next)
-			f_next(imgID, params);
-
+		SGVBarra[i_sgv].text=text;
+	    ParseAndAssingTextSGV(img, f_next, params, text);
 	}).catch(function(event){
+		SGVBarra.slice(i_sgv);
 		DefaultSVGToPNG(event, img, params.format);
 	});
 }
@@ -230,10 +254,10 @@ var cdns=[];
 			"height=\"", (size ? size : ((ParamCtrl.BarraEstil && ParamCtrl.BarraEstil.nfil) ? ParamCtrl.BarraEstil.nfil : 22)), "\" ");
 	if (!ParamCtrl.BarraEstil || !ParamCtrl.BarraEstil.colors)
 		cdns.push("alt=\"", text_groc, "\" title=\"", text_groc, "\" ",
-			"onClick=\"this.src=\'", AfegeixAdrecaBaseSRC(fitxer + ".gif"), "\';", funcio, "\" ",
-			"onmousedown=\"CanviaImageBotoPolsable(event, this, '", AfegeixAdrecaBaseSRC(fitxer + "p.gif"), "');\" ",
-			"onmouseover=\"if (this.alt) window.status=this.alt; return true;\" ",
-			"onmouseout=\"this.src=\'", AfegeixAdrecaBaseSRC(fitxer + ".gif"), "\';if (this.alt) window.status=\'\'; return true;\"");
+		"onClick='this.src=\"", AfegeixAdrecaBaseSRC(fitxer + ".gif"), "\";", funcio, "' ",
+		"onmousedown=\"CanviaImageBotoPolsable(event, this, '", AfegeixAdrecaBaseSRC(fitxer + "p.gif"), "');\" ",
+		"onmouseover=\"if (this.alt) window.status=this.alt; return true;\" ",
+		"onmouseout=\"this.src='", AfegeixAdrecaBaseSRC(fitxer + ".gif"), "';if (this.alt) window.status=''; return true;\"");
 	else
 	{
 		cdns.push("onLoad='ChangeSVGToInlineSVG(this, ChangeTitleColorsSVG, {title: \"", text_groc.replaceAll("'", "&apos;"), "\", colors: ", JSON.stringify(ParamCtrl.BarraEstil.colors), ", format: \"gif\"});' ",
@@ -314,65 +338,75 @@ var cdns=[];
 	return cdns.join("");
 }
 
+function CalActivarConsultesALaBarra()
+{
+var i, k;
+
+	// Activació de les consultes perquè hi ha alguna capa consultable
+	if(~Accio.accio&AccioValidacio)
+	{
+		for (i=0; i<ParamCtrl.capa.length; i++)
+		{
+			if (ParamCtrl.capa[i].consultable!="no")
+			    break;
+		}
+	}
+	else
+		i=0;
+
+	// Activació de les consultes perquè hi ha alguna vector consultable
+	for (k=0; k<ParamCtrl.capa.length; k++)
+	{
+		if (ParamCtrl.capa[k].model==model_vector && ParamCtrl.capa[k].consultable!="no")
+			break;
+	}
+	return (i<ParamCtrl.capa.length || (ParamCtrl.capa && k<ParamCtrl.capa.length)) ? true : false
+}
 
 function CreaBarra(crs)
 {
-var i, j, k;
+var i, j;
 var cdns=[];
 
 	if (ParamCtrl.BarraNomesDescarrega)
 	{
-		cdns.push("<FORM NAME=\"zoom\" METHOD=\"GET\" onSubmit=\"return ObtenirMMZ();\">");
+		cdns.push("<form name=\"zoom\" method=\"GET\" onSubmit=\"return ObtenirMMZ();\">");
 		ParamCtrl.EstatClickSobreVista="ClickMouMig";
-		cdns.push("<CENTER>",
-		   (CadenaBotoPolsable("getmmz_text", "getmmz_text", GetMessage("Download"), "ObtenirMMZ();")),
+		cdns.push("<center>",
+		   CadenaBotoPolsable("getmmz_text", "getmmz_text", GetMessage("Download"), "ObtenirMMZ();"),
 		   "&nbsp;&nbsp;&nbsp;",
-		   (CadenaBotoPolsable("ajuda", "ajuda", GetMessage("InteractiveHelp"), "ObreFinestraAjuda();")),
-		   "</CENTER>");
+		   CadenaBotoPolsable("ajuda", "ajuda", GetMessage("InteractiveHelp"), "ObreFinestraAjuda();"),
+		   "</center>");
 	}
 	else // Barra completa
 	{
-		cdns.push("<FORM NAME=\"zoom\" METHOD=\"GET\" onSubmit=\"return PortamANivellDeZoom(document.zoom.nivell.value)\">\n");
+		cdns.push("<form name=\"zoom\" method=\"GET\" onSubmit=\"return PortamANivellDeZoom(document.zoom.nivell.value)\">\n");
 		if (ParamCtrl.BarraBotoMes)
-		   	cdns.push((CadenaBotoPolsable("zoom_in", "zoom_in", GetMessage("ZoomIn", "barra"),
-				"PortamANivellDeZoom(DonaIndexNivellZoom(ParamInternCtrl.vista.CostatZoomActual)+1);")));
+		   	cdns.push(CadenaBotoPolsable("zoom_in", "zoom_in", GetMessage("ZoomIn", "barra"),
+				"PortamANivellDeZoom(DonaIndexNivellZoom(ParamInternCtrl.vista.CostatZoomActual)+1);"));
 		if (ParamCtrl.BarraBotoMenys)
-			cdns.push((CadenaBotoPolsable("zoomout", "zoomout", GetMessage("ZoomOut", "barra"),
-				"PortamANivellDeZoom(DonaIndexNivellZoom(ParamInternCtrl.vista.CostatZoomActual)-1);")));
+			cdns.push(CadenaBotoPolsable("zoomout", "zoomout", GetMessage("ZoomOut", "barra"),
+				"PortamANivellDeZoom(DonaIndexNivellZoom(ParamInternCtrl.vista.CostatZoomActual)-1);"));
 		if (ParamCtrl.BarraBotoAnarCoord)
-			cdns.push((CadenaBotoPolsable("zoomcoord", "zoomcoord", GetMessage("GoToCoordinate", "barra"),
-				"MostraFinestraAnarCoordenada()")));
+			cdns.push(CadenaBotoPolsable("zoomcoord", "zoomcoord", GetMessage("GoToCoordinate", "barra"),
+				"MostraFinestraAnarCoordenada()"));
 		if (ParamCtrl.BarraBotoBack)
-			cdns.push((CadenaBotoPolsable("zoom_bk", "zoom_bk", GetMessage("PreviousView", "barra"),
-				"RecuperaVistaPrevia();")));
+			cdns.push(CadenaBotoPolsable("zoom_bk", "zoom_bk", GetMessage("PreviousView", "barra"),
+				"RecuperaVistaPrevia();"));
 		if (ParamCtrl.BarraBotoVGeneral)
-			cdns.push((CadenaBotoPolsable("zoomall", "zoomall", GetMessage("GeneralView", "barra"),
-				"PortamAVistaGeneral();")));
+			cdns.push(CadenaBotoPolsable("zoomall", "zoomall", GetMessage("GeneralView", "barra"),
+				"PortamAVistaGeneral();"));
+		
 
-		// Activació de les consultes perquè hi ha alguna capa consultable
-		if(~Accio.accio&AccioValidacio)
-		{
-			for (i=0; i<ParamCtrl.capa.length; i++)
-			{
-				if (ParamCtrl.capa[i].consultable!="no")
-				    break;
-			}
-		}
-		else
-			i=0;
+		var cal_consultes=CalActivarConsultesALaBarra();
 
-		// Activació de les consultes perquè hi ha alguna vector consultable
-		for (k=0; k<ParamCtrl.capa.length; k++)
-		{
-			if (ParamCtrl.capa[k].model==model_vector && ParamCtrl.capa[k].consultable!="no")
-				break;
-		}
-		// Activació de les consultes perquè hi ha alguna vector editable
+		// Activació de l'edició perquè hi ha alguna vector editable
 		for (j=0; j<ParamCtrl.capa.length; j++)
 		{
 			if (ParamCtrl.capa[j].model==model_vector && ParamCtrl.capa[j].editable!="no")
 				break;
 		}
+
 		if (ParamCtrl.BarraBotonsAlternatius)
 		{
 			var botons=[];
@@ -385,7 +419,7 @@ var cdns=[];
 				ParamCtrl.EstatClickSobreVista="ClickConLoc";
 			else if ((ParamCtrl.EstatClickSobreVista=="ClickNovaVista1" || ParamCtrl.EstatClickSobreVista=="ClickNovaVista2") && !(ParamCtrl.BarraBotoNovaVista))
 				ParamCtrl.EstatClickSobreVista="ClickZoomRec1";
-			if (ParamCtrl.EstatClickSobreVista=="ClickConLoc" && (!(i<ParamCtrl.capa.length) && (ParamCtrl.capa && !(k<ParamCtrl.capa.length))))
+			if (ParamCtrl.EstatClickSobreVista=="ClickConLoc" && !cal_consultes) // && (!(i<ParamCtrl.capa.length) && (ParamCtrl.capa && !(k<ParamCtrl.capa.length))))
 				ParamCtrl.EstatClickSobreVista="ClickZoomRec1";
 
 
@@ -399,8 +433,8 @@ var cdns=[];
 				boto_p="novavista";
 			else if (ParamCtrl.EstatClickSobreVista=="ClickEditarPunts" && (ParamCtrl.BarraBotoInsereix || (ParamCtrl.capa && j<ParamCtrl.capa.length)))   //hi ha alguna capa digitalitzable
 				boto_p="inserta";
-			else if (i<ParamCtrl.capa.length || (ParamCtrl.capa && k<ParamCtrl.capa.length))  //hi ha alguna capa consultable
-				boto_p=(i<ParamCtrl.capa.length && Accio.accio&AccioValidacio) ? "conval" : "conloc";
+			else if (cal_consultes) 
+				boto_p=(/*i<ParamCtrl.capa.length &&*/ Accio.accio&AccioValidacio) ? "conval" : "conloc";
 			else
 				boto_p="zoomfin";
 
@@ -422,10 +456,10 @@ var cdns=[];
 					   "alt": GetMessage("NewView", "barra"),
 					   "funcio": "CanviaEstatClickSobreVista(\'ClickNovaVista1\');"};
 			}
-			if (i<ParamCtrl.capa.length || (ParamCtrl.capa && k<ParamCtrl.capa.length))  //hi ha alguna capa consultable
+			if (cal_consultes) 
 			{
-				botons[botons.length]={"src": (i<ParamCtrl.capa.length && Accio.accio&AccioValidacio) ? "conval" : "conloc",
-					   "alt": (i<ParamCtrl.capa.length && Accio.accio&AccioValidacio) ? GetMessage("Validation", "barra") : GetMessage("QueryByLocation"),
+				botons[botons.length]={"src": (/*i<ParamCtrl.capa.length &&*/ Accio.accio&AccioValidacio) ? "conval" : "conloc",
+					   "alt": (/*i<ParamCtrl.capa.length && */ Accio.accio&AccioValidacio) ? GetMessage("Validation", "barra") : GetMessage("QueryByLocation"),
 					   "funcio": "CanviaEstatClickSobreVista(\'ClickConLoc\');"};
 			}
 			if (ParamCtrl.BarraBotoInsereix || (ParamCtrl.capa && j<ParamCtrl.capa.length))
@@ -452,13 +486,13 @@ var cdns=[];
 					DonaCadena(ParamCtrl.TitolLlistatNivellZoom) :
 					"Zoom:"),
 			   "</span>",
-			   "<select CLASS=text_petit name=\"nivell\" onChange=\"PortamANivellDeZoom(parseInt(document.zoom.nivell.value));\">\n");
+			   "<select class=\"text_petit\" name=\"nivell\" onChange=\"PortamANivellDeZoom(parseInt(document.zoom.nivell.value));\">\n");
 
 			for (var i=0; i<ParamCtrl.zoom.length; i++)
 			{
-			    cdns.push("<OPTION VALUE=\"",i,"\"",
-			    	((i==DonaIndexNivellZoom(ParamInternCtrl.vista.CostatZoomActual)) ? " SELECTED" : "") ,">",
-				(EscriuDescripcioNivellZoom(i, crs ? crs : ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS, false)), "</OPTION>\n");
+			    cdns.push("<option value=\"",i,"\"",
+			    	((i==DonaIndexNivellZoom(ParamInternCtrl.vista.CostatZoomActual)) ? " selected" : "") ,">",
+				(EscriuDescripcioNivellZoom(i, crs ? crs : ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS, false)), "</option>\n");
 			}
 			cdns.push("</select>\n");
 		}
@@ -478,48 +512,51 @@ var cdns=[];
 		{
 		 	if (ParamCtrl.capa[i].animable)
 			{
-				cdns.push((CadenaBotoPolsable("video", "video", GetMessage("TimeSeriesAnimations", "barra"),
-					"MostraFinestraVideo();")),"\n");
+				cdns.push(CadenaBotoPolsable("video", "video", GetMessage("TimeSeriesAnimations", "barra"),
+					"MostraFinestraVideo();"),"\n");
 				break;
 			}
 		}
 
 		if (ParamCtrl.BarraBotoCaixaParam)
-			cdns.push((CadenaBotoPolsable("param", "param", GetMessage("Options"), "MostraFinestraParametres();")));
+			cdns.push(CadenaBotoPolsable("param", "param", GetMessage("Options"), "MostraFinestraParametres();"));
 		if (ParamCtrl.BarraBotoConsola)
-			cdns.push((CadenaBotoPolsable("consola", "consola", GetMessage("Console", "consola"), "MostraFinestraConsola();")));
+			cdns.push(CadenaBotoPolsable("consola", "consola", GetMessage("Console", "consola"), "MostraFinestraConsola();"));
 		if (ParamCtrl.BarraBotoEnllac)
-			cdns.push((CadenaBotoPolsable("enllac", "enllac", GetMessage("LinkToMap", "barra"), "MostraFinestraEnllac();")));
+			cdns.push(CadenaBotoPolsable("enllac", "enllac", GetMessage("LinkToMap", "barra"), "MostraFinestraEnllac();"));
 		if (ParamCtrl.BarraBotoEnllacWMS)
-			cdns.push((CadenaBotoPolsable("enllacWMS", "enllacWMS", GetMessage("LinksToServers", "barra"), "MostraFinestraEnllacWMS();")));
+			cdns.push(CadenaBotoPolsable("enllacWMS", "enllacWMS", GetMessage("LinksToServers", "barra"), "MostraFinestraEnllacWMS();"));
 		if (ParamCtrl.BarraBotoAfegeixCapa)
-			cdns.push((CadenaBotoPolsable("afegirCapa", "afegirCapa", GetMessage("AddLayers"), "IniciaFinestraAfegeixCapaServidor(NumeroDeCapesVolatils(-1));")));
+			cdns.push(CadenaBotoPolsable("afegirCapa", "afegirCapa", GetMessage("AddLayers"), "IniciaFinestraAfegeixCapaServidor(NumeroDeCapesVolatils(-1));"));
 		if (ParamCtrl.BarraBotoCalculadora)
-			cdns.push((CadenaBotoPolsable("calculadora", "calculadora", GetMessage("LayerCalculator", "cntxmenu"), "IniciaFinestraCalculadoraCapes();")));
+			cdns.push(CadenaBotoPolsable("calculadora", "calculadora", GetMessage("LayerCalculator", "cntxmenu"), "IniciaFinestraCalculadoraCapes();"));
 		if (ParamCtrl.BarraBotoCombiCapa)
-			cdns.push((CadenaBotoPolsable("combicapa", "combicapa", GetMessage("AnalyticalCombinationLayers", "cntxmenu"), "IniciaFinestraCombiCapa();")));
+			cdns.push(CadenaBotoPolsable("combicapa", "combicapa", GetMessage("AnalyticalCombinationLayers", "cntxmenu"), "IniciaFinestraCombiCapa();"));
 		cdns.push("\n");
 
 		if (ParamCtrl.BarraBotoPrint)
-			cdns.push((CadenaBotoPolsable("print", "print", GetMessage("print"), "ObreTriaFullImprimir();")));
+			cdns.push(CadenaBotoPolsable("print", "print", GetMessage("print"), "ObreTriaFullImprimir();"));
 		if (ParamCtrl.BarraBotoPlanaPrincipal)
-			cdns.push((CadenaBotoPolsable("home", "home", GetMessage("RestartFromServer", "barra"), "RestartMiraMonMapBrowser();")));
+			cdns.push(CadenaBotoPolsable("home", "home", GetMessage("RestartFromServer", "barra"), "RestartMiraMonMapBrowser();"));
 		if (ParamCtrl.BarraBotoInstallarMMZ)
-			cdns.push((CadenaBotoPolsable("instmmr", "instmmr",
-				GetMessage("InstallMiraMonReader", "barra"),
-				"InstalaLectorMapes();")));
-		if (ParamCtrl.StoryMap && ParamCtrl.StoryMap.length)
-			cdns.push((CadenaBotoPolsable("storyMap", "storyMap", GetMessage("Storymaps", "storymap"), "MostraFinestraTriaStoryMap();")));
+		{
+			const instMmrNomBoto = "instmmr";
+			cdns.push(CadenaBotoPolsable(instMmrNomBoto, "instmmr",
+						GetMessage("InstallMiraMonReader", "barra"),
+						"PreguntaDescarregaMMReader(\"id_barra_" + instMmrNomBoto + "\");"));
+		}		
+		if (ParamCtrl.BarraBotoStoryMaps || (ParamCtrl.StoryMap && ParamCtrl.StoryMap.length))
+			cdns.push(CadenaBotoPolsable("storyMap", "storyMap", GetMessage("Storymaps", "storymap"), "MostraFinestraTriaStoryMap();"));
 		if (ParamCtrl.BarraBotoAjuda)
-			cdns.push((CadenaBotoPolsable("ajuda", "ajuda", GetMessage("InteractiveHelp"),
-				"ObreFinestraAjuda();")));
+			cdns.push(CadenaBotoPolsable("ajuda", "ajuda", GetMessage("InteractiveHelp"),
+				"ObreFinestraAjuda();"));
 
 		if (ParamCtrl.accessClientId || ParamCtrl.AltresLinks)
 			cdns.push("\n");
 		if (ParamCtrl.accessClientId)
-			cdns.push((CadenaBotoPolsable("login", "login", GetMessage("Login", "authens"), "FerLoginICarregaCapes();")));
+			cdns.push(CadenaBotoPolsable("login", "login", GetMessage("Login", "authens"), "FerLoginICarregaCapes();"));
 		if (ParamCtrl.AltresLinks)
-			cdns.push((CadenaBotoPolsable(ParamCtrl.AltresLinks.boto, ParamCtrl.AltresLinks.boto, DonaCadena(ParamCtrl.AltresLinks.text_boto), ParamCtrl.AltresLinks.funcio)));
+			cdns.push(CadenaBotoPolsable(ParamCtrl.AltresLinks.boto, ParamCtrl.AltresLinks.boto, DonaCadena(ParamCtrl.AltresLinks.text_boto), ParamCtrl.AltresLinks.funcio));
 
 		if (ParamCtrl.BarraBotonsIdiomes && ParamCtrl.idiomes.length>1)
 		{
@@ -541,7 +578,7 @@ var cdns=[];
 			}
 		}
 	}
-	cdns.push("</FORM>\n");
+	cdns.push("</form>\n");
 	var elem=getLayer(window, "barra");
 	if (isLayer(elem))
 	{

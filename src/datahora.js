@@ -1,4 +1,4 @@
-ï»¿/*
+/*
     This file is part of MiraMon Map Browser.
     MiraMon Map Browser is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -17,19 +17,19 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2023 Xavier Pons
+    Copyright 2001, 2024 Xavier Pons
 
-    Aquest codi JavaScript ha estat idea de Joan MasÃ³ Pau (joan maso at uab cat)
-    amb l'ajut de NÃºria JuliÃ  (n julia at creaf uab cat)
-    dins del grup del MiraMon. MiraMon Ã©s un projecte del
-    CREAF que elabora programari de Sistema d'InformaciÃ³ GeogrÃ fica
-    i de TeledetecciÃ³ per a la visualitzaciÃ³, consulta, ediciÃ³ i anÃ lisi
-    de mapes rÃ sters i vectorials. Aquest programari inclou
-    aplicacions d'escriptori i tambÃ© servidors i clients per Internet.
-    No tots aquests productes sÃ³n gratuÃ¯ts o de codi obert.
+    Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
+    amb l'ajut de Núria Julià (n julia at creaf uab cat)
+    dins del grup del MiraMon. MiraMon és un projecte del
+    CREAF que elabora programari de Sistema d'Informació Geogràfica
+    i de Teledetecció per a la visualització, consulta, edició i anàlisi
+    de mapes ràsters i vectorials. Aquest programari inclou
+    aplicacions d'escriptori i també servidors i clients per Internet.
+    No tots aquests productes són gratuïts o de codi obert.
 
     En particular, el Navegador de Mapes del MiraMon (client per Internet)
-    es distribueix sota els termes de la llicÃ¨ncia GNU Affero General Public
+    es distribueix sota els termes de la llicència GNU Affero General Public
     License, mireu https://www.gnu.org/licenses/licenses.html#AGPL.
 
     El Navegador de Mapes del MiraMon es pot actualitzar des de
@@ -62,6 +62,12 @@ function DonaIndexDataCapa(capa, i_data)
 {
 	if (i_data==null)
 		return capa.i_data<0 ? capa.data.length+capa.i_data : capa.i_data;
+	
+	if(typeof i_data === "string")
+	{
+		// En aquest cas s'interpreta que i_data és un string que pot contenir una operació matemàtica que pot contenir '{i_sel}'; que representa la data seleccionada.
+		return DonaIndexDataCapa(capa, eval(i_data.replaceAll('{i_sel}', capa.i_data)));
+	}
 	if (i_data>=capa.data.length)
 		return capa.data.length-1;
 	if (-i_data>capa.data.length)
@@ -69,7 +75,7 @@ function DonaIndexDataCapa(capa, i_data)
 	return (i_data<0) ? capa.data.length+i_data : i_data;
 }
 
-//Any de 4 xifres (l'equivalment javascript Ã©s d.getFullYear())
+//Any de 4 xifres (l'equivalment javascript és d.getFullYear())
 function DonaYearJSON(data)
 {
 	if (data.year)
@@ -77,7 +83,7 @@ function DonaYearJSON(data)
 	return 1970;
 }
 
-//Mes de l'any de 1 a 12 (l'equivalment javascript Ã©s d.getMonth()+1)
+//Mes de l'any de 1 a 12 (l'equivalment javascript és d.getMonth()+1)
 function DonaMonthJSON(data)
 {
 	if (data.month)
@@ -85,7 +91,7 @@ function DonaMonthJSON(data)
 	return 1;
 }
 
-//Dia del mes de 1 a 31 (l'equivalment javascript Ã©s d.getDate())
+//Dia del mes de 1 a 31 (l'equivalment javascript és d.getDate())
 function DonaDayJSON(data)
 {
 	if (data.day)
@@ -234,9 +240,9 @@ var d = new Date(millisegons);
 	}
 	if (flags_data.DataMostraHora)
 	{
-	    if (d.getHour()<10)
+	    if (d.getHours()<10)
 			cdns.push("0");
-	    cdns.push(d.getHour());
+	    cdns.push(d.getHours());
 	}
 	if (flags_data.DataMostraMinut)
 	{
@@ -261,6 +267,7 @@ var d = new Date(millisegons);
 function DonaDataCapaPerLlegenda(i_capa, i_data)
 {
 var data, cdns=[], capa=ParamCtrl.capa[i_capa];
+
 	cdns.push(DonaDataCapaComATextBreu(i_capa, i_data));
 	if (capa.FlagsData && capa.FlagsData.properties)
 	{
@@ -327,7 +334,7 @@ var cdns=[];
 			cdns.push("0");
 	    cdns.push(DonaDayJSON(data));
 
-	    //Vol dir que hi ha temps, perquÃ¨ en la creaciÃ³ sinÃ³ es diu hora, l'estructura s'omple com 00:00:00.
+	    //Vol dir que hi ha temps, perquè en la creació sinó es diu hora, l'estructura s'omple com 00:00:00.
 	    if(DonaHourJSON(data)!=0 || DonaMinuteJSON(data)!=0 || DonaSecondJSON(data)!=0)
 	    {
 			if(DonaHourJSON(data)<10)
@@ -358,7 +365,7 @@ var cdns=[];
 			cdns.push("0");
 	    cdns.push(d.getDate());
 
-	    //Vol dir que hi ha temps, perquÃ¨ en la creaciÃ³ sinÃ³ es diu hora, l'estructura s'omple com 00:00:00.
+	    //Vol dir que hi ha temps, perquè en la creació sinó es diu hora, l'estructura s'omple com 00:00:00.
 	    if(DonaHourJSON(data)!=0 || DonaMinuteJSON(data)!=0 || DonaSecondJSON(data)!=0)
 	    {
 			if(d.getHours()<10)
@@ -373,17 +380,21 @@ var cdns=[];
 	    }
 	}
 	return cdns.join("");
-}//fi de DonaDataJSONComATextCompacte()
+}//fi de DonaDateComATextCompacte()
 
 
-//o_data Ã©s una sortida en aquesta funciÃ³
+/*Aquesta funció retorna FlagsData i omple o_data amb els resultat del canvi de data. Cal passar una variable inicialitzada així: odata={};
+La funció en si és una mica rara i si no interessa el retorn FlagsData potser és millor fer:
+var d=new Date(cadena_data);
+o_data=DonaDataJSONDesDeDate(d);
+*/
 function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 {
-	//primer miro els separadors de guions per veure que tÃ© de aaaa-mm-dd
+	//primer miro els separadors de guions per veure que té de aaaa-mm-dd
 	var tros_data=cadena_data.split("-");
 	o_data.year=parseInt(tros_data[0]);
 
-	if(tros_data.length==1) //NomÃ©s hi ha any i res mÃ©s
+	if(tros_data.length==1) //Només hi ha any i res més
 		return {"DataMostraAny": true};
 
 	o_data.month=parseInt(tros_data[1]);
@@ -392,7 +403,7 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 		return {"DataMostraAny": true, "DataMostraMes": true};
 
 	//Any, mes i dia i potser time
-	var i_time=tros_data[2].indexOf("[T]");
+	var i_time=tros_data[2].indexOf("T");
 	if(i_time==-1)
 	{
 		o_data.day=parseInt(tros_data[2]);
@@ -401,9 +412,9 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 	o_data.day=parseInt(tros_data[2].substr(0, i_time));
 
 	var tros_time=(tros_data[2].substr(i_time+1)).split(":");
-	if(tros_time.length==1) //nomÃ©s hi ha hora
+	if(tros_time.length==1) //només hi ha hora
 	{
-		var i_z=tros_time[0].indexOf("[Z]");
+		var i_z=tros_time[0].indexOf("Z");
 		if(i_z==-1)
 			o_data.hour=parseInt(tros_time[0]);
 		else
@@ -413,7 +424,7 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 	o_data.hour=parseInt(tros_time[0]);
 	if(tros_time.length==2) //hh:mm[Z]
 	{
-		var i_z=tros_time[1].indexOf("[Z]");
+		var i_z=tros_time[1].indexOf("Z");
 		if(i_z==-1)
 			o_data.minute=parseInt(tros_time[1]);
 		else
@@ -421,11 +432,10 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 		return {"DataMostraAny": true, "DataMostraMes": true, "DataMostraDia": true, "DataMostraHora": true, "DataMostraMinut": true};
 	}
 	o_data.minute=parseInt(tros_time[1]);
-	if(tros_time.length==3) //hh:mm:ss[Z]  // Â·$Â· NJ-> ? AixÃ² no Ã©s correcte, hi ha altres formats ISO que tenen una longitud de mÃ©s de 3 i aquesta funciÃ³ no reconeix. per exemple "2020-09-25T12:59:06.035+02:00"
-	// Jo ho he resolt fent new Date("2020-09-25T12:59:06.035+02:00"); potser no caldria fer cap parser, no? ja que un cop tens un date Ã©s mÃ©s fÃ cil passar-ho a JSON i ja tenim funcions per aixÃ².
+	if(tros_time.length==3) //hh:mm:ss[Z]  // ·$· NJ-> ? Això no és correcte, hi ha altres formats ISO que tenen una longitud de més de 3 i aquesta funció no reconeix. per exemple "2020-09-25T12:59:06.035+02:00"
 	{
-		var i_ms=tros_time[2].indexOf("[.]");
-		var i_z=tros_time[2].indexOf("[Z]");
+		var i_ms=tros_time[2].indexOf(".");
+		var i_z=tros_time[2].indexOf("Z");
 		if(i_z==-1 && i_ms==-1)
 			o_data.second=parseInt(tros_time[2]);
 		else if(i_z!=-1 && i_ms==-1)
@@ -435,7 +445,7 @@ function OmpleDataJSONAPartirDeDataISO8601(o_data, cadena_data)
 			o_data.second=parseInt(tros_time[2].substr(0,i_ms));
 			o_data.millisecond=parseInt(tros_time[2].substr(i_ms+1,(i_z-i_ms)));
 		}
-		return {"DataMostraAny": true, "DataMostraMes": true, "DataMostraDia": true, "DataMostraHora": true, "DataMostraMinut": true, "DataMostraSegon": segon};
+		return {"DataMostraAny": true, "DataMostraMes": true, "DataMostraDia": true, "DataMostraHora": true, "DataMostraMinut": true, "DataMostraSegon": true};
 	}
 	return {"DataMostraAny": true, "DataMostraMes": true, "DataMostraDia": true, "DataMostraHora": true, "DataMostraMinut": true};
 }
@@ -450,7 +460,7 @@ if(!Date.prototype.toISOString)
 
 		if(data)
 		{
-			//Segons la ISO com a mÃ­nim he de mostrar l'any
+			//Segons la ISO com a mínim he de mostrar l'any
 				cdns.push((data.getFullYear ? data.getFullYear() : takeYear(data)));
 			if(que_mostrar&mostra_mes)
 			{
@@ -465,7 +475,7 @@ if(!Date.prototype.toISOString)
 						cdns.push("0");
 					cdns.push((data.getDate()));
 
-						//Vol dir que hi ha temps, perquÃ¨ en la creaciÃ³ sinÃ³ es diu hora, l'estructura s'omple com 00:00:00.
+						//Vol dir que hi ha temps, perquè en la creació sinó es diu hora, l'estructura s'omple com 00:00:00.
 					if(que_mostrar&mostra_hora)
 					{
 						if(data.getHours()!=0 || data.getMinutes()!=0 || data.getSeconds()!=0)
@@ -504,7 +514,7 @@ var cdns=[];
 
 	if (data && que_mostrar)
 	{
-		//Segons la ISO com a mÃ­nim he de mostrar l'any
+		//Segons la ISO com a mínim he de mostrar l'any
 	    cdns.push(data.getFullYear ? data.getFullYear() : takeYear(data));
 		if(que_mostrar.DataMostraMes)
 		{
@@ -519,7 +529,7 @@ var cdns=[];
 					cdns.push("0");
 			    cdns.push((data.getDate()));
 
-			    //Vol dir que hi ha temps, perquÃ¨ en la creaciÃ³ sinÃ³ es diu hora, l'estructura sÂ¡omple com 00:00:00.
+			    //Vol dir que hi ha temps, perquè en la creació sinó es diu hora, l'estructura s¡omple com 00:00:00.
 				if(que_mostrar.DataMostraHora)
 				{
 	    			if(data.getHours()!=0 || data.getMinutes()!=0 || data.getSeconds()!=0)
@@ -559,7 +569,7 @@ var cdns=[];
 		return "";
 	if (que_mostrar)
 	{
-		//Segons la ISO com a mÃ­nim he de mostrar l'any perÃ² nosaltres permetem altres coses deliveradament
+		//Segons la ISO com a mínim he de mostrar l'any però nosaltres permetem altres coses deliveradament
 		if(que_mostrar.DataMostraAny)
 			cdns.push(DonaYearJSON(data));
 		if(que_mostrar.DataMostraMes)
@@ -576,7 +586,7 @@ var cdns=[];
 					cdns.push("0");
 				cdns.push(DonaDayJSON(data));
 
-			    	//Vol dir que hi ha temps, perquÃ¨ en la creaciÃ³ sinÃ³ es diu hora, l'estructura s'omple com 00:00:00.
+			    	//Vol dir que hi ha temps, perquè en la creació sinó es diu hora, l'estructura s'omple com 00:00:00.
 				if(que_mostrar.DataMostraHora)
 				{
 	    				if(DonaHourJSON(data)!=0 || DonaMinuteJSON(data)!=0 || DonaSecondJSON(data)!=0)
@@ -644,7 +654,7 @@ var cdns=[];
 
 	if (que_mostrar)
 	{
-		//Segons la ISO com a mÃ­nim he de mostrar l'any
+		//Segons la ISO com a mínim he de mostrar l'any
 		if (que_mostrar.DataMostraDia)
 			cdns.push("DD");
 		if (que_mostrar.DataMostraMes)
@@ -688,7 +698,7 @@ var df={}, cdns=[];
 
 	if (que_mostrar)
 	{
-		//Segons la ISO com a mÃ­nim he de mostrar l'any
+		//Segons la ISO com a mínim he de mostrar l'any
 		if (que_mostrar.DataMostraDia)
 			cdns.push("DD");
 		if (que_mostrar.DataMostraMes)
@@ -749,17 +759,17 @@ function DonaUnitTimeChartJSDataHora(que_mostrar)
 	return null;
 }
 
-//Aquest funciÃ³, de moment, nomÃ©s canvia les variables {TIME}, {TIME?f=*&year=*&month=*...} i {DIM?name=*}. En el config_schema.json s'explica una mica mÃ©s.
-function CanviaVariablesDeCadena(s, capa, i_data)
+//Aquest funció, de moment, només canvia les variables {TIME}, {TIME?f=*&year=*&month=*...} i {DIM?name=*}. En el config_schema.json s'explica una mica més.
+function CanviaVariablesDeCadena(s, capa, i_data, dims)
 {
-var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil;
+var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil, param;
 
 	if (capa.data && capa.data.length)
 	{
 		var i_data_sel=DonaIndexDataCapa(capa, i_data);
 		while(true)
 		{
-			i=s.toUpperCase().indexOf("{TIME}");  //Abans era %TIME% perÃ² prefereixo fer servir una URL template.
+			i=s.toUpperCase().indexOf("{TIME}");  //Abans era %TIME% però prefereixo fer servir una URL template.
 			if (i==-1)
 				break;
 			s=s.substring(0,i) + DonaDataJSONComATextCompacte(capa.data[i_data_sel]) + s.substring(i+6);
@@ -776,7 +786,7 @@ var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil;
 		}
 		while(true)
 		{
-			i=s.toUpperCase().indexOf("{TIME?");  //Abans era %TIME% perÃ² prefereixo fer servir una URL template.
+			i=s.toUpperCase().indexOf("{TIME?");  //Abans era %TIME% però prefereixo fer servir una URL template.
 			if (i==-1)
 				break;
 			ii=s.substring(i+6,s.length).indexOf("}");
@@ -822,32 +832,34 @@ var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil;
 	}
 	while(true)
 	{
-			i=s.toUpperCase().indexOf("{DIM?");
-			if (i==-1)
-				break;
-			ii=s.substring(i+5,s.length).indexOf("}");
-			if (ii==-1)
+		i=s.toUpperCase().indexOf("{DIM?");
+		if (i==-1)
+			break;
+		ii=s.substring(i+5,s.length).indexOf("}");
+		if (ii==-1)
+		{
+			alert("Format error. '{DIM?' without '}' at the end");
+			break;
+		}
+		kvp=s.substring(i+5,i+5+ii).split("&");
+		query={};
+		for(k=0; k<kvp.length; k++)
+		{
+			p = kvp[k].indexOf("=");
+			if (p==-1)
 			{
-				alert("Format error. '{DIM?' without '}' at the end");
-				break;
-			}
-			kvp=s.substring(i+5,i+5+ii).split("&");
-			query={};
-			for(k=0; k<kvp.length; k++)
-			{
-				p = kvp[k].indexOf("=");
-				if (p==-1)
-				{
-					alert("Format error in '{DIM?', Key and value pair (KVP) without '='.");
-					break;
-				}
-				query[kvp[k].substring(0, p).toLowerCase()]=kvp[k].substring(p+1);
-			}
-			if (!query.name)
-			{
-				alert("Format error in '{DIM?', Key 'name' not found.");
+				alert("Format error in '{DIM?', Key and value pair (KVP) without '='.");
 				break;
 			}
+			query[kvp[k].substring(0, p).toLowerCase()]=kvp[k].substring(p+1);
+		}
+		if (!query.name)
+		{
+			alert("Format error in '{DIM?', Key 'name' not found.");
+			break;
+		}
+		if(capa.estil)
+		{
 			estil=capa.estil[capa.i_estil];
 			if (!estil || !estil.component[0])
 			{
@@ -865,7 +877,7 @@ var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil;
 			}
 			else if (estil.component[0].FormulaConsulta)
 			{
-				//Determinio si hi ha un sol v[i] a la formula i en aquest cas, no hi ha problema en continuar.
+				//Determinio si hi ha un sol v[i] a la fórmula i en aquest cas, no hi ha problema en continuar.
 				num_of_vs=0;
 				v=DeterminaArrayValorsNecessarisCapa(ParamCtrl.capa.indexOf(capa), capa.i_estil);
 				for (i_v=0; i_v<capa.valors.length; i_v++)
@@ -884,33 +896,48 @@ var i, ii, k, p, kvp, query, valor, i_v, num_of_vs, v, estil;
 					break;
 				}
 			}
-
-			for (var i_param=0; i_param<valor.param.length; i_param++)
+		}
+		param=dims?dims:((valor && valor.param) ? valor.param : null);
+		if(param)
+		{
+			for (var i_param=0; i_param<param.length; i_param++)
 			{
-				if (query.name==valor.param[i_param].clau.nom)
+				if (query.name==param[i_param].clau.nom)
 				{
-					s=s.substring(0,i) + valor.param[i_param].valor.nom + s.substring(i+5+ii+1);
+					s=s.substring(0,i) + param[i_param].valor.nom + s.substring(i+5+ii+1);
 					break;
 				}
 			}
-			if (i_param==valor.param.length)
+			if (i_param==param.length)
 			{
 				alert("Cannot find '" + query.name + "' extracted from the KVP '{DIM?' expression in the selected style");
 				break;
 			}
-	}
-	if (capa.tipus=="TipusHTTP_GET" && capa.dimensioExtra && capa.dimensioExtra.length)
+		}
+	}	
+	if (capa.tipus=="TipusHTTP_GET")
 	{
-		for (i=0; i<capa.dimensioExtra.length; i++)
+		if(dims)
 		{
-			var d=capa.dimensioExtra[i];
-			s=s.replaceAll("{"+d.clau.nom+"}", d.valor[d.i_valor].nom);
+			for (i=0; i<dims.length; i++)
+			{
+				var d=dims[i];
+				s=s.replaceAll("{"+d.clau.nom+"}", d.valor.nom);
+			}
+		}
+		else if (capa.dimensioExtra && capa.dimensioExtra.length)
+		{
+			for (i=0; i<capa.dimensioExtra.length; i++)
+			{
+				var d=capa.dimensioExtra[i];
+				s=s.replaceAll("{"+d.clau.nom+"}", d.valor[d.i_valor].nom);
+			}
 		}
 	}
 	return s;
 }
 
-//FunciÃ³ simplificada de CarregaDatesVideo() que retorna nomÃ©s un array de dades de totes les capes en milÂ·lisegons.
+//Funció simplificada de CarregaDatesVideo() que retorna només un array de dades de totes les capes en mil·lisegons.
 function CarregaDatesCapes()
 {
 var capa, dates=[];
@@ -1108,12 +1135,16 @@ var milliseg_b;
 	return sortAscendingNumber(milliseg_a, milliseg_b);
 }
 
-//Aquesta funciÃ³ insereix una data a l'array de dades de la capa
+//Aquesta funció insereix una data a l'array de dades de la capa
 function InsereixDataISOaCapa(data_iso, data_capa)
 {
 var d=new Date(data_iso);
 var milliseg_a=d.getTime();
 	var i=data_capa.binarySearch(milliseg_a, sortAscendingISOiData);
 	if (i<0)  //Not present in the array
+	{
 		data_capa.splice(-i-1, 0, DonaDataJSONDesDeDate(d));
+		i=-i-1;
+	}
+	return i;
 }

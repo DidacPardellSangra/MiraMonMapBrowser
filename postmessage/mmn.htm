@@ -1,4 +1,7 @@
 <html>
+
+<script type="text/javascript" src="mmn_postmessage.js"></script>
+
 <script>
 //https://javascript.info/cross-window-communication
 
@@ -16,6 +19,14 @@ per tant cal espera a que la segona on notifiqui a la primera.
 var mmn=null;
 var mmnURL=null;
 
+
+function GetCleanURL(url)
+{
+	if (url.indexOf('?')==-1)
+		return url;
+	return url.substring(0, url.indexOf('?'));
+}
+
 function OpenAnotherWindow(mmn_url)
 {
 	mmnURL=mmn_url;
@@ -25,18 +36,17 @@ function OpenAnotherWindow(mmn_url)
 
 function ZoomMap(costat)
 {
-	mmn.postMessage("CommandMMNChangeZoom("+costat+")", GetCleanURL(mmnURL));
+	mmn.postMessage("CommandMMNSetZoom("+costat+")", GetCleanURL(mmnURL));
 }
 
 function CentraMap(punt)
 {
-	mmn.postMessage("CommandMMNCenterCoord("+JSON.stringify(punt)+")", GetCleanURL(mmnURL));
+	mmn.postMessage("CommandMMNSetCenterCoord("+JSON.stringify(punt)+")", GetCleanURL(mmnURL));
 }
 
 function ProcessMessageFromMiraMonMapBrowser(event)
 {
-	// Do we trust the sender of this message?
-	if (event.origin !== GetOriginURL(mmnURL))
+	if (!IsTrustedMiraMonMapBrowser(event, mmnURL))
 		return;
 	
 	try
@@ -49,48 +59,29 @@ function ProcessMessageFromMiraMonMapBrowser(event)
 		return;
 	}
 
-	if (data.msg === "MiraMon Map Browser is listening")
+	if (data.msg === MMN_PM_IsListening)
 	{
 		document.getElementById("commands").style.display='block';
 		return;
 	}
-	if (data.msg === "MiraMon Map Browser closed")
+	if (data.msg === MMN_PM_Closed)
 	{
 		document.getElementById("commands").style.display='none';
 		mmn=null;
 		mmnURL=null;
 		return;
 	}
-	if (data.msg === "MiraMon Map Browser current location text")
+	if (data.msg === MMN_PM_CurrentLocationText)
 	{
 		document.getElementById("currentLocation").innerHTML=data.text;
 		return;
 	}
 }
 
-function GetCleanURL(url)
-{
-	if (url.indexOf('?')==-1)
-		return url;
-	return url.substring(0, url.indexOf('?'));
-}
-
-function GetOriginURL(url)
-{
-	if (url.indexOf('//')==-1)
-	{
-		if (url.indexOf('/')==-1)
-			return url;
-		return url.substring(0, url.indexOf('/'));
-	}		
-	if (url.substring(url.indexOf('//')+2).indexOf('/')==-1)
-		return url;
-	return url.substring(0, url.substring(url.indexOf('//')+2).indexOf('/')+url.indexOf('//')+2);
-}
 
 </script>
 <body>
-MiraMon Map Browser URL: <input type="text" id="mmn_url" value="http://localhost/covid19/?config=laia.json" size=50>
+MiraMon Map Browser URL: <input type="text" id="mmn_url" value="https://www.ogc.grumets.cat/bestmap/" size=50>
 <button type="button" onClick='OpenAnotherWindow(document.getElementById("mmn_url").value);'>Open</button>
 <div id="commands" style="display: none;">
 The Map Browser is ready to receive commands:<br>

@@ -33,8 +33,7 @@ function DonaUrlAmbAccessToken(url, access_token)
 {
 	if (access_token)
 		return url + (url.indexOf('?')!=-1 ? "&" : "?") + "access_token=" + access_token;
-	else
-		return url;
+	return url;
 }
 
 function AddAccessTokenToURLIfOnline(url, access)
@@ -56,21 +55,20 @@ function AddAccessTokenToURLIfOnline(url, access)
 			}
 			return DonaUrlAmbAccessToken(url, authResponse.access_token);
 		}
-		else
-			return null;
+		return null;
 	}
 	return url;
 }
 
 
-function AuthResponseConnect(f_repeat, access, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10)
+function AuthResponseConnect(f_repeat, access, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12)
 {
 	if (ParamInternCtrl.tokenType[access.tokenType ? access.tokenType : "authenix"].askingAToken=="logout")
 		return;
 	if (ParamInternCtrl.tokenType[access.tokenType ? access.tokenType : "authenix"].askingAToken)  //Parametre meu que no forma part de la llibreria
 	{
 		//Com que hi ha una caixa del hello per autentificar oberta, renuncio a obrir-ne cap altre i provo si la caixa ja s'ha despatxat més tard.
-		setTimeout(f_repeat, 2000, access, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
+		setTimeout(f_repeat, 2000, access, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12);
 		return;
 	}
 
@@ -104,7 +102,7 @@ function AuthResponseConnect(f_repeat, access, param1, param2, param3, param4, p
 					alert("Error: " +err.message);
 				}
 				ParamInternCtrl.tokenType[access.tokenType ? access.tokenType : "authenix"].askingAToken=false;
-				f_repeat(access, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
+				f_repeat(access, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12);
 			},
 			// On error
 			function(error) 
@@ -112,8 +110,10 @@ function AuthResponseConnect(f_repeat, access, param1, param2, param3, param4, p
 				ParamInternCtrl.tokenType[access.tokenType ? access.tokenType : "authenix"].askingAToken="failed";
 				if (error.error.code=="cancelled")
 				{
+					/*NJ_31032023: No intento fer la petició sense login, si l'usuari cancel·la no em connecto aquest servei ni amb login ni sense. 
+					Si és com en el cas del WQEMS que el servei dona coses diferents segons si uso usuari o no ja ho hem resolt afegint el servei de les dues maneres.
 					if (confirm(GetMessage("LoginAccountFailed","authens") + " " + access.tokenType + ". " + GetMessage("ContinueWithoutAuthentication","authens") + "?"))
-						f_repeat(null, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10);
+						f_repeat(null, param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12);*/
 					return;
 				}	
 				alert(GetMessage("LoginAccountFailed","authens") + " " + access.tokenType + ". " + error.error.message);
@@ -157,7 +157,7 @@ function doAutenticatedHTTPRequest(access, method, ajax, url, request_format, da
 		return;
 	}
 
-	AuthResponseConnect(doAutenticatedHTTPRequest, access, method, ajax, url, request_format, dataPayload, hand, response_format, struct, null, null);
+	AuthResponseConnect(doAutenticatedHTTPRequest, access, method, ajax, url, request_format, dataPayload, hand, response_format, struct, null, null, null);
 }
 
 function CalFerLogin()

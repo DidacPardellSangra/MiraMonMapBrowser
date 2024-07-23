@@ -22,7 +22,7 @@
     The NiMMbus JavaScript Client can be updated from
     https://github.com/grumets/NiMMbus.
 
-    Copyright 2014, 2023 Xavier Pons
+    Copyright 2014, 2024 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat) 
     amb l'ajut de l'Alaitz Zabala (alaitz zabala at uab cat)
@@ -45,11 +45,13 @@
 
 /*Aquesta funció fa un subconjunt del que fa encodeURIComponent(), que hem 
   observat que remplaça les lletres accentuades per caràcters unicode i això no va bé.*/
-function DonaCadenaPerValorDeFormulari(s)
-{
-	//("\\?", "%3F" > http://stackoverflow.com/questions/889957/escaping-question-mark-in-regex-javascript
-	return s.replaceAll("#", "%23").replaceAll("+", "%2B").replaceAll("&", "%26").replaceAll("=", "%3D").replaceAll("?", "%3F");  
-}
+  function DonaCadenaPerValorDeFormulari(s)
+  {
+	  //("\\?", "%3F" > http://stackoverflow.com/questions/889957/escaping-question-mark-in-regex-javascript
+	  //return s.replaceAll("#", "%23").replaceAll("+", "%2B").replaceAll("&", "%26").replaceAll("=", "%3D").replaceAll("?", "%3F"); 
+	  // es canvia d'estrategia per donar sortida a caràcters com "<" i ">" 
+	  return encodeURIComponent(s);
+  }
 
 function DonaTextDesDeNmsElement(item, namespace, element)
 {
@@ -63,6 +65,15 @@ function DonaTextDesDeNmsElement(item, namespace, element)
 function DonaTextDesDeGcoCharacterString(item)
 {
 	var elem=GetValueXMLElementByName(item, "gco", "CharacterString");
+	if (elem)
+		return elem;
+	else
+		return "";
+}
+
+function DonaTextDesDeGexPolygon(item)
+{
+	var elem=GetValueXMLElementByName(item, "gex", "polygon");
 	if (elem)
 		return elem;
 	else
@@ -356,6 +367,16 @@ function DonaDataOTimeDesDeCadenaDateTime(item, tipus)
 	}
 }
 
+function DonaCoordenadaDesDeGcoDecimal(item)
+{
+	var elem=GetValueXMLElementByName(item, "gco", "Decimal");
+	//<gco:Decimal>1.462500</gco:Decimal>
+	if (elem)
+		return elem;
+	else
+		return "";
+}
+
 function DonaDataDesDeGcoDateTime(item)
 {
 	var elem=GetValueXMLElementByName(item, "gco", "DateTime");
@@ -589,7 +610,7 @@ var usage, usage_descr, discov_issue;
 													if (elem)
 													{
 														guf.target[guf.target.length-1].identifier.push({});
-														// en aquest moment el nou element de l'array ja s'ha creat i per tant length ja ha augmentat
+														//en aquest moment el nou element de l'array ja s'ha creat i per tant length ja ha augmentat
 
 														//code
 														guf.target[guf.target.length-1].identifier[guf.target[guf.target.length-1].identifier.length-1].code=DonaTextDesDeGcoCharacterString(elem);
@@ -604,7 +625,29 @@ var usage, usage_descr, discov_issue;
 												}
 											}
 										}
-										// hi podrien haver més coses com online resources
+									//OGscope
+									var scope;
+
+									scope=GetXMLElementByName(target_item, "guf", "scope");
+									if (scope && resource_ref)
+									{
+										var bbox=GetXMLElementByName(target_item, "gex", "EX_GeographicBoundingBox");
+										if (bbox)
+										{
+											guf.target[guf.target.length-1].minlong=DonaCoordenadaDesDeGcoDecimal(GetXMLElementByName(target_item, "gex", "westBoundLongitude"));
+											guf.target[guf.target.length-1].maxlong=DonaCoordenadaDesDeGcoDecimal(GetXMLElementByName(target_item, "gex", "eastBoundLongitude"));
+											guf.target[guf.target.length-1].minlat=DonaCoordenadaDesDeGcoDecimal(GetXMLElementByName(target_item, "gex", "southBoundLatitude"));
+											guf.target[guf.target.length-1].maxlat=DonaCoordenadaDesDeGcoDecimal(GetXMLElementByName(target_item, "gex", "northBoundLatitude"));
+										}
+										var gmlpol=GetXMLElementByName(target_item, "gex", "EX_BoundingPolygon");
+										if (gmlpol){
+											guf.target[guf.target.length-1].gmlpol=DonaTextDesDeGexPolygon(gmlpol);
+										}
+										guf.target[guf.target.length-1].scope=true;
+									}
+								
+									// hi podrien haver més coses com online resources
+
 									}
 								}
 							}
@@ -666,7 +709,8 @@ var usage, usage_descr, discov_issue;
 					 
 								elem=GetXMLElementByName(usage_descr, "qcm", "code");
 								if (elem)
-									guf.usage.usage_descr.code=decodeURI(DonaTextDesDeGcoCharacterString(elem));
+									//guf.usage.usage_descr.code=decodeURI(DonaTextDesDeGcoCharacterString(elem));
+									guf.usage.usage_descr.code=(DonaTextDesDeGcoCharacterString(elem));
 	
 								elem=GetXMLElementByName(usage_descr, "qcm", "codeLinkage");
 								guf.usage.usage_descr.codeLink=OmpleEstructuraOnlineResource(elem);	//if (elem) protegit dins
@@ -685,7 +729,8 @@ var usage, usage_descr, discov_issue;
 																
 								elem=GetXMLElementByName(usage_descr, "qcm", "schema");
 								if (elem)
-									guf.usage.usage_descr.schema=decodeURI(DonaTextDesDeGcoCharacterString(elem));
+									//guf.usage.usage_descr.schema=decodeURI(DonaTextDesDeGcoCharacterString(elem));
+									guf.usage.usage_descr.schema=(DonaTextDesDeGcoCharacterString(elem));
 
 								elem=GetXMLElementByName(usage_descr, "qcm", "suggestedApplication");
 								if (elem)

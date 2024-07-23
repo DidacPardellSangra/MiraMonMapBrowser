@@ -17,7 +17,7 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2023 Xavier Pons
+    Copyright 2001, 2024 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
     amb l'ajut de Núria Julià (n julia at creaf uab cat)
@@ -138,6 +138,8 @@ function MMgetElementTextByTag(thisElement,namespace,name)
 	return null;
 }
 
+/* NJ_21_11_2023 Aquestes dues funcions tenen el mateix nom i intentent fer coses similars
+però no són idèntiques i NO es fan servir enlloc. A partir d'aquest dia les comento*//*
 /*
  * Returns the currently checked button in the form passed as a first argument
  * which is part of the radioButton group 'buttonName', which corresponds
@@ -146,6 +148,7 @@ function MMgetElementTextByTag(thisElement,namespace,name)
  * @param {string} groupName
  * @returns {DOMInputElement}
  */
+/*
 function MMgetCheckedRadioButton(form,buttonName)
 {
 	var radios= form.getElementsByTagName("input");
@@ -156,6 +159,28 @@ function MMgetCheckedRadioButton(form,buttonName)
 	}
 	return null;
 }
+*/
+/*
+ * Returns the currently selected button of the group with name 'groupName' in
+ * the 'myForm' form. In case there is no radio button with that name, or
+ * none is checked, it returns null.
+ * @param {DOMForm} myForm
+ * @param {string} groupName
+ * @returns {DOMRadioButton}
+ */
+ 
+/*
+function MMgetCheckedRadioButton(myForm,groupName)
+{
+	var group= myForm.elements;
+
+	for (var i=0;i<group.length;i++)
+		if(group[i].name===groupName && group[i].checked)
+			return group[i];
+
+	return null;
+}
+*/
 
 function EsborraTotesOptionDeSelect(selector)
 {
@@ -501,6 +526,28 @@ function create_UUID(guions){
 }
 
 
+function stringToHash(string) 
+{
+	// Inspirat en https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript 
+	
+//set variable hash as 0
+var hash = 0, i, ch;
+
+	// if the length of the string is 0, return 0
+	if (string.length == 0) return hash;
+	
+	for (i = 0 ;i<string.length ; i++)
+	{
+		ch = string.charCodeAt(i);
+		hash = ((hash << 5) - hash) + ch;
+				
+		hash |= 0; // Convert to 32bit integer
+	}
+	return hash;
+}
+
+
+
 function MMgetFileExtension(fileName)
 {
 	var re= /(?:\.([^.]+))?$/;
@@ -568,25 +615,6 @@ function DonaAdrecaAbsoluta(url)
 }
 
 
-/*
- * Returns the currently selected button of the group with name 'groupName' in
- * the 'myForm' form. In case there is no radio button with that name, or
- * none is checked, it returns null.
- * @param {DOMForm} myForm
- * @param {string} groupName
- * @returns {DOMRadioButton}
- */
-function MMgetCheckedRadioButton(myForm,groupName)
-{
-	var group= myForm.elements;
-
-	for (var i=0;i<group.length;i++)
-		if(group[i].name===groupName && group[i].checked)
-			return group[i];
-
-	return null;
-}
-
 
 //Inspired in http://stackoverflow.com/questions/126100/how-to-efficiently-count-the-number-of-keys-properties-of-an-object-in-javascrip
 //També es pot fer així: Object.keys(myobj).length (https://javascript.info/keys-values-entries)
@@ -599,6 +627,16 @@ function CountPropertiesOfObject(myobj)
 	var count = 0, k;
 	for (k in myobj) if (myobj.hasOwnProperty(k)) count++;
 	return count;
+}
+
+
+// Retorna un objecte diàleg per a mostrar com a missatge superposat i bloquejant.
+function CreaDialog(identificadorDialog, contingutHtml)
+{
+	const dialog = document.createElement("dialog");
+	dialog.setAttribute("id", identificadorDialog);
+	dialog.insertAdjacentHTML("afterbegin", contingutHtml);
+	return dialog;
 }
 
 /*Funcions d'utilitat general inspirades en codis trobats a la Internet*/
@@ -680,8 +718,7 @@ function isLayerVisible(elem)
 {
 	if (elem.style.visibility == "hidden")
 		return false;
-	else
-		return true;
+	return true;
 }
 
 // Extret de http://www.faqts.com/knowledge_base/view.phtml/aid/5756
@@ -1344,11 +1381,11 @@ var div, div_canto;
 		div.old_zIndex= div.style.zIndex;
 
 		//This must be always bigger than the topmost floatingWindow zIndex
-		setzIndexLayer(div, layerList.length);
-		setzIndexLayer(getLayer(window, layerFinestraList[i_finestra].nom+SufixFinestra), layerList.length);
+		setzIndexLayer(div, layerList.length-1);
+		setzIndexLayer(getLayer(window, layerFinestraList[i_finestra].nom+SufixFinestra), layerList.length-1);
 		div_canto=getLayer(window, layerFinestraList[i_finestra].nom+SufixCanto)
 		if (div_canto)
-			setzIndexLayer(div_canto, layerList.length);
+			setzIndexLayer(div_canto, layerList.length-1);
 	}
 	focusedFloatingWindow=i_finestra;
 }
@@ -1361,7 +1398,8 @@ function showFinestraLayer(win, name)
 	if (div)
 		showLayer(div);
 
-	setTopFloatingWindow(getFloatingWindowId(name));
+	setTopFloatingWindow(getFloatingWindowId(name)); 
+	
 }
 
 function hideFinestraLayer(win, name)
@@ -1578,18 +1616,19 @@ function ExecutaMovimentRedirigitFinestraLayer(event)
 		MovimentFinestraLayerPerLaBarra(event, iFinestraLayerFora);
 }
 
-
+var nomImgRedimensiona = "imgRedimensiona";
 function textHTMLImgCantoFinestra(i_finestra)
 {
 var cdns=[];
 
-	cdns.push("<img src=\"", AfegeixAdrecaBaseSRC("canto.png"),
-					 "\" alt=\"", GetMessage("resize"), "\" ",
-					 "title=\"", GetMessage("resize"), "\" ",
-					 "onmousedown=\"ActivaMovimentFinestraLayer(event, ",i_finestra,", movimentRedimensionant);\" ",
-					 "onmouseup=\"DesactivaMovimentFinestraLayer(event, ",i_finestra,");\" ",
-  			  		 "onmouseout=\"RedirigeixMovimentFinestraLayer(event, ",i_finestra,");\" ",
-			  		 "onmousemove=\"MovimentFinestraLayerPerLaBarra(event, ",i_finestra,");\" >");
+	cdns.push("<img src=\"", AfegeixAdrecaBaseSRC("canto.png"),"\"",
+			"name=\"", nomImgRedimensiona,"\"",
+			"alt=\"", GetMessage("resize"), "\" ",
+			"title=\"", GetMessage("resize"), "\" ",
+			"onmousedown=\"ActivaMovimentFinestraLayer(event, ",i_finestra,", movimentRedimensionant);\" ",
+			"onmouseup=\"DesactivaMovimentFinestraLayer(event, ",i_finestra,");\" ",
+			"onmouseout=\"RedirigeixMovimentFinestraLayer(event, ",i_finestra,");\" ",
+			"onmousemove=\"MovimentFinestraLayerPerLaBarra(event, ",i_finestra,");\" >");
 	return cdns.join("");
 }
 
@@ -1681,10 +1720,12 @@ function textHTMLLayer(name, left, top, width, height, ancora, param, div_class,
 		if (layerList[i].nom==name)
 		{
 			console.log("textHTMLLayer is creating a layer/div with the same layer/div name twice. Old one is overwritten.");
-			z=i;
+			// Esborro la layer i la torno a crear sinó el z-index no queda correcte i queden coses amagades
+			layerList.splice(i,1);
+			z--;
 			break;
 		}
-	}	
+	}
 
 	//Posem null a content per tal de que la funció de canvi d'idioma no la repinti.
 	layerList[z]= { "nom": name, "ancora": ancora, "contingut": ((param.save_content) ? content : null)};
@@ -1705,7 +1746,7 @@ function textHTMLiframeLayer(name, left, top, width, height, visible)
 var s="";
 	if (NecessariLayerIFrame)
 	{
-	      s='<iframe src="blanc.htm" id="iframe_' + name + '" style="position:absolute; left:' + left + 'px; top:' + top + 'px; width:' + width + '; height:' + height + 'px;' + ' visibility:' + (visible ? 'visible;' : 'hidden;') + '"></iframe>';
+	      s='<iframe src="blanc.htm" id="iframe_' + name + '" style="position:absolute; left:' + left + 'px; top:' + top + 'px; width:' + width + 'px; height:' + height + 'px;' + ' visibility:' + (visible ? 'visible;' : 'hidden;') + '"></iframe>';
 	}
 	return s;
 }
@@ -2015,8 +2056,8 @@ var xhr = new XMLHttpRequest();
 						data = JSON.parse(xhr.responseText);
 					}
 					catch (e) {
-		                		if (error)
-							return error("JSON file: \""+ path + "\". " + e);
+		                if (error)
+							return error("JSON file: \""+ path + "\". " + e, extra_param);
 					}
 					success(data, extra_param);
 				}
@@ -2033,7 +2074,7 @@ var xhr = new XMLHttpRequest();
 							s=s.substring(s.indexOf("<body>"));
 					}
 					if (xhr.status)
-			    			error("JSON file: \""+ path + "\". Status: " + xhr.statusText + "\n\nURL: "+ path + ((xhr.getAllResponseHeaders && xhr.getAllResponseHeaders()) ? "\n\nResponse headers:\n"+xhr.getAllResponseHeaders() : "") + ((s) ? "\nResponse Body:\n"+s : ""), extra_param);
+			    		error("JSON file: \""+ path + "\". Status: " + xhr.statusText + "\n\nURL: "+ path + ((xhr.getAllResponseHeaders && xhr.getAllResponseHeaders()) ? "\n\nResponse headers:\n"+xhr.getAllResponseHeaders() : "") + ((s) ? "\nResponse Body:\n"+s : ""), extra_param);
 					else
 						error("JSON file: \""+ path + "\". Desconnected from the Internet." + "\n\nURL: "+ path + ((xhr.getAllResponseHeaders && xhr.getAllResponseHeaders()) ? "\n\nResponse headers:\n"+xhr.getAllResponseHeaders() : "") + ((s) ? "\nResponse Body:\n"+s : ""), extra_param);
 				}
@@ -2322,12 +2363,15 @@ function RemoveOtherPropertiesInObjWithRef(obj_root, obj)
 		var found=false;
 		for (var k in obj)
 		{
+			if(obj.hasOwnProperty(k) && k=="type" && obj[k]=="FeatureCollection")  // No vull repassar tota la featureCollection ja que el GeoJSON no permet $ref.
+				return;
 			if (obj.hasOwnProperty(k) && k=="$ref")
 			{
 				found=true;
 				break;
 			}
 		}
+		
 		if (found)
 		{
 			if (typeof obj["$ref"]==="string")
@@ -2825,9 +2869,14 @@ function CreaLListaServidorsOWS(url, nom, tipus, categoria)
 */
 var jsonFile = null;
 
+// function makeHrefData(data, toType = "text/json", content) // No s'usa mai el content i el mimetype de json no és text/json sinó application/json
 function makeHrefData(data)
 {
-	var blobData = new Blob([JSON.stringify(data)], {type: 'text/json'});
+	var blobData = new Blob([((typeof data === "object") ? JSON.stringify(data) : data)], {type: 'application/json'});
+// No entenc aquesta línia, ho del type barrejat amb data i content que no es té mai i sempre és indefinit
+// No s'usa enlloc del codi de manera que ho tiro endarrera i només agafo ho que aplica a data
+
+//	var blobData = new Blob([((typeof data === "object") ? JSON.stringify(data) : data)], {type: "data:" + toType + ";charset=utf-8, " + encodeURIComponent(content)});
 
 	// If we are replacing a previously generated file we need to
 	// manually revoke the object URL to avoid memory leaks.
@@ -2860,3 +2909,67 @@ const link = document.createElement('a');
 
   	return false;
 }
+
+// Modifica l'atribut style.display per fer apareixer o no el contenedor d'informació. 
+function DesplegaOPlegaIFrameInfo(nom)
+{
+	var iFrameContenedor = document.getElementById(nom+"iframe"), imatge = document.getElementById(nom+"img");
+	if (iFrameContenedor && imatge !== null && iFrameContenedor.tagName == "IFRAME" && imatge.tagName == "IMG")
+		DesplegaOPlegaInfo(iFrameContenedor, imatge)
+}
+
+function DesplegaOPlegaDivInfo(nom)
+{
+	var divContenedor = document.getElementById(nom+"div"), imatge = document.getElementById(nom+"img");
+	if (divContenedor !== null && imatge !== null && divContenedor.tagName == "DIV" && imatge.tagName == "IMG")
+		DesplegaOPlegaInfo(divContenedor, imatge)
+}
+
+function DesplegaOPlegaInfo(contenedor, imatge)
+{
+	if (imatge !== null && imatge.tagName == "IMG" && contenedor !== null)
+	{
+		if (contenedor.style.display=="none")
+		{
+			contenedor.style.display="inline";
+			imatge.src=AfegeixAdrecaBaseSRC("boto_contract.png");
+		}
+		else
+		{
+			contenedor.style.display="none";
+			imatge.src=AfegeixAdrecaBaseSRC("boto_expand.png");
+		}
+	}	
+}
+
+// Retorna l'HTML per a crear un botó que permet desplegar contingut d'informació en un iFrame.
+function BotoDesplegableIFrame(nom, url)
+{
+	const cdns = [];
+	cdns.push(" <img src=\"",
+		 AfegeixAdrecaBaseSRC("boto_expand.png"), "\" id=\"",nom,"img\" ",
+		 "alt=\"", GetMessage("moreInfo") , "\" ",
+		 "title=\"",GetMessage("moreInfo"), "\" ",
+		 "onClick='DesplegaOPlegaIFrameInfo(\"",nom,"\")'\">");
+	cdns.push("<iframe src=\"", url, "\" id=\"",nom,"iframe\" style=\"display: none\" width=\"98%\" height=\"180\" scrolling=\"auto\"></iframe>");
+	return cdns.join("");
+}// Fi function BotoDesplegableIFrame()
+
+// Retorna l'HTML per a crear un botó que permet desplegar contingut d'informació en un Div.
+function BotoDesplegableDiv(nom, content)
+{
+	const cdns = [];
+	cdns.push(" <img src=\"",
+		 AfegeixAdrecaBaseSRC("boto_expand.png"), "\" id=\"",nom,"img\" ",
+		 "alt=\"", GetMessage("moreInfo") , "\" ",
+		 "title=\"",GetMessage("moreInfo"), "\" ",
+		 "onClick='DesplegaOPlegaDivInfo(\"",nom,"\")'\">");
+	cdns.push("<div id=\"",nom,"div\" style=\"display: none; overflow:scroll;\" width=\"20px\" height=\"15px\" >", content ,"</div>");
+	return cdns.join("");
+}// Fi function BotoDesplegableDiv()
+
+/* No s'usa enlloc i el nom és clarament inapropiadament curt i confús.
+Comprova si un objecte no té claus, i per tant és buit
+function isEmpty(obj) {
+    return Object.keys(obj).length === 0;
+}*/
