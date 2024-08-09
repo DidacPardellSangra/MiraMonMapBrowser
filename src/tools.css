@@ -139,7 +139,8 @@ dialog
 }
 
 
-// Inspirat en  https://codepen.io/dtomyn/pen/vYOryd
+/* Inspirat en  https://codepen.io/dtomyn/pen/vYOryd
+*/
 fieldset{
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 	font-size:11px;
@@ -147,7 +148,6 @@ fieldset{
 fieldset.plegat {	
 	overflow: hidden;
 	height: 8px; 
-	//overflow-anchor: none;
 	padding: 2px;
 } 
 fieldset.plegat > legend {

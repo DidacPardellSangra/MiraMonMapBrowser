@@ -2168,6 +2168,14 @@ var MessageLang=
       "cze": "Sdílet styl",
       "ger": "Stil freigeben"
     },
+    "ExportToOpenEO": {
+      "cat": "Exportar a Open EO",
+      "spa": "Exportar a Open EO",
+      "eng": "Export to Open EO",
+      "fre": "Exporter vers Open EO",
+      "cze": "Exportovat do Open EO",
+      "ger": "Export nach Open EO"
+    },
     "DeleteStyle": {
       "cat": "Esborrar estil",
       "spa": "Borrar estilo",

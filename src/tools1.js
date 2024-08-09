@@ -2869,14 +2869,9 @@ function CreaLListaServidorsOWS(url, nom, tipus, categoria)
 */
 var jsonFile = null;
 
-// function makeHrefData(data, toType = "text/json", content) // No s'usa mai el content i el mimetype de json no és text/json sinó application/json
-function makeHrefData(data)
+function makeHrefData(data, mimetype = 'application/json')
 {
-	var blobData = new Blob([((typeof data === "object") ? JSON.stringify(data) : data)], {type: 'application/json'});
-// No entenc aquesta línia, ho del type barrejat amb data i content que no es té mai i sempre és indefinit
-// No s'usa enlloc del codi de manera que ho tiro endarrera i només agafo ho que aplica a data
-
-//	var blobData = new Blob([((typeof data === "object") ? JSON.stringify(data) : data)], {type: "data:" + toType + ";charset=utf-8, " + encodeURIComponent(content)});
+	var blobData = new Blob([((typeof data === "object") ? JSON.stringify(data) : data)], {type: mimetype});
 
 	// If we are replacing a previously generated file we need to
 	// manually revoke the object URL to avoid memory leaks.

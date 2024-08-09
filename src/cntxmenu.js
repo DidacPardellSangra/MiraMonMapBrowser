@@ -520,6 +520,12 @@ function OmpleLayerContextMenuEstil(event, i_capa, i_estil)
 {
 var cdns=[];
 var capa=ParamCtrl.capa[i_capa];
+let fitxerOpenEO;
+
+	if (ParamInternCtrl.exportsOpenEO && ParamInternCtrl.exportsOpenEO[i_capa] && ParamInternCtrl.exportsOpenEO[i_capa][i_estil])
+	{
+		fitxerOpenEO = ParamInternCtrl.exportsOpenEO[i_capa][i_estil];	
+	} 
 
 	cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraModificaNomEstil(", i_capa,",",i_estil,");TancaContextMenuCapa();\">",
 						GetMessage("ModifyName"), "</a><br>");
@@ -530,6 +536,12 @@ var capa=ParamCtrl.capa[i_capa];
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"CompartirEstilCapa(", i_capa,",", i_estil,");TancaContextMenuCapa();\">",
 							GetMessage("ShareStyle", "cntxmenu"), "</a>");
 		cdns.push("<br>");
+		if (fitxerOpenEO)
+		{
+			cdns.push('<a class=\'unmenu\' href=\'javascript:void(0);\' onClick=\'ExportaEstilAOpenEO(', JSON.stringify(fitxerOpenEO),');TancaContextMenuCapa();\'>',
+							GetMessage("ExportToOpenEO", "cntxmenu"), "</a>");
+			cdns.push("<br>");
+		}
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"EsborrarEstilCapa(", i_capa,",", i_estil,");TancaContextMenuCapa();\">",
 							GetMessage("DeleteStyle", "cntxmenu"), "</a>");
 		cdns.push("<hr>");
@@ -611,6 +623,33 @@ var capa=ParamCtrl.capa[i_capa];
 			ru_platform: ToolsMMN, ru_version: VersioToolsMMN.Vers+"."+VersioToolsMMN.SubVers, ru_schema: config_schema_estil
 			/*, ru_sugg_app: location.href -> s'afegeix automàticament */},
 			ParamCtrl.idioma, "" /*access_token_type*/);
+}
+
+/**
+ * Genera un fitxer .ipynb on hi han les operacions per acotar la selecció especificada amb el navegador
+ * però adaptades a la sintaxis per a l'entorn d'execució Jupiter note books Open EO.
+ */ 
+function ExportaEstilAOpenEO(data)
+{
+	const jupytherNotebookExtension = ".ipynb";
+	const jupytherNotebookMIME = "application/x-ipynb+json";
+	let nomFitxer = `Selection_to_jupyther_${Date.now()}`;
+	const link = document.createElement('a');
+
+	if (nomFitxer.substring(nomFitxer.length-jupytherNotebookExtension.length) != jupytherNotebookExtension)
+		nomFitxer+=jupytherNotebookExtension;
+	link.setAttribute('download', nomFitxer);
+	link.setAttribute('href', makeHrefData(data, jupytherNotebookMIME));
+	document.body.appendChild(link);
+	
+	// wait for the link to be added to the document
+	window.requestAnimationFrame(function () {
+		var event = new MouseEvent('click');
+	  link.dispatchEvent(event);
+	  document.body.removeChild(link);
+  });
+
+	return false;
 }
 
 function DonaTextSeparadorCapaAfegida(i_capa)
@@ -3245,11 +3284,22 @@ var sel_condicional, capa;
 		capa.estil && sel_condicional.i_estil!=sel_condicional.condicio[0].capa_clau.i_estil)
 	{
 		var capa_clau=sel_condicional.condicio[0].capa_clau;
+		let descripcioEstilAtribut;
+
+		if (capa.model!=model_vector)
+		{
+			descripcioEstilAtribut = DonaCadena(capa.estil[capa_clau.i_estil].desc) ? DonaCadena(capa.estil[capa_clau.i_estil].desc) : capa.estil[capa_clau.i_estil].nom;
+		}
+		else
+		{
+			descripcioEstilAtribut = DonaCadena(capa.attributes[Object.keys(capa.attributes)[capa_clau.i_estil]].description) ? DonaCadena(capa.attributes[Object.keys(capa.attributes)[capa_clau.i_estil]].description) : GetMessage("unknown");
+		}
+		
 		var contingut_msg=GetMessage("SelectionAppliesToLayer","cntxmenu")+"\""+DonaCadena(capa.DescLlegenda)+"\""+
 			GetMessage("andTheFieldOf","cntxmenu")+
 			"\""+(DonaCadena(capa.estil[sel_condicional.i_estil].desc)?DonaCadena(capa.estil[sel_condicional.i_estil].desc): capa.estil[sel_condicional.i_estil].nom)+"\""+
 			GetMessage("butFirstCondition","cntxmenu")+
-			"\""+(DonaCadena(capa.estil[capa_clau.i_estil].desc)?DonaCadena(capa.estil[capa_clau.i_estil].desc):capa.estil[capa_clau.i_estil].nom)+"\""+			
+			"\""+descripcioEstilAtribut+"\""+			
 			GetMessage("TheResultingValuesWillBe","cntxmenu")+
 			"\""+(DonaCadena(capa.estil[sel_condicional.i_estil].desc)?DonaCadena(capa.estil[sel_condicional.i_estil].desc): capa.estil[sel_condicional.i_estil].nom)+"\""+
 			GetMessage("evenIfTheConditionApliesToAnotherField","cntxmenu");
@@ -3550,6 +3600,9 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 	i_estil_nou=DuplicaEstilCapa(capa, sel_condicional.i_estil, sel_condicional.nom_estil);
 	estil=capa.estil[i_estil_nou];
 
+	// Inicio el contingut del fitxer .ipynb per al nou estil en format Open EO
+	iniciaJupytherNotebook(i_capa, i_estil_nou);
+
 	//Defineix el "calcul" de la selecció que serà de tipus "(capaA<5 || CapaA>capaB)? capa : null"
 	if(capa.model!=model_vector)
 		calcul="(";
@@ -3558,8 +3611,13 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 	for (var i_condicio=0; i_condicio<sel_condicional.condicio.length; i_condicio++)
 	{
 		condicio=sel_condicional.condicio[i_condicio];
+
 		// Quan la capa és un vector sel_condicional.condicio[i_condicio].capa_clau.i_estil és l'índex del attribute i no de l'estil
-		calcul+=DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim);
+		let capaPerCalcul = DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim);
+
+		transformaAOperacionsOpenEO(i_capa, i_estil_nou, condicio, capaPerCalcul);
+		
+		calcul+=capaPerCalcul;
 		if (typeof condicio.operador==="undefined")
 			calcul+="!=null";
 		else
@@ -5248,5 +5306,143 @@ function ExportarObjectesGeoJSON(i_capa)
 	else
 	{
 		alert(GetMessage("NoObjectSelectedExport", "cntxmenu"));
+	}
+}
+
+/**
+ * Fragments necessaris per a la creació del Jupyther notebook.
+ * @param {*} i_capa índex capa a la cual es fa la selecció 
+ * @param {*} i_estil índex de l'estil amb la qual representem el nou estil de la capa.
+ */
+function iniciaJupytherNotebook(i_capa, i_estil)
+{
+	let notebook = {};
+	notebook.metadada = {};
+	notebook.metadada.kernel_info = {
+		name: "ipykernel",
+		display_name: "IPython",
+		language: "python"
+	};
+	notebook.metadada.language_info = {
+		name: "ipython",
+		verison: 3
+	};
+	
+	if (!ParamInternCtrl.exportsOpenEO)
+	{
+		ParamInternCtrl.exportsOpenEO = {};
+	}
+
+	if (!ParamInternCtrl.exportsOpenEO[i_capa])
+	{
+		ParamInternCtrl.exportsOpenEO[i_capa] = {};
+	}
+	if (!ParamInternCtrl.exportsOpenEO[i_capa][i_estil])
+	{
+		ParamInternCtrl.exportsOpenEO[i_capa][i_estil] = {};
+	}
+	ParamInternCtrl.exportsOpenEO[i_capa][i_estil] = notebook;
+	if (!notebook.cells)
+	{
+		notebook.cells = [];
+	}
+
+	notebook.cells.push(creaCellaCodi(notebook.cells.length));
+}
+
+/**
+	 * Crea l'esquelet d'una cel·la de tipus codi.
+	 * @param {*} indexExecucio Indica l'ordre que li correspon a la cel·la per ser executada. 
+	 * 	Index d'execució 1 serà la primera cel·la en ser executada...
+	 */
+function creaCellaCodi(indexExecucio)
+{
+	let codeCell = {};
+	codeCell.cell_type = "code";
+	codeCell.execution_count = indexExecucio;
+	codeCell.id = "?";
+	codeCell.source = [];
+	return codeCell;
+}
+
+function transformaAOperacionsOpenEO(i_capa, i_estil, condicio, estilCapaPerCalcul)
+{
+	if (ParamInternCtrl.exportsOpenEO && ParamInternCtrl.exportsOpenEO[i_capa] && ParamInternCtrl.exportsOpenEO[i_capa][i_estil] && ParamInternCtrl.exportsOpenEO[i_capa][i_estil].cells && ParamInternCtrl.exportsOpenEO[i_capa][i_estil].cells[0])
+	{
+		let notebook = ParamInternCtrl.exportsOpenEO[i_capa][i_estil];
+		let cellaCodi = notebook.cells[notebook.cells.length - 1];
+		if (cellaCodi.source)
+		{
+			cellaCodi.source.push(transformaOperacioSeleccio(i_capa, condicio, estilCapaPerCalcul));
+		}
+	}
+	
+	/**
+	 * Transformació de la condició de la selecció en format MMB a codi python.
+	 * @param {*} i_capa index de la capa afectada per la condició
+	 * @param {*} condicio objecte que defineix la codició imposada sobre la capa
+	 * @param {*} descripcioCapa text descriptiu de la capa per utilitzar en el codi de la condició.
+	 * @returns string amb la condició escrita en python.
+	 */
+	function transformaOperacioSeleccio(i_capa, condicio, descripcioCapa)
+	{
+		let operacioOpenEo = "undefined";
+		if (condicio.operador)
+		{
+			switch (condicio.operador)
+			{
+				case "==":
+					operacioOpenEo = "eq(";
+					break;
+				case "!=":
+					operacioOpenEo = "neq(";
+					break;
+				case "<":
+					operacioOpenEo = "lt(";
+					break;
+				case ">":
+					operacioOpenEo = "gt(";
+					break;
+				case "<=":
+					operacioOpenEo = "lte(";
+					break;
+				case ">=":
+					operacioOpenEo = "gte(";
+					break;
+			}
+		}
+		else
+		{
+			operacioOpenEo = "neq(";// falte el valor null, però hauria d'ocupar l'argument "y"
+		}	
+
+		if (condicio.capa_clau)
+		{
+			operacioOpenEo = operacioOpenEo + `x = ${(descripcioCapa) ? descripcioCapa : DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim)}, `;
+		}
+
+		if (condicio.valor)
+		{
+			operacioOpenEo = operacioOpenEo + `y = ${condicio.valor})`;
+		} 
+		// Correspon al cas que seleccionem "qualsevol" com a valor.
+		else if (condicio.operador === "undefined")
+		{
+			operacioOpenEo = operacioOpenEo + "y = null";
+		}
+
+		if (condicio.nexe)
+		{
+			switch (condicio.operador)
+			{
+				case "||":
+					operacioOpenEo += " or ";
+					break;
+				case "&&":
+					operacioOpenEo += " and ";
+					break;
+			}
+		}
+		return operacioOpenEo;
 	}
 }
