@@ -5317,13 +5317,13 @@ function ExportarObjectesGeoJSON(i_capa)
 function iniciaJupytherNotebook(i_capa, i_estil)
 {
 	let notebook = {};
-	notebook.metadada = {};
-	notebook.metadada.kernel_info = {
+	notebook.metadata = {};
+	notebook.metadata.kernel_info = {
 		name: "ipykernel",
 		display_name: "IPython",
 		language: "python"
 	};
-	notebook.metadada.language_info = {
+	notebook.metadata.language_info = {
 		name: "ipython",
 		verison: 3
 	};
@@ -5433,7 +5433,7 @@ function transformaAOperacionsOpenEO(i_capa, i_estil, condicio, estilCapaPerCalc
 
 		if (condicio.nexe)
 		{
-			switch (condicio.operador)
+			switch (condicio.nexe)
 			{
 				case "||":
 					operacioOpenEo += " or ";
