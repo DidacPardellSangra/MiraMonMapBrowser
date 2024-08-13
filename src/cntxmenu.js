@@ -5346,8 +5346,21 @@ function iniciaJupytherNotebook(i_capa, i_estil)
 	{
 		notebook.cells = [];
 	}
+	let capa = ParamCtrl.capa[i_capa];
+	let cdns = [];
+	if (capa.desc)
+	{
+		cdns.push( "#", DonaCadenaLang(capa.desc));
+	}
+	if (document.SeleccioCondicional.nom_estil && document.SeleccioCondicional.nom_estil.value != "")
+	{
+		cdns.push("\n\n", "##", document.SeleccioCondicional.nom_estil.value);
+	}
 
-	notebook.cells.push(creaCellaCodi(notebook.cells.length));
+	if (cdns.length)
+		notebook.cells.push(creaCellaMarkdown(cdns.join(" ")));
+
+	notebook.cells.push(creaCellaCodi(notebook));
 }
 
 /**
@@ -5355,14 +5368,31 @@ function iniciaJupytherNotebook(i_capa, i_estil)
 	 * @param {*} indexExecucio Indica l'ordre que li correspon a la cel·la per ser executada. 
 	 * 	Index d'execució 1 serà la primera cel·la en ser executada...
 	 */
-function creaCellaCodi(indexExecucio)
+function creaCellaCodi(notebook)
 {
 	let codeCell = {};
 	codeCell.cell_type = "code";
-	codeCell.execution_count = indexExecucio;
-	codeCell.id = "?";
+	if (notebook.cells)
+	{
+		codeCell.execution_count = notebook.cells.filter((cell) => cell.cell_type == "code").length;
+	}
+	else
+	{
+		codeCell.execution_count = null;
+	} 
+	codeCell.id = generaIdCella();
 	codeCell.source = [];
 	return codeCell;
+}
+
+function creaCellaMarkdown(text)
+{
+	let markdownCell = {};
+	markdownCell.cell_type = "markdown";
+	markdownCell.metadata = {};
+	markdownCell.id = generaIdCella();
+	markdownCell.source = [text];
+	return markdownCell;
 }
 
 function transformaAOperacionsOpenEO(i_capa, i_estil, condicio, estilCapaPerCalcul)
@@ -5445,4 +5475,31 @@ function transformaAOperacionsOpenEO(i_capa, i_estil, condicio, estilCapaPerCalc
 		}
 		return operacioOpenEo;
 	}
+}
+
+function generaIdCella()
+{
+	const maxLength = 64; // Llongitud de caràcters màxima establerta per Id en cel·les de notebooks.
+	let data = Date.now().toString();
+	let identificador;
+	if (data.length < maxLength)
+	{
+		let caractersRestants = maxLength - data.length;
+		let caractersAfegir = "";
+		for (let i = 0; i < caractersRestants; i++)
+		{
+			caractersAfegir = caractersAfegir + String.fromCharCode(Math.floor(Math.random()*25) + 65); // Lletres A-Z aleatories. 
+		}
+		identificador = caractersAfegir + data;
+	}
+	else if (data.length > maxLength)
+	{
+		identificador = data.substring(data.length-maxLength);
+	}
+	else
+	{
+		identificador = data;
+	}
+
+	return identificador;
 }
