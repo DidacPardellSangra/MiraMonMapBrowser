@@ -3231,6 +3231,22 @@ var MessageLang=
       "fre": "Il n'y a pas d'objets de cette couche dans le champ de vision actuel",
       "cze": "V aktuálním rozsahu zobrazení nejsou žádné objekty této vrstvy",
       "ger": "Innerhalb des aktuellen Sichtbereiches sind keine Objekte dieses Layers zum Anzeigen vorhanden"
+    },
+    "EditConditionalSelection": {
+      "cat": "Edita Selecció Condicional",
+      "spa": "Edita Selección Condicional",
+      "eng": "Edit Conditional Selection",
+      "fre": "Modifier Sélection Conditionnelle",
+      "cze": "Upravit Podmíněný Výběr",
+      "ger": "Bedingte Auswahl bearbeiten"
+    },
+    "AcceptChanges": {
+      "cat": "Acceptar els canvis",
+      "spa": "Aceptar los cambios",
+      "eng": "Accept changes",
+      "fre": "Accepter les changements",
+      "cze": "Přijmout změny",
+      "ger": "Änderungen akzeptieren"
     }
   },
   "storymap": {

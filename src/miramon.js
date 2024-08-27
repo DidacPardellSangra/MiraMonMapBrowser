@@ -4540,7 +4540,6 @@ function IniciaParamCtrlIVisualitzacio(param_ctrl, param)
 			}
 			catch (e)
 			{
-			        //localStorage.removeItem(key);
 				alert(GetMessage("SavingStatusMapNotPossible", "miramon") + ".");
 			}
 		}

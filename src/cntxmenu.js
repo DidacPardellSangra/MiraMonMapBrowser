@@ -520,11 +520,16 @@ function OmpleLayerContextMenuEstil(event, i_capa, i_estil)
 {
 var cdns=[];
 var capa=ParamCtrl.capa[i_capa];
-let fitxerOpenEO;
+let fitxerOpenEO, seleccioCondicional;
 
 	if (ParamInternCtrl.exportsOpenEO && ParamInternCtrl.exportsOpenEO[i_capa] && ParamInternCtrl.exportsOpenEO[i_capa][i_estil])
 	{
 		fitxerOpenEO = ParamInternCtrl.exportsOpenEO[i_capa][i_estil];	
+	} 
+
+	if (ParamCtrl.capa[i_capa].estil[i_estil] && ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional)
+	{
+		seleccioCondicional = JSON.parse(ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional);	
 	} 
 
 	cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraModificaNomEstil(", i_capa,",",i_estil,");TancaContextMenuCapa();\">",
@@ -534,13 +539,16 @@ let fitxerOpenEO;
 	if (capa.estil[i_estil].origen && capa.estil[i_estil].origen==OrigenUsuari)
 	{
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"CompartirEstilCapa(", i_capa,",", i_estil,");TancaContextMenuCapa();\">",
-							GetMessage("ShareStyle", "cntxmenu"), "</a>");
-		cdns.push("<br>");
+							GetMessage("ShareStyle", "cntxmenu"), "</a><br>");
 		if (fitxerOpenEO)
 		{
 			cdns.push('<a class=\'unmenu\' href=\'javascript:void(0);\' onClick=\'ExportaEstilAOpenEO(', JSON.stringify(fitxerOpenEO),');TancaContextMenuCapa();\'>',
-							GetMessage("ExportToOpenEO", "cntxmenu"), "</a>");
-			cdns.push("<br>");
+							GetMessage("ExportToOpenEO", "cntxmenu"), '</a><br>');
+		}
+		if (seleccioCondicional && typeof seleccioCondicional.i_capa === "number" && typeof seleccioCondicional.i_estil === "number")
+		{
+			cdns.push('<a class=\'unmenu\' href=\'javascript:void(0);\' onClick=\'ObreFinestraSeleccioCondicional(', i_capa, ',', i_estil,');TancaContextMenuCapa();\'>',
+							GetMessage("EditConditionalSelection", "cntxmenu"), '</a><br>');
 		}
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"EsborrarEstilCapa(", i_capa,",", i_estil,");TancaContextMenuCapa();\">",
 							GetMessage("DeleteStyle", "cntxmenu"), "</a>");
@@ -614,7 +622,7 @@ var capa=ParamCtrl.capa[i_capa];
 		delete estil_copia.ItemLleg;
 	if (estil_copia.histograma)
 		delete estil_copia.histograma;
-	if (estil_copia.component.length>1 && estil_copia.ItemLleg)
+	if (estil_copia.component && estil_copia.component.length>1 && estil_copia.ItemLleg)
 		delete estil_copia.ItemLleg;
 
 	GUFCreateFeedbackWithReproducibleUsage([{title: DonaCadena(capa.desc), code: s, codespace: DonaServidorCapa(capa)}],
@@ -1992,7 +2000,7 @@ var cdns=[], i, capa;
 			  GetMessage("LayerToReclassify", "cntxmenu"),
 			  ": </legend>",
 			  "<input type=\"hidden\" value=\"",i_capa,"\" id=\"", prefix_id, "-valor-capa-",0,"\" name=\"","valor_capa", 0, "\" />", DonaCadena(capa.DescLlegenda), "<br>",
-			  DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, 0, {vull_operador: false, nomes_categoric: false, vull_valors: true, vull_dates: true, vull_dims: true}),
+			  DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, 0, undefined,{vull_operador: false, nomes_categoric: false, vull_valors: true, vull_dates: true, vull_dims: true}),
 			  "</fieldset>");
 
 	cdns.push(GetMessage("ReclassifyingExpression", "cntxmenu"),
@@ -2039,7 +2047,7 @@ var cdns=[], i, capa, hi_ha_rasters=0, operacio;
 			  GetMessage("LayerForExpression", "cntxmenu"),
 			  ": </legend>");
 		//Posar uns desplegables de capes, estilsdates i dimensions extra
-		cdns.push(DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-calcul", -1, 0, {vull_operador: false, nomes_categoric: false, vull_valors: false, vull_dates: true, vull_dims: true}));
+		cdns.push(DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-calcul", -1, 0, undefined, {vull_operador: false, nomes_categoric: false, vull_valors: false, vull_dates: true, vull_dims: true}));
 		//Posar un botó d'afegir a la fórmula
 		cdns.push("<input type=\"button\" class=\"Verdana11px\" value=\"",
 		     	GetMessage("WriteInExpression", "cntxmenu"),
@@ -2149,11 +2157,11 @@ var cdns=[], i, capa, hi_ha_raster_categ=0;
 			  "<fieldset><legend>",
 			  GetMessage("Layer"),
 			  "_1: </legend>",
-				DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-combicap", -1, 0, {vull_operador: false, nomes_categoric: true, vull_valors: false, vull_dates: true, vull_dims: true}),
+				DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-combicap", -1, 0, undefined, {vull_operador: false, nomes_categoric: true, vull_valors: false, vull_dates: true, vull_dims: true}),
 			  "</fieldset><fieldset><legend>",
 			  GetMessage("Layer"),
 			  "_2: </legend>",
-			  DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-combicap", -1, 1, {vull_operador: false, nomes_categoric: true, vull_valors: false, vull_dates: true, vull_dims: true}),
+			  DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-combicap", -1, 1, undefined, {vull_operador: false, nomes_categoric: true, vull_valors: false, vull_dates: true, vull_dims: true}),
 			  "</fieldset>",
 			  GetMessage("ResultAddedAsNewLayerWithName", "cntxmenu"),
 			  ": <input type=\"text\" name=\"nom_capa_overlay\" class=\"Verdana11px\" style=\"width:438px;\" value=\"\" /><br/>",
@@ -2171,11 +2179,11 @@ var cdns=[], i, capa, hi_ha_raster_categ=0;
 	  "<fieldset><legend>",
 	  GetMessage("Layer"),
 	  "_1: </legend>",
-		DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-combicap", -1, 2, {vull_operador: false, nomes_categoric: true, vull_valors: false, vull_dates: true, vull_dims: true}),
+		DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-combicap", -1, 2, undefined, {vull_operador: false, nomes_categoric: true, vull_valors: false, vull_dates: true, vull_dims: true}),
 	  "</fieldset><fieldset><legend>",
 	  GetMessage("Layer"),
 	  "_2: </legend>",
-	  DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-combicap", -1, 3, {vull_operador: false, nomes_categoric: false, vull_valors: false, vull_dates: true, vull_dims: true}),
+	  DonaCadenaCapaDataEstilOperacioValor("afegeix-capa-capa-combicap", -1, 3, undefined, {vull_operador: false, nomes_categoric: false, vull_valors: false, vull_dates: true, vull_dims: true}),
 	  "</fieldset>",
 	  GetMessage("ResultAddedAsNewLayerWithName", "cntxmenu"),
 	  ": <input type=\"text\" name=\"nom_capa_statisctical\" class=\"Verdana11px\" style=\"width:438px;\" value=\"\" /><br/>",
@@ -2733,15 +2741,15 @@ var elem=ObreFinestra(window, "reclassificaCapa", GetMessage("toReclassifyLayer"
 }
 
 
-function CanviaValorsValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil)
+function CanviaValorsValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil, condicioEditar)
 {
 	document.getElementById(prefix_id + "-valor-valor-"+i_condicio).innerHTML=DonaCadenaValorsSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil);
 }
 
 
-function CanviaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil)
+function CanviaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil, condicioEditar)
 {
-	document.getElementById(prefix_id + "-operador-valor-"+i_condicio).innerHTML=DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil);
+	document.getElementById(prefix_id + "-operador-valor-"+i_condicio).innerHTML=DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil, condicioEditar);
 }
 
 function ActivaConstantOCapaSeleccioCondicional(prefix_id, i_condicio, quin_radial)
@@ -2808,7 +2816,7 @@ var n_capa=0, i_capa_unica=-1, capa, i;
 	return {"n_capa": n_capa, "i_capa_unica": i_capa_unica};
 }
 
-function DonaCadenaValorsSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil)
+function DonaCadenaValorsSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil, condicioEditar)
 {
 var cdns=[], capa=ParamCtrl.capa[i_capa];
 var estil=capa.estil[i_estil];
@@ -2886,7 +2894,7 @@ var cdns=[];
 	return cdns.join("");
 }
 
-function DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil_o_atrib)
+function DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil_o_atrib, condicioEditar)
 {
 var cdns=[], nc, capa=ParamCtrl.capa[i_capa];
 var estil_o_atrib;
@@ -2898,34 +2906,38 @@ var estil_o_atrib;
 	}
 	else
 		estil_o_atrib=capa.estil[i_estil_o_atrib];
-
+	let tenimCondicioEdicio = typeof condicio !== "undefined";
+	let tenimOperadorEdicio = tenimCondicioEdicio && typeof condicioEditar.operador !== "undefined";
+	let tenimValorEdicio = tenimCondicioEdicio &&  typeof condicioEditar.valor !== "undefined";
+	let tenimCapaClauEdicio = tenimOperadorEdicio && typeof condicioEditar.capa_clau !== "undefined";
 	//Una caixa que permeti triar un operador
 	cdns.push("<div id=\"div-", prefix_id, "-operador-",i_condicio,"\" ><label for=\"", prefix_id, "-operador-",i_condicio, "\">",
 			  GetMessage("Operator"), ":</label>",
 			"<select id=\"", prefix_id, "-operador-",i_condicio,"\" name=\"operador", i_condicio, "\" style=\"width:80px;\">",
-			"<option value=\"==\" selected=\"selected\">=</option>",
-			"<option value=\"!=\">=/=</option>");
+			"<option value=\"==\"", (tenimOperadorEdicio && condicioEditar.operador == "==") ? " selected" : "", ">=</option>",
+			"<option value=\"!=\"", (tenimOperadorEdicio && condicioEditar.operador == "!=") ? " selected" : "", ">=/=</option>");
 	if (capa.model==model_vector || DonaTractamentComponent(estil_o_atrib, 0)!="categoric")
 	{
-		cdns.push("<option value=\"<\">&lt;</option>",
-			"<option value=\">\">&gt;</option>",
-			"<option value=\"<=\">&lt;=</option>",
-			"<option value=\">=\">&gt;=</option>");
+		cdns.push("<option value=\"<\"", (tenimOperadorEdicio && condicioEditar.operador == "<") ? " selected" : "", ">&lt;</option>",
+			"<option value=\">\"", (tenimOperadorEdicio && condicioEditar.operador == ">") ? " selected" : "", ">&gt;</option>",
+			"<option value=\"<=\"", (tenimOperadorEdicio && condicioEditar.operador == "<=") ? " selected" : "", ">&lt;=</option>",
+			"<option value=\">=\"", (tenimOperadorEdicio && condicioEditar.operador == ">=") ? " selected" : "", ">&gt;=</option>");
 	}
 	cdns.push("</select></div>");
 
 	nc=DonaNCapesVisiblesOperacioArraysBinarisOVectors(i_capa, capa.model==model_vector? true :false, false);
-	cdns.push(	"<input type=\"radio\" id=\"", prefix_id, "-cc-",i_condicio, "-qualsevol\" name=\"cc",i_condicio, "\" value=\"qualsevol\" onClick='ActivaConstantOCapaSeleccioCondicional(\"", prefix_id, "\", ", i_condicio, ", \"qualsevol\");' />", "<label for=\"", prefix_id, "-cc-",i_condicio, "-constant\">", GetMessage("anyValue", "cntxmenu"), "</label>",
-			"<input type=\"radio\" id=\"", prefix_id, "-cc-",i_condicio, "-constant\" name=\"cc",i_condicio, "\" value=\"constant\" checked=\"checked\" onClick='ActivaConstantOCapaSeleccioCondicional(\"", prefix_id, "\", ", i_condicio, ", \"constant\");' />", "<label for=\"", prefix_id, "-cc-",i_condicio, "-constant\">", GetMessage("constant", "cntxmenu"), "</label>",
-			"<input type=\"radio\" id=\"", prefix_id, "-cc-",i_condicio, "-selector\" name=\"cc",i_condicio, "\" value=\"selector\" onClick='ActivaConstantOCapaSeleccioCondicional(\"", prefix_id, "\", ", i_condicio, ", \"selector\");' />", "<label for=\"", prefix_id, "-cc-",i_condicio, "-selector\">", GetMessage("selector", "cntxmenu"), "</label>");
+	cdns.push(	"<input type=\"radio\" id=\"", prefix_id, "-cc-",i_condicio, "-qualsevol\" name=\"cc",i_condicio, "\" value=\"qualsevol\"", tenimCapaClauEdicio && !tenimOperadorEdicio && !tenimValorEdicio ? " checked" : ""," onClick='ActivaConstantOCapaSeleccioCondicional(\"", prefix_id, "\", ", i_condicio, ", \"qualsevol\");' />", "<label for=\"", prefix_id, "-cc-",i_condicio, "-constant\">", GetMessage("anyValue", "cntxmenu"), "</label>",
+			"<input type=\"radio\" id=\"", prefix_id, "-cc-",i_condicio, "-constant\" name=\"cc",i_condicio, "\" value=\"constant\"", tenimCapaClauEdicio ? (tenimOperadorEdicio && tenimValorEdicio ? " checked" : "") : " checked"," onClick='ActivaConstantOCapaSeleccioCondicional(\"", prefix_id, "\", ", i_condicio, ", \"constant\");' />", "<label for=\"", prefix_id, "-cc-",i_condicio, "-constant\">", GetMessage("constant", "cntxmenu"), "</label>",
+			"<input type=\"radio\" id=\"", prefix_id, "-cc-",i_condicio, "-selector\" name=\"cc",i_condicio, "\" value=\"selector\"", tenimCondicioEdicio &&  typeof condicioEditar.selector !== "undefined" ? " checked" : "", " onClick='ActivaConstantOCapaSeleccioCondicional(\"", prefix_id, "\", ", i_condicio, ", \"selector\");' />", "<label for=\"", prefix_id, "-cc-",i_condicio, "-selector\">", GetMessage("selector", "cntxmenu"), "</label>");
 	if (nc.n_capa>1)
-		cdns.push("<input type=\"radio\" id=\"", prefix_id, "-cc-",i_condicio, "-capa\" name=\"cc",i_condicio, "\" value=\"capa\" onClick='ActivaConstantOCapaSeleccioCondicional(\"", prefix_id, "\", ", i_condicio, ", \"capa\");' />", "<label for=\"", prefix_id, "-cc-",i_condicio, "-capa\">", GetMessage("layer"), "</label>");
+		cdns.push("<input type=\"radio\" id=\"", prefix_id, "-cc-",i_condicio, "-capa\" name=\"cc",i_condicio, "\" value=\"capa\"", tenimCondicioEdicio &&  typeof condicioEditar.capa_valor !== "undefined" ? " checked" : ""," onClick='ActivaConstantOCapaSeleccioCondicional(\"", prefix_id, "\", ", i_condicio, ", \"capa\");' />", "<label for=\"", prefix_id, "-cc-",i_condicio, "-capa\">", GetMessage("layer"), "</label>");
 
 	cdns.push("<br>");
 
 	//Una caixa que permeti triar un valor
 	cdns.push("<div id=\"div-", prefix_id, "-cc-constant-",i_condicio,"\" style=\"display:inline;\">",
 		"<label for=\"", prefix_id, "-valor-",i_condicio, "\" id=\"span-text-", prefix_id, "-cc-constant-",i_condicio,"\">", GetMessage("Value"), ":</label>");
+
 	if(capa.model==model_vector)
 	{
 		if(capa.objectes && capa.objectes.features && capa.objectes.features.length>0)
@@ -2953,7 +2965,7 @@ var estil_o_atrib;
 						  "\" style=\"width:360px;\" onChange='CanviaValorSeleccionatSeleccioCondicional(\"",prefix_id,"\", ", i_condicio,");'>");
 				for (i_valor = 0; i_valor < valors_atrib.length; i_valor++)
 				{
-					cdns.push("<option value=\"",i_valor,"\"",((i_valor==0) ? " selected=\"selected\"" : ""),">", valors_atrib[i_valor], "</option>");
+					cdns.push("<option value=\"",i_valor,"\"",(tenimValorEdicio ? (condicioEditar.valor == valors_atrib[i_valor] ? " selected=\"selected\"" : "") : (i_valor == 0 ? " selected=\"selected\"" : "")),">", valors_atrib[i_valor], "</option>");
 				}
 				cdns.push("</select><br>");
 			}
@@ -2986,7 +2998,7 @@ var estil_o_atrib;
 	{
 		//Una caixa que permeti triar un valor com a capa
 		cdns.push("<div id=\"div-", prefix_id, "-cc-capa-",i_condicio,"\" style=\"display:none\">",
-			DonaCadenaCapaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, {vull_operador: false, nomes_categoric: false, vull_valors: false, vull_dates: true, vull_dims: true}),
+			DonaCadenaCapaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, condicioEditar, {vull_operador: false, nomes_categoric: false, vull_valors: false, vull_dates: true, vull_dims: true}),
 			"</div>");
 	}
 	return cdns.join("");
@@ -2994,10 +3006,10 @@ var estil_o_atrib;
 
 function CanviaCondicioSeleccioCondicional(prefix_id, i_capa, i_condicio, param)
 {
-	document.getElementById(prefix_id+"-"+(param.vull_operador? "": "capa-valor-")+ i_condicio).innerHTML=DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, param);
+	document.getElementById(prefix_id+"-"+(param.vull_operador? "": "capa-valor-")+ i_condicio).innerHTML=DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, undefined, param);
 }
 
-function DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, param)
+function DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, condicioEditar, param)
 {
 var cdns=[], capa=ParamCtrl.capa[i_capa];
 
@@ -3006,16 +3018,19 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 	{
 		cdns.push("<label for=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"data-",i_condicio, "\">", GetMessage("Date"), ": </label>");
 		if (capa.data.length>1)
-		{
+		{ 
+			let tenimDataEdicio = condicioEditar && condicioEditar.capa_clau && typeof condicioEditar.capa_clau.i_data !== "undefined";
+
 			cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"data-",i_condicio,"\" name=\"",(param.vull_operador? "": "valor_"),"data", i_condicio, "\" style=\"width:400px;\">");
 			//var i_data_sel=DonaIndexDataCapa(capa, null);
 			for (var i_data=0; i_data<capa.data.length; i_data++)
 			{
-				cdns.push("<option value=\"",i_data,"\"",
+				cdns.push("<option value=\"",i_data,"\"", (tenimDataEdicio && condicioEditar.capa_clau.i_data == i_data) ? " selected" : "", 
 				    	/*((i_data==i_data_sel) ? " selected=\"selected\"" : "") ,*/
 					">" , DonaDataCapaComATextBreu(i_capa,i_data) , "</option>");
 			}
-			cdns.push("<option value=\"null\" selected=\"selected\">" , GetMessage("SelectedInLayer", "cntxmenu"), "</option>");
+			// Mirar que passe quan el valor guardat és i_data = null
+			cdns.push("<option value=\"null\"", (!tenimDataEdicio) ? " selected" : "", ">" , GetMessage("SelectedInLayer", "cntxmenu"), "</option>");
 			cdns.push("</select>");
 		}
 		else
@@ -3031,13 +3046,17 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 		{
 			dim=capa.dimensioExtra[i_dim];			
 			cdns.push("<label for=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"dimensio-",i_dim,"-",i_condicio, "\">", DonaCadenaNomDesc(dim.clau), ": </label>");
-			cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"dimensio-",i_dim,"-",i_condicio,"\" name=\"",(param.vull_operador? "": "valor_"),"dimensio-",i_dim,"-",i_condicio, "\" style=\"width:400px;\">");			
+			cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"dimensio-",i_dim,"-",i_condicio,"\" name=\"",(param.vull_operador? "": "valor_"),"dimensio-",i_dim,"-",i_condicio, "\" style=\"width:400px;\">");
+			let selectedDim = "";
+			let tenimDimensioEdicio = condicioEditar && condicioEditar.capa_clau.dim && typeof condicioEditar.capa_clau.dim[i_dim] !== "undefined";	
 			for (var i_v_dim=0; i_v_dim<dim.valor.length; i_v_dim++)
 			{
-				cdns.push("<option value=\"",i_v_dim,"\"",					
+				if (tenimDimensioEdicio && condicioEditar.capa_clau.dim[i_dim].valor.nom == dim.valor[i_v_dim].nom)
+					selectedDim = " selected";
+				cdns.push("<option value=\"",i_v_dim,"\"", selectedDim,					
 				">", DonaCadenaNomDescFormula(dim.formulaDesc, dim.valor[i_v_dim]), "</option>\n");
 			}
-			cdns.push("<option value=\"null\" selected=\"selected\">" , GetMessage("SelectedInLayer", "cntxmenu"), "</option>");
+			cdns.push("<option value=\"null\"", (tenimDimensioEdicio) ? "" : " selected", ">" , GetMessage("SelectedInLayer", "cntxmenu"), "</option>");
 			cdns.push("</select><br>");			
 		}
 	}
@@ -3045,29 +3064,33 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 	// Desplegable de les bandes disponibles
 	if(capa.model==model_vector)
 	{
+		// Per capes vectorials els i_estil corresponen a i_attributs. El que en aquesta funció fa referència a i_estil en ralitat fa referència al i_attribut.
 		if (capa.attributes)
 		{
 			var attributesArray=Object.keys(capa.attributes);
 			if (attributesArray.length)
-			cdns.push("<label for=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"estil-",i_condicio, "\">", GetMessage("Field"), ": </label>");
-			if (attributesArray.length>1)
 			{
-				cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"estil-", i_condicio, "\" name=\"",(param.vull_operador? "" : "valor_"),"estil", i_condicio, "\" style=\"width:400px;\"");
-				if (param.vull_operador)
-					cdns.push(" onChange='CanviaOperadorValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value));'");
-				cdns.push(">");
-				for (var i_atrib=0; i_atrib<attributesArray.length; i_atrib++)
+				cdns.push("<label for=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"estil-",i_condicio, "\">", GetMessage("Field"), ": </label>");
+				let tenimEstilEdicio = condicioEditar && condicioEditar.capa_clau && typeof condicioEditar.capa_clau.i_estil !== "undefined";
+				if (attributesArray.length>1)
 				{
-					cdns.push("<option value=\"",i_atrib,"\"",
-							((i_atrib==0) ? " selected=\"selected\"" : "") ,
-						">", DonaCadenaDescripcioAttribute(attributesArray[i_atrib], capa.attributes[attributesArray[i_atrib]], false), "</option>");
+					cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"estil-", i_condicio, "\" name=\"",(param.vull_operador? "" : "valor_"),"estil", i_condicio, "\" style=\"width:400px;\"");
+					if (param.vull_operador)
+						cdns.push(" onChange='CanviaOperadorValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value),", condicioEditar,");'");
+					cdns.push(">");				
+					for (var i_atrib=0; i_atrib<attributesArray.length; i_atrib++)
+					{
+						cdns.push("<option value=\"",i_atrib,"\"",
+								tenimEstilEdicio ? (condicioEditar.capa_clau.i_estil == i_atrib ? " selected" : "" ) : (i_atrib==0 ? " selected" : ""),
+							">", DonaCadenaDescripcioAttribute(attributesArray[i_atrib], capa.attributes[attributesArray[i_atrib]], false), "</option>");
+					}
+					cdns.push("</select>");
 				}
-				cdns.push("</select>");
+				else
+					cdns.push("<input type=\"hidden\" value=\"0\" id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"estil-", i_condicio, "\" name=\"",
+							(param.vull_operador? "": "valor_"),"estil", i_condicio, "\" />", DonaCadenaDescripcioAttribute(attributesArray[0], capa.attributes[attributesArray[0]], false));
+				cdns.push("<br>");
 			}
-			else
-				cdns.push("<input type=\"hidden\" value=\"0\" id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"estil-", i_condicio, "\" name=\"",
-						 (param.vull_operador? "": "valor_"),"estil", i_condicio, "\" />", DonaCadenaDescripcioAttribute(attributesArray[0], capa.attributes[attributesArray[0]], false));
-			cdns.push("<br>");
 		}
 	}
 	else
@@ -3079,10 +3102,17 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 			{
 				cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"estil-", i_condicio, "\" name=\"",(param.vull_operador? "" : "valor_"),"estil", i_condicio, "\" style=\"width:400px;\"");
 				if (param.vull_operador)
-					cdns.push(" onChange='CanviaOperadorValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value));'");
+					cdns.push(" onChange='CanviaOperadorValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value),", condicioEditar,");'");
 				else if (param.vull_valors)
-					cdns.push(" onChange='CanviaValorsValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value));'");
+					cdns.push(" onChange='CanviaValorsValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value),", condicioEditar,");'");
 				cdns.push(">");
+
+				let i_estil_seleccionat = capa.i_estil;
+				if (condicioEditar && condicioEditar.capa_clau && condicioEditar.capa_clau.i_estil!==undefined)
+				{
+					i_estil_seleccionat = condicioEditar.capa_clau.i_estil;
+				}
+
 				for (var i_estil=0; i_estil<capa.estil.length; i_estil++)
 				{
 					if (capa.estil[i_estil].component.length>1 /*||
@@ -3091,7 +3121,7 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 					if (param.nomes_categoric && !capa.estil[i_estil].categories)
 						continue;
 					cdns.push("<option value=\"",i_estil,"\"",
-							((i_estil==capa.i_estil) ? " selected=\"selected\"" : "") ,
+							((i_estil==i_estil_seleccionat) ? " selected" : "") ,
 						">", DonaCadena(capa.estil[i_estil].desc), "</option>");
 				}
 				cdns.push("</select>");
@@ -3104,13 +3134,13 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 	if (param.vull_operador)
 	{
 		cdns.push("<div id=\"", prefix_id, "-operador-valor-", i_condicio, "\">",
-			DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, (capa.model==model_vector?0:capa.i_estil)),
+			DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio,(capa.model==model_vector?0:capa.i_estil), condicioEditar),
 			"</div>");
 	}
 	else if (param.vull_valors)
 	{
 		cdns.push("<div id=\"", prefix_id, "-valor-valor-", i_condicio, "\">",
-			DonaCadenaValorsSeleccioCondicional(prefix_id, i_capa, i_condicio, capa.i_estil),
+			DonaCadenaValorsSeleccioCondicional(prefix_id, i_capa, i_condicio, capa.i_estil, condicioEditar),
 			"</div>");
 	}
 	return cdns.join("");
@@ -3128,7 +3158,7 @@ function ActivaCondicioSeleccioCondicional(prefix_id, i_condicio, estat)
 // param.vull_dates: Vull que es mostri el selector de dates si la capa és multitime
 // param.vull_dims: Vull que es mostrin els selectors de les dimensions extra si la capa en té
 
-function DonaCadenaCapaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, param)
+function DonaCadenaCapaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, condicioEditar, param)
 {
 var cdns=[], capa, nc, capa_def, origen_vector;
 
@@ -3149,7 +3179,7 @@ var cdns=[], capa, nc, capa_def, origen_vector;
 	cdns.push("<label for=\""+prefix_id+"-",(param.vull_operador? "": "valor-"),"capa-",i_condicio, "\">", GetMessage("Layer"), ":</label>");
 	if (nc.n_capa>1)
 	{
-		cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "" : "valor-"),"capa-",i_condicio,"\" name=\"",(param.vull_operador? "" : "valor_"),"capa", i_condicio, "\" style=\"width:400px;\" onChange='CanviaCondicioSeleccioCondicional(\"", prefix_id, "\", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "" : "valor-"),"capa-",i_condicio,"\").value), ",i_condicio, ", ", JSON.stringify(param), ");'>");
+		cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "" : "valor-"),"capa-",i_condicio,"\" name=\"",(param.vull_operador? "" : "valor_"),"capa", i_condicio, "\" style=\"width:400px;\" onChange='CanviaCondicioSeleccioCondicional(\"", prefix_id, "\", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "" : "valor-"),"capa-",i_condicio,"\").value), ",i_condicio, ", ", JSON.stringify(param), ");'>"); /*Cuidado amb onChange(...)*/
 		for (var i=0; i<ParamCtrl.capa.length; i++)
 		{
 			if(EsIndexCapaVolatil(i, ParamCtrl))
@@ -3176,7 +3206,20 @@ var cdns=[], capa, nc, capa_def, origen_vector;
 				continue;
 			if (param.nomes_categoric && !EsCapaAmbAlgunEstilAmbCategories(capa))
 				continue;
-			cdns.push("<option value=\"", i, "\"", (i_capa==i ? " selected=\"selected\"" : ""), ">", DonaCadena(capa.DescLlegenda), "</option>");
+			
+			let optionSelected = "";
+			if (condicioEditar)
+			{
+				if (condicioEditar.capa_clau && condicioEditar.capa_clau.i_capa && condicioEditar.capa_clau.i_capa==i)
+					optionSelected = " selected";
+			}
+			else
+			{
+				if (i_capa==i)
+					optionSelected = " selected";
+			}
+
+			cdns.push("<option value=\"", i, "\"", optionSelected, ">", DonaCadena(capa.DescLlegenda), "</option>");
 		}
 		cdns.push("</select>");
 	}
@@ -3186,7 +3229,7 @@ var cdns=[], capa, nc, capa_def, origen_vector;
 	if (i_capa>-1)
 	{
 		cdns.push("<div id=\"", prefix_id, "-",(param.vull_operador? "" : "capa-valor-"), i_condicio, "\">",
-			DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, param),
+			DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, condicioEditar,param),
 			"</div>");
 	}
 	return cdns.join("");
@@ -3211,29 +3254,45 @@ function CanviaNomNouEstilSeleccioCondicional(prefix_id, i_capa)
 
 var MaxCondicionsSeleccioCondicional=10;  //Podria ser configurable en un futur si cal
 
-function DonaCadenaSeleccioCondicional(prefix_id, i_capa)
+function DonaCadenaSeleccioCondicional(prefix_id, i_capa, i_estil)
 {
-var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null;
+var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null; // neteja de variables no utilitzades?
 
 	cdns.push("<form name=\"SeleccioCondicional\" onSubmit=\"return false;\">");
 	capa=ParamCtrl.capa[i_capa];
 	cdns.push("<div style=\"position:absolute; left:10px; top:10px;\">",
 			GetMessage("OnlyShowValuesOfLayer", "cntxmenu"), " \"",
 			DonaCadena(capa.DescLlegenda), "\"<br/>");
+	let condicioEditar;
+	
 	if (capa.estil && capa.estil.length)
 	{
+		if (i_estil!==null)
+		{
+			condicioEditar = JSON.parse(capa.estil[i_estil].seleccioCondicional);
+		}
 		if(capa.model==model_vector)
 			cdns.push("<label for=\"", prefix_id, "-estil\">", GetMessage("ofTheStyle", "cntxmenu"), ": </label>");
 		else
 			cdns.push("<label for=\"", prefix_id, "-estil\">", GetMessage("ofTheField", "cntxmenu"), ": </label>");
 		if (capa.estil.length>1)
 		{
-			cdns.push("<select id=\"", prefix_id, "-estil\" name=\"estil\" style=\"width:400px;\" onChange='CanviaNomNouEstilSeleccioCondicional(\"", prefix_id, "\",", i_capa, ");'>");
-			for (var i_estil=0; i_estil<capa.estil.length; i_estil++)
+			cdns.push("<select id=\"", prefix_id, "-estil\" name=\"estil\" style=\"width:400px;\"", (i_estil!==null)?" disable":" enabled", " onChange='CanviaNomNouEstilSeleccioCondicional(\"", prefix_id, "\",", i_capa, ");'>");
+			let i_estilSeleccionat;
+			if (condicioEditar!==undefined)
 			{
-				cdns.push("<option value=\"",i_estil,"\"",
-				    	((i_estil==capa.i_estil) ? " selected=\"selected\"" : "") ,
-					">", (DonaCadena(capa.estil[i_estil].desc)?DonaCadena(capa.estil[i_estil].desc): capa.estil[i_estil].nom), "</option>");
+				i_estilSeleccionat = condicioEditar.i_estil;
+			}
+			else
+			{
+				i_estilSeleccionat = capa.i_estil;
+			}
+
+			for (var actual_estil=0; actual_estil<capa.estil.length; actual_estil++)
+			{
+				cdns.push("<option value=\"",actual_estil,"\"",
+				    	((actual_estil==i_estilSeleccionat) ? " selected" : "") ,
+					">", (DonaCadena(capa.estil[actual_estil].desc)?DonaCadena(capa.estil[actual_estil].desc): capa.estil[actual_estil].nom), "</option>");
 			}
 			cdns.push("</select>");
 		}
@@ -3242,32 +3301,41 @@ var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null;
 		cdns.push("<br>");
 	}
 	cdns.push(GetMessage("thatConformFollowingConditions", "cntxmenu"), ":");
+	
+	let condicio;
 	for (var i_condicio=0; i_condicio<MaxCondicionsSeleccioCondicional; i_condicio++)
-	{
-		cdns.push("<span id=\"", prefix_id, "-nexe-", i_condicio, "\" class=\"Verdana11px\" style=\"display: "+((i_condicio==0) ? "inline" : "none")+"\"><fieldset><legend>",
+	{	
+		if (condicioEditar && condicioEditar.condicio && condicioEditar.condicio.length > i_condicio)
+		{
+			condicio = condicioEditar.condicio[i_condicio];
+		}
+		cdns.push("<span id=\"", prefix_id, "-nexe-", i_condicio, "\" class=\"Verdana11px\" style=\"display: "+((i_condicio==0 || typeof condicio !== "undefined") ? "inline" : "none")+"\"><fieldset><legend>",
 			GetMessage("Condition"), " ", i_condicio+1, ": </legend>",
-			DonaCadenaCapaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, {vull_operador: true, nomes_categoric: false, vull_valors: false, vull_dates: true, vull_dims: true}),
+			DonaCadenaCapaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, condicio, {vull_operador: true, nomes_categoric: false, vull_valors: false, vull_dates: true, vull_dims: true}),
 			"</fieldset>");
 		if (i_condicio<(MaxCondicionsSeleccioCondicional-1))
 		{
+			let tenimCondicioEdicio = typeof condicio !== "undefined";
+			let tenimNexe = tenimCondicioEdicio && typeof condicio.nexe !== "undefined";
+			
 			/*(Eventualment Un nexe... i altre cop el mateix)*/
 			cdns.push(GetMessage("NexusWithNextCondition", "cntxmenu"), ":",
-				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-none\" name=\"nexe",i_condicio, "\" value=\"\" checked=\"checked\" onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", false);' />", "<label for=\"", prefix_id, "-nexe-",i_condicio, "-none\">", GetMessage("none"), "</label>",
-				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-and\" name=\"nexe",i_condicio, "\" value=\"and\" onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", true);' />", "<label for=\"", prefix_id, "-nexe-",i_condicio, "-and\">", GetMessage("and"), "</label>",
-				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-or\" name=\"nexe",i_condicio, "\" value=\"or\" onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", true);' />",  "<label for=\"", prefix_id, "-nexe-",i_condicio, "-or\">", GetMessage("or"), "</label><br>");
+				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-none\" name=\"nexe",i_condicio, "\" value=\"\" ", tenimCondicioEdicio ? (tenimNexe ? "" : "checked ") : "checked ", "onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", false);' />", "<label for=\"", prefix_id, "-nexe-",i_condicio, "-none\">", GetMessage("none"), "</label>",
+				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-and\" name=\"nexe",i_condicio, "\" value=\"and\" ", (tenimCondicioEdicio && tenimNexe && condicio.nexe == "&&") ? "checked " : "", "onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", true);' />", "<label for=\"", prefix_id, "-nexe-",i_condicio, "-and\">", GetMessage("and"), "</label>",
+				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-or\" name=\"nexe",i_condicio, "\" value=\"or\" ", (condicioEditar && tenimNexe && condicio.nexe == "||") ? "checked " : "", "onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", true);' />",  "<label for=\"", prefix_id, "-nexe-",i_condicio, "-or\">", GetMessage("or"), "</label><br>");
 		}
 		cdns.push("</span>");
+		condicio = undefined; //Neteja de l'anterior condició.
 	}
 
 	cdns.push("<hr>",
 		GetMessage("TheResultOfSelectionAddedAsNewStyleWithName", "cntxmenu"),
-		" <input type=\"text\" name=\"nom_estil\" class=\"Verdana11px\" style=\"width:400px;\" value=\"",
-		DonaNomNouEstilSeleccioCondicional(prefix_id, i_capa, (capa.estil && capa.estil.length>1) ? capa.i_estil : 0),
+		" <input type=\"text\" name=\"nom_estil\" class=\"Verdana11px\" style=\"width:400px;\" value=\"", (condicioEditar && condicioEditar.nom_estil !== null) ? condicioEditar.nom_estil : DonaNomNouEstilSeleccioCondicional(prefix_id, i_capa, (capa.estil && capa.estil.length>1) ? capa.i_estil : 0),
 		"\" /><br/>",
 		GetMessage("toTheLayer", "cntxmenu"),
 		" \"", DonaCadena(capa.DescLlegenda), "\"<br/>",
 		"<input type=\"button\" class=\"Verdana11px\" value=\"",
-		GetMessage("OK"),
+		(condicioEditar) ? GetMessage("AcceptChanges", "cntxmenu") : GetMessage("OK"),
 	        "\" onClick='ComprovaISiCalCreaBandaSeleccioCondicional(\"", prefix_id, "\",", i_capa,",\"seleccioCondicional\");' />",
 		"</div></form>");
 	return cdns.join("");
@@ -3292,7 +3360,7 @@ var sel_condicional, capa;
 		}
 		else
 		{
-			descripcioEstilAtribut = DonaCadena(capa.attributes[Object.keys(capa.attributes)[capa_clau.i_estil]].description) ? DonaCadena(capa.attributes[Object.keys(capa.attributes)[capa_clau.i_estil]].description) : GetMessage("unknown");
+			descripcioEstilAtribut = (Object.keys(capa.attributes)).length ? (DonaCadena(capa.attributes[Object.keys(capa.attributes)[capa_clau.i_estil]].description) ? DonaCadena(capa.attributes[Object.keys(capa.attributes)[capa_clau.i_estil]].description) : GetMessage("unknown")) : GetMessage("unknown");
 		}
 		
 		var contingut_msg=GetMessage("SelectionAppliesToLayer","cntxmenu")+"\""+DonaCadena(capa.DescLlegenda)+"\""+
@@ -3310,17 +3378,17 @@ var sel_condicional, capa;
 	TancaFinestraLayer(nom_finestra);
 }
 
-function FinestraSeleccioCondicional(elem, i_capa)
+function FinestraSeleccioCondicional(elem, i_capa, i_estil)
 {
-	contentLayer(elem, DonaCadenaSeleccioCondicional("condicio-seleccio-condicional", i_capa));
+	contentLayer(elem, DonaCadenaSeleccioCondicional("condicio-seleccio-condicional", i_capa, i_estil));
 }
 
-function ObreFinestraSeleccioCondicional(i_capa)
+function ObreFinestraSeleccioCondicional(i_capa, i_estil = null)
 {
 var elem=ObreFinestra(window, "seleccioCondicional", GetMessage("ofQueryByAttributeSelectionByCondition", "cntxmenu"));
 	if (!elem)
 		return;
-	FinestraSeleccioCondicional(elem, i_capa);
+	FinestraSeleccioCondicional(elem, i_capa, i_estil);
 }
 
 function LlegeixParametresCondicioCapaDataEstil(prefix_id, prefix_condicio, i_condicio)
@@ -3449,7 +3517,7 @@ var cdns=[];
 		cdns.push(",");
 	if(ParamCtrl.capa[i_capa].model==model_vector)
 	{
-		attributesArray=Object.keys(ParamCtrl.capa[i_capa].attributes);
+		let attributesArray=Object.keys(ParamCtrl.capa[i_capa].attributes);
 		cdns.push("\"prop\": \"", (typeof i_valor!=="undefined" && i_valor!=null) ? attributesArray[i_valor] : "", "\"");
 	}
 	else
@@ -3599,6 +3667,8 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 
 	i_estil_nou=DuplicaEstilCapa(capa, sel_condicional.i_estil, sel_condicional.nom_estil);
 	estil=capa.estil[i_estil_nou];
+
+	guardarSeleccioCondicional(sel_condicional, i_capa, i_estil_nou);
 
 	// Inicio el contingut del fitxer .ipynb per al nou estil en format Open EO
 	iniciaJupytherNotebook(i_capa, i_estil_nou);
@@ -5502,4 +5572,12 @@ function generaIdCella()
 	}
 
 	return identificador;
+}
+
+function guardarSeleccioCondicional(condicio, i_capa, i_estil)
+{
+	if (i_capa && i_estil && condicio)
+	{
+		ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional = JSON.stringify(condicio); 
+	}
 }
