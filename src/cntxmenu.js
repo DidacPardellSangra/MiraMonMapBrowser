@@ -2906,7 +2906,7 @@ var estil_o_atrib;
 	}
 	else
 		estil_o_atrib=capa.estil[i_estil_o_atrib];
-	let tenimCondicioEdicio = typeof condicio !== "undefined";
+	let tenimCondicioEdicio = typeof condicioEditar !== "undefined";
 	let tenimOperadorEdicio = tenimCondicioEdicio && typeof condicioEditar.operador !== "undefined";
 	let tenimValorEdicio = tenimCondicioEdicio &&  typeof condicioEditar.valor !== "undefined";
 	let tenimCapaClauEdicio = tenimOperadorEdicio && typeof condicioEditar.capa_clau !== "undefined";
@@ -2979,7 +2979,7 @@ var estil_o_atrib;
 			if (estil_o_atrib.categories.length>1)
 			{
 				cdns.push("<select id=\"", prefix_id, "-valor-",i_condicio,"\" name=\"valor", i_condicio, "\" style=\"width:400px;\">",
-					DonaCadenaOpcionsCategories(estil_o_atrib.categories, estil_o_atrib.attributes, 0, sortCategoriesValueAscendent),
+					DonaCadenaOpcionsCategories(estil_o_atrib.categories, estil_o_atrib.attributes, tenimValorEdicio ? condicioEditar.valor : 0, sortCategoriesValueAscendent),
 					"</select>");
 			}
 			else
@@ -3134,7 +3134,7 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 	if (param.vull_operador)
 	{
 		cdns.push("<div id=\"", prefix_id, "-operador-valor-", i_condicio, "\">",
-			DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio,(capa.model==model_vector?0:capa.i_estil), condicioEditar),
+			DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, capa.i_estil, condicioEditar),
 			"</div>");
 	}
 	else if (param.vull_valors)
