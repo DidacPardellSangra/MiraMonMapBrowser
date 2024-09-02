@@ -2988,7 +2988,7 @@ var estil_o_atrib;
 		}
 		else
 		{
-			cdns.push("<input type=\"text\" id=\"", prefix_id, "-valor-",i_condicio,"\" name=\"valor", i_condicio, "\" style=\"width:400px;\" value=\"\" /><br>");
+			cdns.push("<input type=\"text\" id=\"", prefix_id, "-valor-",i_condicio,"\" name=\"valor", i_condicio, "\" style=\"width:400px;\" value=\"", tenimValorEdicio ? condicioEditar.valor : "","\" /><br>");
 			if (estil_o_atrib.component[0].estiramentPaleta && typeof estil_o_atrib.component[0].estiramentPaleta.valorMaxim!=="undefined" && typeof estil_o_atrib.component[0].estiramentPaleta.valorMinim!=="undefined")
 				cdns.push(GetMessage("RecommendedRangeOfValues", "cntxmenu"), ": [", estil_o_atrib.component[0].estiramentPaleta.valorMinim, ",", estil_o_atrib.component[0].estiramentPaleta.valorMaxim, "]");
 		}
@@ -3336,13 +3336,13 @@ var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null; // neteja de varia
 		" \"", DonaCadena(capa.DescLlegenda), "\"<br/>",
 		"<input type=\"button\" class=\"Verdana11px\" value=\"",
 		(condicioEditar) ? GetMessage("AcceptChanges", "cntxmenu") : GetMessage("OK"),
-	        "\" onClick='ComprovaISiCalCreaBandaSeleccioCondicional(\"", prefix_id, "\",", i_capa,",\"seleccioCondicional\");' />",
+	        "\" onClick='ComprovaISiCalCreaBandaSeleccioCondicional(\"", prefix_id, "\",", i_capa, ",\"seleccioCondicional\"", i_estil!==null ? `, ${i_estil}` : "", ");'/>",
 		"</div></form>");
 	return cdns.join("");
 }
 
 
-function ComprovaISiCalCreaBandaSeleccioCondicional(prefix_id, i_capa, nom_finestra)
+function ComprovaISiCalCreaBandaSeleccioCondicional(prefix_id, i_capa, nom_finestra, i_estil = null)
 {
 var sel_condicional, capa;
 
@@ -3374,7 +3374,7 @@ var sel_condicional, capa;
 		if(false==confirm(contingut_msg))
 			return;
 	}
-	CreaBandaSeleccioCondicional(prefix_id, i_capa);
+	CreaBandaSeleccioCondicional(prefix_id, i_capa, i_estil);
 	TancaFinestraLayer(nom_finestra);
 }
 
@@ -3656,7 +3656,7 @@ function DonaCadenaEstilCapaPerCalcul(i_capa_ref, i_capa, i_data, i_estil, dimen
 	}
 }
 
-function CreaBandaSeleccioCondicional(prefix_id, i_capa)
+function CreaBandaSeleccioCondicional(prefix_id, i_capa, i_estil)
 {
 var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, selectors=null, selector;
 
@@ -3787,6 +3787,14 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 				estil.component[i_c].selector=JSON.parse(JSON.stringify(selectors));
 		}
 	}
+
+	// Si tenim i_estil vol dir que estem editant un estil ja existent i per això borro l'original per no tenir duplicats
+	if (i_estil!==null)
+	{
+		let eliminat = capa.estil.splice(i_estil, 1);
+		console.log(eliminat)
+	}
+
 	if (capa.visible=="ara_no")
 		CanviaEstatCapa(i_capa, "visible");  //CreaLlegenda(); es fa a dins.
 	else
