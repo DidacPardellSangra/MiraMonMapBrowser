@@ -169,7 +169,7 @@ function CreaItemLlegDePaletaSiCal(i_capa, i_estil)
 {
 var capa=ParamCtrl.capa[i_capa];
 
-	if (!capa.estil)
+	if (!capa.estil || capa.i_estil>=capa.estil.length)
 		return;
 
 var estil=capa.estil[i_estil];
@@ -414,6 +414,9 @@ function DonaCadenaHTMLEstilItemLlegenda(i_capa, aspecte, flag)
 var cdns=[], cal_retorn=false;
 
 	var capa=ParamCtrl.capa[i_capa];
+	if (capa.i_estil>=capa.estil.length)
+		return;
+
 	var estil=capa.estil[capa.i_estil];
 	cdns.push(aspecte.PreviDescItems);
 	if (capa.model!=model_vector &&  capa.visible!="ara_no" &&
@@ -1017,7 +1020,7 @@ var salt_entre_columnes, cdns=[], capa, estil;
 			cdns.push("<tr>");
 		
 			//Icones de + o -:
-			if (capa.estil && capa.estil.length>0 && 
+			if (capa.estil && capa.estil.length>0 && capa.i_estil<capa.estil.length && 
 				(!capa.grup || !(ParamCtrl.LlegendaGrupsComARadials) || (capa.visible!="no" && capa.visible!="ara_no")) &&
 				!EsCapaInactivaGrisALaLlegenda(capa) &&
 				((capa.estil[capa.i_estil].ItemLleg && capa.estil[capa.i_estil].ItemLleg.length>1) || (capa.estil[capa.i_estil].nItemLlegAuto && capa.estil[capa.i_estil].nItemLlegAuto>1)))
@@ -1185,7 +1188,7 @@ var salt_entre_columnes, cdns=[], capa, estil;
 		CreaItemLlegDePaletaSiCal(i_capa, capa.i_estil);
 
 		//Icona o color general per tota la capa en cas de simbol únic.
-		if (capa.estil && capa.estil.length && capa.estil[capa.i_estil].ItemLleg && 
+		if (capa.estil && capa.i_estil<capa.estil.length && capa.estil[capa.i_estil].ItemLleg && 
 			capa.estil[capa.i_estil].ItemLleg.length==1 &&
 			!EsCapaInactivaGrisALaLlegenda(capa))
 			cdns.push(DonaCadenaHTMLSimbolUnicLlegenda(capa.estil[capa.i_estil]));

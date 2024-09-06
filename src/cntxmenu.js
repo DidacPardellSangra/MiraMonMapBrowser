@@ -547,8 +547,8 @@ let fitxerOpenEO, seleccioCondicional;
 		}
 		if (seleccioCondicional && typeof seleccioCondicional.i_capa === "number" && typeof seleccioCondicional.i_estil === "number")
 		{
-			cdns.push('<a class=\'unmenu\' href=\'javascript:void(0);\' onClick=\'ObreFinestraSeleccioCondicional(', i_capa, ',', i_estil,');TancaContextMenuCapa();\'>',
-							GetMessage("EditConditionalSelection", "cntxmenu"), '</a><br>');
+			cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraSeleccioCondicional(", i_capa, ",", i_estil,");TancaContextMenuCapa();\">",
+							GetMessage("EditConditionalSelection", "cntxmenu"), "</a><br>");
 		}
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"EsborrarEstilCapa(", i_capa,",", i_estil,");TancaContextMenuCapa();\">",
 							GetMessage("DeleteStyle", "cntxmenu"), "</a>");
@@ -2958,18 +2958,25 @@ var estil_o_atrib;
 			// pensar de fer una funció específica per nombres si acabo posant tipus als attributes
 			valors_atrib.sort(sortAscendingStringSensible);
 			valors_atrib.removeDuplicates(sortAscendingStringSensible);
-
+			let indexSelected = 0;
 			if(valors_atrib.length>0)
 			{
 				cdns.push("<select id=\"", prefix_id, "-valor-select-",i_condicio,"\" name=\"valor-select", i_condicio,
 						  "\" style=\"width:360px;\" onChange='CanviaValorSeleccionatSeleccioCondicional(\"",prefix_id,"\", ", i_condicio,");'>");
+				let isSelected = false;
 				for (i_valor = 0; i_valor < valors_atrib.length; i_valor++)
 				{
-					cdns.push("<option value=\"",i_valor,"\"",(tenimValorEdicio ? (condicioEditar.valor == valors_atrib[i_valor] ? " selected=\"selected\"" : "") : (i_valor == 0 ? " selected=\"selected\"" : "")),">", valors_atrib[i_valor], "</option>");
+					if (tenimValorEdicio && (condicioEditar.valor == valors_atrib[i_valor]))
+					{
+						isSelected = true;
+						indexSelected = i_valor;
+					}
+					cdns.push("<option value=\"",i_valor,"\"",(!tenimValorEdicio ? (i_valor == 0 ? " selected=\"selected\"" : "") : (isSelected ? " selected=\"selected\"" : "")),">", valors_atrib[i_valor], "</option>");
+					isSelected = false;
 				}
 				cdns.push("</select><br>");
 			}
-			cdns.push("<input type=\"text\" id=\"", prefix_id, "-valor-",i_condicio,"\" name=\"valor", i_condicio, "\" style=\"width:400px;\" value=\"", (valors_atrib.length>0)? valors_atrib[0]: "", "\"><br>");
+			cdns.push("<input type=\"text\" id=\"", prefix_id, "-valor-",i_condicio,"\" name=\"valor", i_condicio, "\" style=\"width:400px;\" value=\"", (valors_atrib.length> indexSelected)? valors_atrib[indexSelected]: "", "\"><br>");
 		}
 	}
 	else
@@ -3134,7 +3141,7 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 	if (param.vull_operador)
 	{
 		cdns.push("<div id=\"", prefix_id, "-operador-valor-", i_condicio, "\">",
-			DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, capa.i_estil, condicioEditar),
+			DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, (typeof condicioEditar !== "undefined" && condicioEditar.capa_clau !== "undefined" && condicioEditar.capa_clau.i_estil !== "undefined") ? condicioEditar.capa_clau.i_estil : capa.i_estil, condicioEditar),
 			"</div>");
 	}
 	else if (param.vull_valors)
@@ -3664,10 +3671,17 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 	
 	//Crea un nou estil
 	capa=ParamCtrl.capa[i_capa];
-
-	i_estil_nou=DuplicaEstilCapa(capa, sel_condicional.i_estil, sel_condicional.nom_estil);
-	estil=capa.estil[i_estil_nou];
-
+	// Si estem en edició del l'estil actual no el dupliquem, modifiquem l'existent.
+	if (i_estil==null)
+	{
+		i_estil_nou=DuplicaEstilCapa(capa, sel_condicional.i_estil, sel_condicional.nom_estil);
+	}
+	else
+	{
+		i_estil_nou=sel_condicional.i_estil;
+	}
+		estil=capa.estil[i_estil_nou];
+	
 	guardarSeleccioCondicional(sel_condicional, i_capa, i_estil_nou);
 
 	// Inicio el contingut del fitxer .ipynb per al nou estil en format Open EO
