@@ -905,7 +905,7 @@ function GUFCarregaFeedbackAnteriorCallback(doc, extra_param) {
         cdns.push('<div style="flex: 3; text-align: justify;">' + guf.abstract + '<br>');
         if (guf.user_comment && guf.user_comment.comment) 
 		{
-            var comment = guf.user_comment.comment;
+	        var comment = guf.user_comment.comment;
             if (comment.length > 100) 
 			{
                 var truncatedComment = comment.substring(0, 100);
@@ -1117,6 +1117,8 @@ var targets;
 	if (GUFFeedbackWindow==null || GUFFeedbackWindow.closed)
 	{
 		var url=GUFDonaNomFitxerAddFeedbackMutipleTargets(targets, lang, access_token_type, reprod_usage);
+		if (!url)
+			return;
 		GUFFeedbackWindow=window.open(url,"Feedback", Opcions_GUFFeedbackWindow);
 		GUFShaObertPopUp(GUFFeedbackWindow, lang);
 	}
