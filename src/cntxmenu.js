@@ -2948,7 +2948,7 @@ var estil_o_atrib;
 			for (i_obj=0; i_obj<capa.objectes.features.length; i_obj++)
 			{
 				feature=capa.objectes.features[i_obj];
-				if (typeof feature.properties[attribute_name]==="undefined" ||
+				if (typeof feature.properties === "undefined" || typeof feature.properties[attribute_name]==="undefined" ||
 		    		feature.properties[attribute_name]=="" ||
 					feature.properties[attribute_name]==null)
 					continue;
@@ -3109,9 +3109,9 @@ var cdns=[], capa=ParamCtrl.capa[i_capa];
 			{
 				cdns.push("<select id=\"", prefix_id, "-",(param.vull_operador? "": "valor-"),"estil-", i_condicio, "\" name=\"",(param.vull_operador? "" : "valor_"),"estil", i_condicio, "\" style=\"width:400px;\"");
 				if (param.vull_operador)
-					cdns.push(" onChange='CanviaOperadorValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value),", condicioEditar,");'");
+					cdns.push(" onChange='CanviaOperadorValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value),", JSON.stringify(condicioEditar),");'");
 				else if (param.vull_valors)
-					cdns.push(" onChange='CanviaValorsValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value),", condicioEditar,");'");
+					cdns.push(" onChange='CanviaValorsValorSeleccioCondicional(\"", prefix_id, "\", ", i_capa, ", ", i_condicio, ", parseInt(document.getElementById(\"", prefix_id, "-",(param.vull_operador? "": "valor-"), "estil-", i_condicio, "\").value),", JSON.stringify(condicioEditar),");'");
 				cdns.push(">");
 
 				let i_estil_seleccionat = capa.i_estil;
@@ -3261,7 +3261,7 @@ function CanviaNomNouEstilSeleccioCondicional(prefix_id, i_capa)
 
 var MaxCondicionsSeleccioCondicional=10;  //Podria ser configurable en un futur si cal
 
-function DonaCadenaSeleccioCondicional(prefix_id, i_capa, i_estil)
+function DonaCadenaSeleccioCondicional(prefix_id, i_capa, i_estil_ed)
 {
 var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null; // neteja de variables no utilitzades?
 
@@ -3270,13 +3270,13 @@ var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null; // neteja de varia
 	cdns.push("<div style=\"position:absolute; left:10px; top:10px;\">",
 			GetMessage("OnlyShowValuesOfLayer", "cntxmenu"), " \"",
 			DonaCadena(capa.DescLlegenda), "\"<br/>");
-	let condicioEditar;
+	let selCondicionalEditar;
 	
 	if (capa.estil && capa.estil.length)
 	{
-		if (i_estil!==null)
+		if (i_estil_ed!==null)
 		{
-			condicioEditar = JSON.parse(capa.estil[i_estil].seleccioCondicional);
+			selCondicionalEditar = JSON.parse(capa.estil[i_estil_ed].seleccioCondicional);
 		}
 		if(capa.model==model_vector)
 			cdns.push("<label for=\"", prefix_id, "-estil\">", GetMessage("ofTheStyle", "cntxmenu"), ": </label>");
@@ -3284,11 +3284,11 @@ var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null; // neteja de varia
 			cdns.push("<label for=\"", prefix_id, "-estil\">", GetMessage("ofTheField", "cntxmenu"), ": </label>");
 		if (capa.estil.length>1)
 		{
-			cdns.push("<select id=\"", prefix_id, "-estil\" name=\"estil\" style=\"width:400px;\"", (i_estil!==null)?" disable":" enabled", " onChange='CanviaNomNouEstilSeleccioCondicional(\"", prefix_id, "\",", i_capa, ");'>");
+			cdns.push("<select id=\"", prefix_id, "-estil\" name=\"estil\" style=\"width:400px;\"", (i_estil_ed!==null)?" disabled":" enabled", " onChange='CanviaNomNouEstilSeleccioCondicional(\"", prefix_id, "\",", i_capa, ");'>");
 			let i_estilSeleccionat;
-			if (condicioEditar!==undefined)
+			if (selCondicionalEditar!==undefined)
 			{
-				i_estilSeleccionat = condicioEditar.i_estil;
+				i_estilSeleccionat = selCondicionalEditar.i_estil;
 			}
 			else
 			{
@@ -3312,9 +3312,9 @@ var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null; // neteja de varia
 	let condicio;
 	for (var i_condicio=0; i_condicio<MaxCondicionsSeleccioCondicional; i_condicio++)
 	{	
-		if (condicioEditar && condicioEditar.condicio && condicioEditar.condicio.length > i_condicio)
+		if (selCondicionalEditar && selCondicionalEditar.condicio && selCondicionalEditar.condicio.length > i_condicio)
 		{
-			condicio = condicioEditar.condicio[i_condicio];
+			condicio = selCondicionalEditar.condicio[i_condicio];
 		}
 		cdns.push("<span id=\"", prefix_id, "-nexe-", i_condicio, "\" class=\"Verdana11px\" style=\"display: "+((i_condicio==0 || typeof condicio !== "undefined") ? "inline" : "none")+"\"><fieldset><legend>",
 			GetMessage("Condition"), " ", i_condicio+1, ": </legend>",
@@ -3329,7 +3329,7 @@ var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null; // neteja de varia
 			cdns.push(GetMessage("NexusWithNextCondition", "cntxmenu"), ":",
 				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-none\" name=\"nexe",i_condicio, "\" value=\"\" ", tenimCondicioEdicio ? (tenimNexe ? "" : "checked ") : "checked ", "onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", false);' />", "<label for=\"", prefix_id, "-nexe-",i_condicio, "-none\">", GetMessage("none"), "</label>",
 				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-and\" name=\"nexe",i_condicio, "\" value=\"and\" ", (tenimCondicioEdicio && tenimNexe && condicio.nexe == "&&") ? "checked " : "", "onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", true);' />", "<label for=\"", prefix_id, "-nexe-",i_condicio, "-and\">", GetMessage("and"), "</label>",
-				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-or\" name=\"nexe",i_condicio, "\" value=\"or\" ", (condicioEditar && tenimNexe && condicio.nexe == "||") ? "checked " : "", "onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", true);' />",  "<label for=\"", prefix_id, "-nexe-",i_condicio, "-or\">", GetMessage("or"), "</label><br>");
+				"<input type=\"radio\" id=\"", prefix_id, "-nexe-",i_condicio, "-or\" name=\"nexe",i_condicio, "\" value=\"or\" ", (selCondicionalEditar && tenimNexe && condicio.nexe == "||") ? "checked " : "", "onClick='ActivaCondicioSeleccioCondicional(\"", prefix_id, "\", ", i_condicio+1, ", true);' />",  "<label for=\"", prefix_id, "-nexe-",i_condicio, "-or\">", GetMessage("or"), "</label><br>");
 		}
 		cdns.push("</span>");
 		condicio = undefined; //Neteja de l'anterior condició.
@@ -3337,23 +3337,25 @@ var cdns=[], consulta, nexe, capa, primer_i_estil_valid=null; // neteja de varia
 
 	cdns.push("<hr>",
 		GetMessage("TheResultOfSelectionAddedAsNewStyleWithName", "cntxmenu"),
-		" <input type=\"text\" name=\"nom_estil\" class=\"Verdana11px\" style=\"width:400px;\" value=\"", (condicioEditar && condicioEditar.nom_estil !== null) ? condicioEditar.nom_estil : DonaNomNouEstilSeleccioCondicional(prefix_id, i_capa, (capa.estil && capa.estil.length>1) ? capa.i_estil : 0),
+		" <input type=\"text\" name=\"nom_estil\" class=\"Verdana11px\" style=\"width:400px;\" value=\"", (selCondicionalEditar && selCondicionalEditar.nom_estil !== null) ? selCondicionalEditar.nom_estil : DonaNomNouEstilSeleccioCondicional(prefix_id, i_capa, (capa.estil && capa.estil.length>1) ? capa.i_estil : 0),
 		"\" /><br/>",
 		GetMessage("toTheLayer", "cntxmenu"),
 		" \"", DonaCadena(capa.DescLlegenda), "\"<br/>",
 		"<input type=\"button\" class=\"Verdana11px\" value=\"",
-		(condicioEditar) ? GetMessage("AcceptChanges", "cntxmenu") : GetMessage("OK"),
-	        "\" onClick='ComprovaISiCalCreaBandaSeleccioCondicional(\"", prefix_id, "\",", i_capa, ",\"seleccioCondicional\"", i_estil!==null ? `, ${i_estil}` : "", ");'/>",
+		(selCondicionalEditar) ? GetMessage("AcceptChanges", "cntxmenu") : GetMessage("OK"),
+	        "\" onClick='ComprovaISiCalCreaBandaSeleccioCondicional(\"", prefix_id, "\",", i_capa, ",\"seleccioCondicional\"", i_estil_ed!==null ? `, ${i_estil_ed}` : "", ");'/>",
 		"</div></form>");
 	return cdns.join("");
 }
 
-
-function ComprovaISiCalCreaBandaSeleccioCondicional(prefix_id, i_capa, nom_finestra, i_estil = null)
+/* L'absència de valor al paràmetre i_estil_ed implica que estem en procés de crear un nou estil, 
+	del contrari implica que estem editant un estil previament creat per nosaltres mateixos.
+*/
+function ComprovaISiCalCreaBandaSeleccioCondicional(prefix_id, i_capa, nom_finestra, i_estil_ed = null)
 {
 var sel_condicional, capa;
 
-	var sel_condicional=LlegeixParametresSeleccioCondicional(prefix_id, i_capa);
+	var sel_condicional=LlegeixParametresSeleccioCondicional(prefix_id, i_capa, i_estil_ed);
 	capa=ParamCtrl.capa[i_capa];
 	if(sel_condicional.condicio && sel_condicional.condicio[0].capa_clau && i_capa==sel_condicional.condicio[0].capa_clau.i_capa && 
 		capa.estil && sel_condicional.i_estil!=sel_condicional.condicio[0].capa_clau.i_estil)
@@ -3381,24 +3383,24 @@ var sel_condicional, capa;
 		if(false==confirm(contingut_msg))
 			return;
 	}
-	CreaBandaSeleccioCondicional(prefix_id, i_capa, i_estil);
+	CreaBandaSeleccioCondicional(prefix_id, i_capa, i_estil_ed);
 	TancaFinestraLayer(nom_finestra);
 }
 
-function FinestraSeleccioCondicional(elem, i_capa, i_estil)
+function FinestraSeleccioCondicional(elem, i_capa, i_estil_ed)
 {
-	contentLayer(elem, DonaCadenaSeleccioCondicional("condicio-seleccio-condicional", i_capa, i_estil));
+	contentLayer(elem, DonaCadenaSeleccioCondicional("condicio-seleccio-condicional", i_capa, i_estil_ed));
 }
 
-function ObreFinestraSeleccioCondicional(i_capa, i_estil = null)
+function ObreFinestraSeleccioCondicional(i_capa, i_estil_ed = null)
 {
 var elem=ObreFinestra(window, "seleccioCondicional", GetMessage("ofQueryByAttributeSelectionByCondition", "cntxmenu"));
 	if (!elem)
 		return;
-	FinestraSeleccioCondicional(elem, i_capa, i_estil);
+	FinestraSeleccioCondicional(elem, i_capa, i_estil_ed);
 }
 
-function LlegeixParametresCondicioCapaDataEstil(prefix_id, prefix_condicio, i_condicio)
+function LlegeixParametresCondicioCapaDataEstil(prefix_id, prefix_condicio, i_condicio, i_estil_ed=null)
 {
 var condicio_capa={}, elem;
 	condicio_capa.i_capa=parseInt(document.getElementById(prefix_id + prefix_condicio + "-capa-" + i_condicio).value);
@@ -3432,17 +3434,29 @@ var condicio_capa={}, elem;
 	}
 	if(capa.model==model_vector)
 	{
-		if (capa.attributes)
+		if (i_estil_ed)
 		{
-			var attributesArray=Object.keys(capa.attributes);
-			if (attributesArray.length)
-				condicio_capa.i_estil=parseInt(document.getElementById(prefix_id + prefix_condicio + "-estil-" + i_condicio).value);
+			condicio_capa.i_estil=i_estil_ed;
 		}
+		else
+		{
+			if (capa.attributes)
+			{
+				var attributesArray=Object.keys(capa.attributes);
+				if (attributesArray.length)
+					condicio_capa.i_estil=parseInt(document.getElementById(prefix_id + prefix_condicio + "-estil-" + i_condicio).value);
+			}
+		}
+	
 	}
 	else
 	{
 		if (capa.estil && capa.estil.length)
+		{
 			condicio_capa.i_estil=parseInt(document.getElementById(prefix_id + prefix_condicio + "-estil-" + i_condicio).value);
+			if (capa.estil[condicio_capa.i_estil] && capa.estil[condicio_capa.i_estil].component.length && capa.estil[condicio_capa.i_estil].component[0].FormulaConsulta)
+				condicio_capa.formulaCondicioOriginal = capa.estil[condicio_capa.i_estil].component[0].FormulaConsulta;
+		}
 	}
 	return condicio_capa;
 }
@@ -3453,7 +3467,7 @@ var condicio_capa={}, elem;
 	var capa=ParamCtrl.capa[condicio.valor_i_capa];
 	if (capa.AnimableMultiTime && capa.data && capa.data.length)
 	{
-		var i_time=parseInt(document.getElementById(prefix_id + "-valor-data-" + i_condicio).value;
+		var i_time=parseInt(document.getElementById(prefix_id + "-valor-data-" + i_condicio).value);
 		if (!isNaN(i_time) && i_time!=null)
 			condicio.valor_i_data=i_time;
 	}
@@ -3461,23 +3475,22 @@ var condicio_capa={}, elem;
 		condicio.valor_i_estil=parseInt(document.getElementById(prefix_id + "-valor-estil-" + i_condicio).value);
 }*/
 
-function LlegeixParametresSeleccioCondicional(prefix_id, i_capa)
+function LlegeixParametresSeleccioCondicional(prefix_id, i_capa, i_estil_ed = null)
 {
 var sel_condicional={}, condicio, radials;
 
 	sel_condicional.i_capa=i_capa;
-	var capa=ParamCtrl.capa[i_capa];
-	if (capa.estil && capa.estil.length)
-		sel_condicional.i_estil=parseInt(document.getElementById(prefix_id+"-estil").value);  //No sé perquè en IE no funciona la manera clàssica.
+	sel_condicional.i_estil=parseInt(document.getElementById(prefix_id+"-estil").value);  //No sé perquè en IE no funciona la manera clàssica.+
+	
 	sel_condicional.nom_estil=document.SeleccioCondicional.nom_estil.value;
-	sel_condicional.condicio=[];		
+	sel_condicional.condicio=[];
 	
 	for (var i_condicio=0; i_condicio<MaxCondicionsSeleccioCondicional; i_condicio++)
 	{
 		sel_condicional.condicio[i_condicio]={};
 		condicio=sel_condicional.condicio[i_condicio];
 
-		condicio.capa_clau=LlegeixParametresCondicioCapaDataEstil(prefix_id, "", i_condicio);
+		condicio.capa_clau=LlegeixParametresCondicioCapaDataEstil(prefix_id, "", i_condicio, i_estil_ed);
 
 		radials=document.SeleccioCondicional["cc"+i_condicio];
 		if (radials)
@@ -3551,7 +3564,7 @@ var cdns=[];
 	return cdns.join("");
 }
 
-function DonaCadenaEstilCapaPerCalcul(i_capa_ref, i_capa, i_data, i_estil, dimensions)
+function DonaCadenaEstilCapaPerCalcul(i_capa_ref, i_capa, i_data, i_estil, dimensions, formulaConsultaGuardada)
 {
 	if(ParamCtrl.capa[i_capa].model==model_vector)
 	{
@@ -3610,6 +3623,18 @@ function DonaCadenaEstilCapaPerCalcul(i_capa_ref, i_capa, i_data, i_estil, dimen
 	{
 		var component_sel=ParamCtrl.capa[i_capa].estil[i_estil].component[0], s_patro, i;
 
+		if (typeof formulaConsultaGuardada!=="undefined" && formulaConsultaGuardada!=null)
+			{
+				var valors=ParamCtrl.capa[i_capa].valors;
+				var s=formulaConsultaGuardada;
+				for (var i_valor=0; i_valor<valors.length; i_valor++)
+				{
+					s_patro="v["+i_valor+"]";
+					while ((i=s.indexOf(s_patro))!=-1)
+						s=s.substring(0, i)+DonaReferenciaACapaPerCalcul(i_capa_ref, i_capa, i_valor, i_data, dimensions)+s.substring(i+s_patro.length);
+				}
+				return "("+ s +")";
+			}
 		if (typeof component_sel.calcul!=="undefined")
 			//return (i_capa_ref==i_capa) ? component_sel.calcul : AfegeixIcapaACalcul(component_sel.calcul, i_capa, i_estil);
 		{
@@ -3667,7 +3692,7 @@ function CreaBandaSeleccioCondicional(prefix_id, i_capa, i_estil)
 {
 var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, selectors=null, selector;
 
-	sel_condicional=LlegeixParametresSeleccioCondicional(prefix_id, i_capa);
+	sel_condicional=LlegeixParametresSeleccioCondicional(prefix_id, i_capa, i_estil);
 	
 	//Crea un nou estil
 	capa=ParamCtrl.capa[i_capa];
@@ -3675,13 +3700,28 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 	if (i_estil==null)
 	{
 		i_estil_nou=DuplicaEstilCapa(capa, sel_condicional.i_estil, sel_condicional.nom_estil);
+		// Guardo l'índex de l'estil resultant d'aquesta nova selecció condicional.
+		sel_condicional.i_estil_resultantSelCond = i_estil_nou;
+		if (capa.estil[sel_condicional.i_estil].component && capa.estil[sel_condicional.i_estil].component.length && capa.estil[sel_condicional.i_estil].component[0].FormulaConsulta)
+			sel_condicional.formulaConsultaOriginal = capa.estil[sel_condicional.i_estil].component[0].FormulaConsulta;
 	}
 	else
 	{
-		i_estil_nou=sel_condicional.i_estil;
+		let seleccioCondicional;
+		if (i_estil < ParamCtrl.capa[i_capa].estil.length && ParamCtrl.capa[i_capa].estil[i_estil] && ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional)
+		{
+			seleccioCondicional = JSON.parse(ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional);
+			// Transfereixo l'índex de l'estil que s'està editant per a guardar-lo a la nova estructura de la selecció feta durant l'edició.
+			sel_condicional.i_estil_resultantSelCond = seleccioCondicional.i_estil_resultantSelCond;
+			sel_condicional.formulaConsultaOriginal = seleccioCondicional.formulaConsultaOriginal;
+			i_estil_nou = seleccioCondicional.i_estil_resultantSelCond;
+			// Guardem el nou títol de l'estil
+			capa.estil[i_estil_nou].id=sel_condicional.nom_estil;
+			capa.estil[i_estil_nou].desc=sel_condicional.nom_estil;
+		}
 	}
-		estil=capa.estil[i_estil_nou];
-	
+	estil=capa.estil[i_estil_nou];
+
 	guardarSeleccioCondicional(sel_condicional, i_capa, i_estil_nou);
 
 	// Inicio el contingut del fitxer .ipynb per al nou estil en format Open EO
@@ -3692,12 +3732,19 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 		calcul="(";
 	else
 		calcul="";
+
+	if (i_estil!=null && typeof ParamCtrl.capa[i_capa].estil[i_estil_nou].component !== "undefined")
+	{
+		let component = ParamCtrl.capa[i_capa].estil[i_estil_nou].component[0];
+		delete component.calcul;
+	}
+
 	for (var i_condicio=0; i_condicio<sel_condicional.condicio.length; i_condicio++)
 	{
 		condicio=sel_condicional.condicio[i_condicio];
 
 		// Quan la capa és un vector sel_condicional.condicio[i_condicio].capa_clau.i_estil és l'índex del attribute i no de l'estil
-		let capaPerCalcul = DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim);
+		let capaPerCalcul = DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim, condicio.capa_clau.formulaCondicioOriginal);
 
 		transformaAOperacionsOpenEO(i_capa, i_estil_nou, condicio, capaPerCalcul);
 		
@@ -3756,7 +3803,6 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 	{
 		// Creo un attribute nou que contindrà el càlcul
 		var attributesArray=Object.keys(capa.attributes);
-		//var i_atrib_nou=attributesArray.length;
 		var i=0, index=0, nom_proposat=sel_condicional.nom_estil.replaceAll(' ', '_');
 
 		while(i<attributesArray.length)
@@ -3785,14 +3831,20 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 				if (estil.component[i_c].FormulaConsulta)
 					delete estil.component[i_c].FormulaConsulta;
 			}
-			else if (typeof estil.component[i_c].FormulaConsulta!=="undefined" && estil.component[i_c].FormulaConsulta!=null)
+			else if ((typeof estil.component[i_c].FormulaConsulta!=="undefined" && estil.component[i_c].FormulaConsulta!=null) || (i_estil != null && typeof sel_condicional.formulaConsultaOriginal !=="undefined" && sel_condicional.formulaConsultaOriginal != null))
 			{
-				estil.component[i_c].calcul=calcul + "("+estil.component[i_c].FormulaConsulta+")";
+				if (typeof sel_condicional.formulaConsultaOriginal !== "undefined" && sel_condicional.formulaConsultaOriginal != null)
+				{
+					estil.component[i_c].calcul=calcul + "("+sel_condicional.formulaConsultaOriginal+")";
+				}
+				else
+				{
+					estil.component[i_c].calcul=calcul + "("+estil.component[i_c].FormulaConsulta+")";
+				}
 				delete estil.component[i_c].FormulaConsulta;
 			}
-			else //if (typeof estil.component[i_c].i_valor!=="undefined")
+			else
 			{
-				//estil.component[i_c].calcul=calcul + "v["+estil.component[i_c].i_valor+"]";
 				estil.component[i_c].calcul=calcul + "{\"i_valor\": "+estil.component[i_c].i_valor+"}";
 				delete estil.component[i_c].i_valor;
 			}
@@ -3802,20 +3854,13 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 		}
 	}
 
-	// Si tenim i_estil vol dir que estem editant un estil ja existent i per això borro l'original per no tenir duplicats
-	if (i_estil!==null)
-	{
-		let eliminat = capa.estil.splice(i_estil, 1);
-		console.log(eliminat)
-	}
-
 	if (capa.visible=="ara_no")
 		CanviaEstatCapa(i_capa, "visible");  //CreaLlegenda(); es fa a dins.
 	else
 		CreaLlegenda();
 
 	//Defineix el nou estil com estil actiu
-	CanviaEstilCapa(i_capa, i_estil_nou, false);
+	CanviaEstilCapa(i_capa, i_estil_nou, true);
 }
 
 function ObreFinestraCombinacioRGB(i_capa)
@@ -5596,10 +5641,10 @@ function generaIdCella()
 	return identificador;
 }
 
-function guardarSeleccioCondicional(condicio, i_capa, i_estil)
+function guardarSeleccioCondicional(selCondicional, i_capa, i_estil)
 {
-	if (i_capa && i_estil && condicio)
+	if (i_capa && i_estil && selCondicional)
 	{
-		ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional = JSON.stringify(condicio); 
+		ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional = JSON.stringify(selCondicional); 
 	}
 }

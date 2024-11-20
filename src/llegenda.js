@@ -845,7 +845,9 @@ var cdns=[], capa=ParamCtrl.capa[i_capa], n_col_carac;
 									"<td valign=\"middle\">");
 								if (isLayer(window, "menuContextualCapa"))
 									cdns.push("<a href=\"javascript:void(0);\" style=\"cursor:context-menu;\" onClick=\"OmpleLayerContextMenuEstil(event,", i_capa, ",", l,");\" onContextMenu=\"return OmpleLayerContextMenuEstil(event,", i_capa, ",", l,");\">");
-								cdns.push((EsCapaInactivaGrisALaLlegenda(capa) && aspecte.PreviDescEstilGris) ? aspecte.PreviDescEstilGris : aspecte.PreviDescEstil, DonaCadenaNomDesc(capa.estil[l]) , (EsCapaInactivaGrisALaLlegenda(capa) && aspecte.PostDescEstilGris) ? aspecte.PostDescEstilGris : aspecte.PostDescEstil);
+								cdns.push((EsCapaInactivaGrisALaLlegenda(capa) && aspecte.PreviDescEstilGris) ? aspecte.PreviDescEstilGris : aspecte.PreviDescEstil,
+									DonaCadenaNomDesc(capa.estil[l]),
+									(EsCapaInactivaGrisALaLlegenda(capa) && aspecte.PostDescEstilGris) ? aspecte.PostDescEstilGris : aspecte.PostDescEstil);
 								cdns.push("</a>");
 								cdns.push("</td>");
 							}
@@ -859,7 +861,8 @@ var cdns=[], capa=ParamCtrl.capa[i_capa], n_col_carac;
 				else
 				{
 					cdns.push("<td valign=\"middle\" colspan=\"3\">" ,
-						(EsCapaInactivaGrisALaLlegenda(capa) && aspecte.PreviDescEstilGris) ? aspecte.PreviDescEstilGris : aspecte.PreviDescEstil, (DonaCadenaNomDesc(capa.estil[capa.i_estil])),
+						(EsCapaInactivaGrisALaLlegenda(capa) && aspecte.PreviDescEstilGris) ? aspecte.PreviDescEstilGris : aspecte.PreviDescEstil,
+						(DonaCadenaNomDesc(capa.estil[capa.i_estil])),
 						(EsCapaInactivaGrisALaLlegenda(capa) && aspecte.PostDescEstilGris) ? aspecte.PostDescEstilGris : aspecte.PostDescEstil, "</td>");
 				}
 				cdns.push("</tr>");
@@ -1719,6 +1722,12 @@ function CanviaEstatLlegendaRadioEstil(i_capa, i_estil, repinta_si_mateix_estil,
 		document.getElementById("e_raster_vector"+i_capa+"_"+i_estil).src=AfegeixAdrecaBaseSRC((marcat) ? "radio.gif" : "ara_no_radio.gif");
 }
 
+/**
+ * Params:
+ * 	i_capa: Capa a la qual pertany l'estil activat
+ * 	i_estil: indica l'estil que quedarà actiu a la llegenda
+ *	repinta_si_mateix_estil: boolea que decideix si cal repintar encara que no canviem d'estil
+ * */
 function CanviaEstilCapa(i_capa, i_estil, repinta_si_mateix_estil)
 {
 var redibuixar_llegenda=false, capa=ParamCtrl.capa[i_capa];
