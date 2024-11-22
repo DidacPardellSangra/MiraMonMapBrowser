@@ -2896,8 +2896,17 @@ var cdns=[];
 
 function DonaCadenaOperadorValorSeleccioCondicional(prefix_id, i_capa, i_condicio, i_estil_o_atrib, condicioEditar)
 {
-var cdns=[], nc, capa=ParamCtrl.capa[i_capa];
+var cdns=[], nc, capa;
 var estil_o_atrib;
+
+	if (typeof condicioEditar !== "undefined" && typeof condicioEditar.capa_clau !== "undefined" && condicioEditar.capa_clau.i_capa)
+	{
+		capa = ParamCtrl.capa[condicioEditar.capa_clau.i_capa];
+	}
+	else
+	{
+		capa = ParamCtrl.capa[i_capa];
+	}
 
 	if(capa.model==model_vector)
 	{
@@ -3018,7 +3027,17 @@ function CanviaCondicioSeleccioCondicional(prefix_id, i_capa, i_condicio, param)
 
 function DonaCadenaDataEstilOperacioValor(prefix_id, i_capa, i_condicio, condicioEditar, param)
 {
-var cdns=[], capa=ParamCtrl.capa[i_capa];
+var cdns=[], capa;
+
+
+	if (typeof condicioEditar !== "undefined" && typeof condicioEditar.capa_clau !== "undefined")
+	{
+		capa = ParamCtrl.capa[condicioEditar.capa_clau.i_capa];
+	}
+	else 
+	{
+		capa = ParamCtrl.capa[i_capa];
+	}
 
 	// Desplegable de dates si s'escau.
 	if (param.vull_dates && capa.AnimableMultiTime && capa.data && capa.data.length)
@@ -3178,8 +3197,16 @@ var cdns=[], capa, nc, capa_def, origen_vector;
 	}
 	else
 	{
-		capa_def=ParamCtrl.capa[i_capa];
-		origen_vector=ParamCtrl.capa[i_capa].model==model_vector?true:false;
+		if (typeof condicioEditar !== "undefined" && typeof condicioEditar.capa_clau !== "undefined")
+		{
+			capa_def = ParamCtrl.capa[condicioEditar.capa_clau.i_capa];
+		}
+		else 
+		{
+			capa_def=ParamCtrl.capa[i_capa];
+		}
+		
+		origen_vector=capa_def.model==model_vector?true:false;
 	}
 
 	// Desplegable de les capes visibles per aquesta vista
@@ -3434,20 +3461,12 @@ var condicio_capa={}, elem;
 	}
 	if(capa.model==model_vector)
 	{
-		if (i_estil_ed)
+		if (capa.attributes)
 		{
-			condicio_capa.i_estil=i_estil_ed;
+			var attributesArray=Object.keys(capa.attributes);
+			if (attributesArray.length)
+				condicio_capa.i_estil=parseInt(document.getElementById(prefix_id + prefix_condicio + "-estil-" + i_condicio).value);
 		}
-		else
-		{
-			if (capa.attributes)
-			{
-				var attributesArray=Object.keys(capa.attributes);
-				if (attributesArray.length)
-					condicio_capa.i_estil=parseInt(document.getElementById(prefix_id + prefix_condicio + "-estil-" + i_condicio).value);
-			}
-		}
-	
 	}
 	else
 	{
@@ -3784,7 +3803,7 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 				}
 				else
 				{
-					if (/*capa.model==model_vector &&*/ isNaN(condicio.valor) )
+					if (isNaN(condicio.valor) )
 						calcul+=("\""+condicio.valor+"\"");
 					else
 						calcul+=condicio.valor;
