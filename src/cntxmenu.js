@@ -520,12 +520,7 @@ function OmpleLayerContextMenuEstil(event, i_capa, i_estil)
 {
 var cdns=[];
 var capa=ParamCtrl.capa[i_capa];
-let fitxerOpenEO, seleccioCondicional;
-
-	if (ParamInternCtrl.exportsOpenEO && ParamInternCtrl.exportsOpenEO[i_capa] && ParamInternCtrl.exportsOpenEO[i_capa][i_estil])
-	{
-		fitxerOpenEO = ParamInternCtrl.exportsOpenEO[i_capa][i_estil];	
-	} 
+let seleccioCondicional;
 
 	if (ParamCtrl.capa[i_capa].estil[i_estil] && ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional)
 	{
@@ -540,13 +535,11 @@ let fitxerOpenEO, seleccioCondicional;
 	{
 		cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"CompartirEstilCapa(", i_capa,",", i_estil,");TancaContextMenuCapa();\">",
 							GetMessage("ShareStyle", "cntxmenu"), "</a><br>");
-		if (fitxerOpenEO)
-		{
-			cdns.push('<a class=\'unmenu\' href=\'javascript:void(0);\' onClick=\'ExportaEstilAOpenEO(', JSON.stringify(fitxerOpenEO),');TancaContextMenuCapa();\'>',
-							GetMessage("ExportToOpenEO", "cntxmenu"), '</a><br>');
-		}
 		if (seleccioCondicional && typeof seleccioCondicional.i_capa === "number" && typeof seleccioCondicional.i_estil === "number")
 		{
+			cdns.push('<a class=\'unmenu\' href=\'javascript:void(0);\' onClick=\'ExportaEstilAOpenEO(', i_capa,",", i_estil,');TancaContextMenuCapa();\'>',
+							GetMessage("ExportToOpenEO", "cntxmenu"), '</a><br>');
+		
 			cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraSeleccioCondicional(", i_capa, ",", i_estil,");TancaContextMenuCapa();\">",
 							GetMessage("EditConditionalSelection", "cntxmenu"), "</a><br>");
 		}
@@ -637,17 +630,43 @@ var capa=ParamCtrl.capa[i_capa];
  * Genera un fitxer .ipynb on hi han les operacions per acotar la selecció especificada amb el navegador
  * però adaptades a la sintaxis per a l'entorn d'execució Jupiter note books Open EO.
  */ 
-function ExportaEstilAOpenEO(data)
+function ExportaEstilAOpenEO(i_capa, i_estil)
 {
+	let notebook, seleccioCondicional;
+
+	if (ParamCtrl.capa[i_capa].estil[i_estil] && ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional)
+	{
+		seleccioCondicional = JSON.parse(ParamCtrl.capa[i_capa].estil[i_estil].seleccioCondicional);
+		if (seleccioCondicional.i_estil_resultantSelCond)
+		{
+			// Inicio el contingut del fitxer .ipynb per al nou estil en format Open EO
+			notebook = iniciaJupytherNotebook(i_capa, seleccioCondicional);
+		}
+		else
+			return;
+	}
+	else
+		return;
+
 	const jupytherNotebookExtension = ".ipynb";
 	const jupytherNotebookMIME = "application/x-ipynb+json";
 	let nomFitxer = `Selection_to_jupyther_${Date.now()}`;
 	const link = document.createElement('a');
 
+	// Crear contingut operació Jupyter
+	for (var i_condicio=0; i_condicio<seleccioCondicional.condicio.length; i_condicio++)
+	{
+		let condicio = seleccioCondicional.condicio[i_condicio];
+		// Quan la capa és un vector sel_condicional.condicio[i_condicio].capa_clau.i_estil és l'índex del attribute i no de l'estil
+		let capaPerCalcul = DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim, condicio.capa_clau.formulaCondicioOriginal);
+
+		transformaAOperacionsOpenEO(i_capa, condicio, capaPerCalcul, notebook);
+	}
+
 	if (nomFitxer.substring(nomFitxer.length-jupytherNotebookExtension.length) != jupytherNotebookExtension)
 		nomFitxer+=jupytherNotebookExtension;
 	link.setAttribute('download', nomFitxer);
-	link.setAttribute('href', makeHrefData(data, jupytherNotebookMIME));
+	link.setAttribute('href', makeHrefData(notebook, jupytherNotebookMIME));
 	document.body.appendChild(link);
 	
 	// wait for the link to be added to the document
@@ -3743,9 +3762,6 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 
 	guardarSeleccioCondicional(sel_condicional, i_capa, i_estil_nou);
 
-	// Inicio el contingut del fitxer .ipynb per al nou estil en format Open EO
-	iniciaJupytherNotebook(i_capa, i_estil_nou);
-
 	//Defineix el "calcul" de la selecció que serà de tipus "(capaA<5 || CapaA>capaB)? capa : null"
 	if(capa.model!=model_vector)
 		calcul="(";
@@ -5469,8 +5485,9 @@ function ExportarObjectesGeoJSON(i_capa)
  * Fragments necessaris per a la creació del Jupyther notebook.
  * @param {*} i_capa índex capa a la cual es fa la selecció 
  * @param {*} i_estil índex de l'estil amb la qual representem el nou estil de la capa.
+ * @returns Cos o estructura del Notebook 
  */
-function iniciaJupytherNotebook(i_capa, i_estil)
+function iniciaJupytherNotebook(i_capa, seleccioCondicional)
 {
 	let notebook = {};
 	notebook.metadata = {};
@@ -5481,23 +5498,11 @@ function iniciaJupytherNotebook(i_capa, i_estil)
 	};
 	notebook.metadata.language_info = {
 		name: "ipython",
-		verison: 3
+		version: 3
 	};
-	
-	if (!ParamInternCtrl.exportsOpenEO)
-	{
-		ParamInternCtrl.exportsOpenEO = {};
-	}
+	notebook.nbformat= 4;
+	notebook.nbformat_minor= 5;
 
-	if (!ParamInternCtrl.exportsOpenEO[i_capa])
-	{
-		ParamInternCtrl.exportsOpenEO[i_capa] = {};
-	}
-	if (!ParamInternCtrl.exportsOpenEO[i_capa][i_estil])
-	{
-		ParamInternCtrl.exportsOpenEO[i_capa][i_estil] = {};
-	}
-	ParamInternCtrl.exportsOpenEO[i_capa][i_estil] = notebook;
 	if (!notebook.cells)
 	{
 		notebook.cells = [];
@@ -5508,15 +5513,18 @@ function iniciaJupytherNotebook(i_capa, i_estil)
 	{
 		cdns.push( "#", DonaCadenaLang(capa.desc));
 	}
-	if (document.SeleccioCondicional.nom_estil && document.SeleccioCondicional.nom_estil.value != "")
+
+	if (seleccioCondicional && seleccioCondicional.nom_estil)
 	{
-		cdns.push("\n\n", "##", document.SeleccioCondicional.nom_estil.value);
+		cdns.push("\n\n", "##", seleccioCondicional.nom_estil);
 	}
 
 	if (cdns.length)
 		notebook.cells.push(creaCellaMarkdown(cdns.join(" ")));
-
+	notebook.cells.push(creaCellaImportOpeneo(notebook));
 	notebook.cells.push(creaCellaCodi(notebook));
+
+	return notebook;
 }
 
 /**
@@ -5526,19 +5534,31 @@ function iniciaJupytherNotebook(i_capa, i_estil)
 	 */
 function creaCellaCodi(notebook)
 {
-	let codeCell = {};
-	codeCell.cell_type = "code";
+	let cellaCodi = {};
+	cellaCodi.cell_type = "code";
+	cellaCodi.metadata= {};
 	if (notebook.cells)
 	{
-		codeCell.execution_count = notebook.cells.filter((cell) => cell.cell_type == "code").length;
+		cellaCodi.execution_count = notebook.cells.filter((cell) => typeof cell.cell_type !== "undefined" && cell.cell_type == "code").length;
 	}
 	else
 	{
-		codeCell.execution_count = null;
+		cellaCodi.execution_count = null;
 	} 
-	codeCell.id = generaIdCella();
-	codeCell.source = [];
-	return codeCell;
+	cellaCodi.id = generaIdCella();
+	cellaCodi.source = [];
+	return cellaCodi;
+}
+
+// Crear els imports i codi necessaris per a establir connexió amb l'entorn OpenEO.
+function creaCellaImportOpeneo(notebook)
+{
+	let cellaImportOpenEO = creaCellaCodi(notebook);
+	cellaImportOpenEO.source.push("import openeo\n",
+	"from openeo.processes import lt\n",
+	"connection = openeo.connect(url=\"openeo.dataspace.copernicus.eu\")\n",
+    "connection.authenticate_oidc()");
+	return cellaImportOpenEO;
 }
 
 function creaCellaMarkdown(text)
@@ -5551,11 +5571,10 @@ function creaCellaMarkdown(text)
 	return markdownCell;
 }
 
-function transformaAOperacionsOpenEO(i_capa, i_estil, condicio, estilCapaPerCalcul)
+function transformaAOperacionsOpenEO(i_capa, condicio, estilCapaPerCalcul, notebook)
 {
-	if (ParamInternCtrl.exportsOpenEO && ParamInternCtrl.exportsOpenEO[i_capa] && ParamInternCtrl.exportsOpenEO[i_capa][i_estil] && ParamInternCtrl.exportsOpenEO[i_capa][i_estil].cells && ParamInternCtrl.exportsOpenEO[i_capa][i_estil].cells[0])
+	if (notebook.cells && notebook.cells[0])
 	{
-		let notebook = ParamInternCtrl.exportsOpenEO[i_capa][i_estil];
 		let cellaCodi = notebook.cells[notebook.cells.length - 1];
 		if (cellaCodi.source)
 		{
