@@ -3662,17 +3662,17 @@ function DonaCadenaEstilCapaPerCalcul(i_capa_ref, i_capa, i_data, i_estil, dimen
 		var component_sel=ParamCtrl.capa[i_capa].estil[i_estil].component[0], s_patro, i;
 
 		if (typeof formulaConsultaGuardada!=="undefined" && formulaConsultaGuardada!=null)
+		{
+			var valors=ParamCtrl.capa[i_capa].valors;
+			var s=formulaConsultaGuardada;
+			for (var i_valor=0; i_valor<valors.length; i_valor++)
 			{
-				var valors=ParamCtrl.capa[i_capa].valors;
-				var s=formulaConsultaGuardada;
-				for (var i_valor=0; i_valor<valors.length; i_valor++)
-				{
-					s_patro="v["+i_valor+"]";
-					while ((i=s.indexOf(s_patro))!=-1)
-						s=s.substring(0, i)+DonaReferenciaACapaPerCalcul(i_capa_ref, i_capa, i_valor, i_data, dimensions)+s.substring(i+s_patro.length);
-				}
-				return "("+ s +")";
+				s_patro="v["+i_valor+"]";
+				while ((i=s.indexOf(s_patro))!=-1)
+					s=s.substring(0, i)+DonaReferenciaACapaPerCalcul(i_capa_ref, i_capa, i_valor, i_data, dimensions)+s.substring(i+s_patro.length);
 			}
+			return "("+ s +")";
+		}
 		if (typeof component_sel.calcul!=="undefined")
 			//return (i_capa_ref==i_capa) ? component_sel.calcul : AfegeixIcapaACalcul(component_sel.calcul, i_capa, i_estil);
 		{
@@ -3780,9 +3780,7 @@ var sel_condicional, i_estil_nou, estil, calcul, capa, condicio, estil_o_atrib, 
 
 		// Quan la capa és un vector sel_condicional.condicio[i_condicio].capa_clau.i_estil és l'índex del attribute i no de l'estil
 		let capaPerCalcul = DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim, condicio.capa_clau.formulaCondicioOriginal);
-
-		transformaAOperacionsOpenEO(i_capa, i_estil_nou, condicio, capaPerCalcul);
-		
+	
 		calcul+=capaPerCalcul;
 		if (typeof condicio.operador==="undefined")
 			calcul+="!=null";
@@ -5491,7 +5489,9 @@ function iniciaJupytherNotebook(i_capa, seleccioCondicional)
 {
 	let notebook = {};
 	notebook.metadata = {};
-	notebook.metadata.kernel_info = {
+	/* 	Sembla quesi un .ipynb no conté aquesta informació l'entorn de Juyter pregunta a l'usuari 
+	 	quin Kernel es vol fer servir i llavors omple automàticament tota aquesta informació. */
+	/*notebook.metadata.kernel_info = {
 		name: "ipykernel",
 		display_name: "IPython",
 		language: "python"
@@ -5499,7 +5499,7 @@ function iniciaJupytherNotebook(i_capa, seleccioCondicional)
 	notebook.metadata.language_info = {
 		name: "ipython",
 		version: 3
-	};
+	};*/
 	notebook.nbformat= 4;
 	notebook.nbformat_minor= 5;
 
@@ -5623,7 +5623,7 @@ function transformaAOperacionsOpenEO(i_capa, condicio, estilCapaPerCalcul, noteb
 
 		if (condicio.capa_clau)
 		{
-			operacioOpenEo = operacioOpenEo + `x = ${(descripcioCapa) ? descripcioCapa : DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim)}, `;
+			operacioOpenEo = operacioOpenEo + `x = ${(descripcioCapa) ? equivalenciesSentinel2AOpenEO(descripcioCapa) : equivalenciesSentinel2AOpenEO(DonaCadenaEstilCapaPerCalcul(i_capa, condicio.capa_clau.i_capa, condicio.capa_clau.i_data, condicio.capa_clau.i_estil, condicio.capa_clau.dim))}, `;
 		}
 
 		if (condicio.valor)
@@ -5677,6 +5677,57 @@ function generaIdCella()
 	}
 
 	return identificador;
+}
+
+function equivalenciesSentinel2AOpenEO(nomSentinel2MMN)
+{
+	let nomOpenEO = "";
+	
+	switch (nomSentinel2MMN)
+	{
+		case '{"i_valor":0}':
+			nomOpenEO = "B01";
+			break;
+		case '{"i_valor":1}':
+			nomOpenEO = "B02";
+			break;
+		case '{"i_valor":2}':
+			nomOpenEO = "B03";
+			break;
+		case '{"i_valor":3}':
+			nomOpenEO = "B04";	
+			break;
+		case '{"i_valor":4}':
+			nomOpenEO = "B05";
+			break;
+		case '{"i_valor":5}':
+			nomOpenEO = "B06";
+			break;
+		case '{"i_valor":6}':
+			nomOpenEO = "B07";
+			break;
+		case '{"i_valor":7}':
+			nomOpenEO = "B08";
+			break;
+		case '{"i_valor":8}':
+			nomOpenEO = "B8A";
+			break;
+		case '{"i_valor":9}':
+			nomOpenEO = "B09";
+			break;
+		case '{"i_valor":10}':
+			nomOpenEO = "B11";
+			break;
+		case '{"i_valor":11}':
+			nomOpenEO = "B12";
+			break;
+		case '{"i_valor":12}':
+			nomOpenEO = "SCL";
+			break;
+		default:
+			nomOpenEO = "nothing";
+	}
+	return nomOpenEO;
 }
 
 function guardarSeleccioCondicional(selCondicional, i_capa, i_estil)
