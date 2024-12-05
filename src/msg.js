@@ -3247,6 +3247,30 @@ var MessageLang=
       "fre": "Accepter les changements",
       "cze": "Přijmout změny",
       "ger": "Änderungen akzeptieren"
+    },
+    "OpenEOServers": {
+      "cat": "Llista de servidors OpenEO",
+      "spa": "Lista de servidores OpenEO",
+      "eng": "OpenEO server list",
+      "fre": "Liste des serveurs OpenEO",
+      "cze": "Seznam OpenEO serverů",
+      "ger": "OpenEO Serverliste"
+    },
+    "SuggestedServices": {
+      "cat": "Servidors suggerits",
+      "spa": "Servidores sugeridos",
+      "eng": "Suggested services",
+      "fre": "Services proposés",
+      "cze": "Navrhované služby",
+      "ger": "Vorgeschlagene Dienstleistungen"
+    },
+    "SelectOptionBelow": {
+      "cat": "Selecciona una opció a continuació",
+      "spa": "Seleccione una opción a continuación",
+      "eng": "Select one option below",
+      "fre": "Sélectionnez une option ci-dessous",
+      "cze": "Zvolte jednu volbu níže",
+      "ger": "Wählen Sie eine Option unten"
     }
   },
   "storymap": {

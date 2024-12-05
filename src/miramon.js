@@ -58,7 +58,7 @@ function IncludeScript(url, late)   //https://stackoverflow.com/questions/950087
 	}
 	script.src = url;  // set its src to the provided URL
 
-	document.head.appendChild(script);  // add it to the end of the head section of the page (could change 'head' to 'body' to add it to the end of the body section instead). Ja ho he fet.
+	document.head.appendChild(script);  // add it to the end of the head section of the page (could change 'head' to 'body' to add it to the end of the body section instead).
 }
 
 IncludeScript("tools1.js");
@@ -110,6 +110,7 @@ IncludeScript("Chart.bundle.min.js", true);
 IncludeScript("moment.min.js", true);
 IncludeScript("3d.js", true);
 IncludeScript("vis.min.js", true);
+IncludeScript("servidors.js");
 
 
 

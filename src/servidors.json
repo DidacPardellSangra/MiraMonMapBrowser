@@ -1,0 +1,112 @@
+{
+    "servidors":[
+        {
+            "nom": "Copernicus Dataspace Ecosystem", 
+            "url": "openeo.dataspace.copernicus.eu/",
+            "collections": {
+                "S3OL1B":{
+                    "id":"SENTINEL3_OLCI_L1B",
+                    "bands":{
+
+                    }
+                },
+                "S3S":{
+                    "id":"SENTINEL3_SLSTR",
+                    "bands":{
+
+                    }
+                },
+                "S5PL2":{
+                    "id":"SENTINEL_5P_L2",
+                    "bands":{
+
+                    }
+                },
+                "CVPP10MS1":{
+                    "id":"COPERNICUS_VEGETATION_PHENOLOGY_PRODUCTIVITY_10M_SEASON1",
+                    "bands":{
+
+                    }
+                },
+                "CVPP10MS2":{
+                    "id":"COPERNICUS_VEGETATION_PHENOLOGY_PRODUCTIVITY_10M_SEASON2",
+                    "bands":{
+
+                    }
+                },
+                "CPPI":{
+                    "id":"COPERNICUS_PLANT_PHENOLOGY_INDEX",
+                    "bands":{
+
+                    }
+                },
+                "EWC10M2020V1":{
+                    "id":"ESA_WORLDCOVER_10M_2020_V1",
+                    "bands":{
+
+                    }
+                },
+                "EWC10M2021V2":{
+                    "id":"ESA_WORLDCOVER_10M_2021_V2",
+                    "bands":{
+
+                    }
+                },
+                "CVI":{
+                    "id":"COPERNICUS_VEGETATION_INDICES",
+                    "bands":{
+
+                    }
+                },
+                "S2L1C":{
+                    "id":"SENTINEL2_L1C",
+                    "bands":{
+
+                    }
+                },
+                "S2L2A":{
+                    "id":"SENTINEL2_L2A",
+                    "bands":{
+
+                    }
+                },
+                "S1GRD":{
+                    "id":"SENTINEL1_GRD",
+                    "bands":{
+
+                    }
+                },
+                "C30":{
+                    "id":"COPERNICUS_30",
+                    "bands":{
+
+                    }
+                },
+                "L8L2":{
+                    "id":"LANDSAT8_L2",
+                    "bands":{
+
+                    }
+                },
+                "S3SYNL2SYN":{
+                    "id":"SENTINEL3_SYN_L2_SYN",
+                    "bands":{
+
+                    }
+                },
+                "S3SLSTRL2LST":{
+                    "id":"SENTINEL3_SLSTR_L2_LST",
+                    "bands":{
+
+                    }
+                },
+                "S1GLOBALMOS":{
+                    "id":"SENTINEL1_GLOBAL_MOSAIC",
+                    "bands":{
+
+                    }
+                }
+            }
+        }
+    ]
+}

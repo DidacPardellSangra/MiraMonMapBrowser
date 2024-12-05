@@ -38,6 +38,8 @@
 
 "use strict"
 
+const labelSelectServerId = "labelSelectServer", selectServerSelectId = "selectServerOptions", selectServerSelectName = "selectServerSelect", confirmServerBtnId = "confirmServerBtn", dialegServidorsId = "dialegServidor"; 
+
 function MoureASobreDeTot(i_capa)
 {
 	var n_capes_especials_a_sobre=NumeroDeCapesVolatils(i_capa);
@@ -537,7 +539,7 @@ let seleccioCondicional;
 							GetMessage("ShareStyle", "cntxmenu"), "</a><br>");
 		if (seleccioCondicional && typeof seleccioCondicional.i_capa === "number" && typeof seleccioCondicional.i_estil === "number")
 		{
-			cdns.push('<a class=\'unmenu\' href=\'javascript:void(0);\' onClick=\'ExportaEstilAOpenEO(', i_capa,",", i_estil,');TancaContextMenuCapa();\'>',
+			cdns.push('<a class=\'unmenu\' href=\'javascript:void(0);\' onClick=\'seleccioServidorOpenEO();TancaContextMenuCapa();\'>',
 							GetMessage("ExportToOpenEO", "cntxmenu"), '</a><br>');
 		
 			cdns.push("<a class=\"unmenu\" href=\"javascript:void(0);\" onClick=\"ObreFinestraSeleccioCondicional(", i_capa, ",", i_estil,");TancaContextMenuCapa();\">",
@@ -625,6 +627,58 @@ var capa=ParamCtrl.capa[i_capa];
 			/*, ru_sugg_app: location.href -> s'afegeix automàticament */},
 			ParamCtrl.idioma, "" /*access_token_type*/);
 }
+
+// Mostra diàleg per a elegir servidor i comprovar que les capes que intervenen a l'operació hi estan disponibles
+function seleccioServidorOpenEO()
+{
+	let elementAncla = document.getElementById("mmn");
+	let dialeg = document.getElementById(dialegServidorsId);
+	if (!ServidorsOpenEO)
+	{
+		loadJSON("servidors.json",
+			function(servidorsOpenEO, extra_param) {
+				ServidorsOpenEO=servidorsOpenEO;
+				if (typeof dialeg === "undefined")
+					dialeg = creaDialegSelectorServidors();
+			},
+			function(xhr) { alert(xhr); },
+			null);
+	}
+	else if (typeof dialeg === "undefined")
+		dialeg = creaDialegSelectorServidors();
+
+	if (typeof dialeg !== "undefined")
+	{
+		if (typeof elementAncla !== "undefined" && !elementAncla.contains(dialeg))
+			elementAncla.appendChild(dialeg);
+
+		dialeg.show();
+	}		
+}
+
+// Diàleg selecció de servidors
+/**
+ * Crea un diàleg que apareix flotant al centre de la pantalla per a que l'usuari decideixi
+ * sobre la mida de la imatge que vol incorporar al Storymap. 
+ * @param {*} imatge El fitxer imatge que es vol incloure a la Storymap.
+ * @returns Cadena HTML amb les mides de la imatge que es preten carregar i 2 caixes de text per indicar-ne les noves mides.
+ */
+function creaDialegSelectorServidors()
+{
+	const condicionsSelector = ["<option value='' selected>-- " + GetMessage("SelectOptionBelow", "cntxmenu") + " --</option>"];
+	if (ServidorsOpenEO && ServidorsOpenEO.servidors)
+	{	
+		ServidorsOpenEO.servidors.forEach((servidor) => {
+			if (typeof servidor.url !== "undefined" && typeof servidor.nom !== "undefined")
+				condicionsSelector.push(`<option value='${servidor.url}'>${servidor.nom}</option>`);
+		});
+	}	
+
+	const dialogHtml = ["<form align-items='stretch><p id='" + textMidesImatgeId + "'>", GetMessage("OpenEOServers", "cntxmenu"), "</p><p style='align: center'><label id='" + labelSelectServerId + "' for='", selectServerSelectId, "'>"+ GetMessage("SuggestedServices", "cntxmenu") + ": </label><select name='" + selectServerSelectName + "' id='" + selectServerSelectId + "'>" + condicionsSelector.join("") + "</select></p><p style='align: center'><button id='", confirmServerBtnId, "' class='button_image_dialog buttonDialog' formmethod='dialog' value='default'>" + GetMessage("OK") + "</button><button class='button_image_dialog buttonDialog' value='cancel' formmethod='dialog'>" + GetMessage("Cancel") + "</button></p></form>"];
+
+	return CreaDialog(dialegServidorsId, dialogHtml.join(""));
+}
+
 
 /**
  * Genera un fitxer .ipynb on hi han les operacions per acotar la selecció especificada amb el navegador
@@ -5551,11 +5605,12 @@ function creaCellaCodi(notebook)
 }
 
 // Crear els imports i codi necessaris per a establir connexió amb l'entorn OpenEO.
+var earthObsrProcessos = "eop";
 function creaCellaImportOpeneo(notebook)
 {
 	let cellaImportOpenEO = creaCellaCodi(notebook);
 	cellaImportOpenEO.source.push("import openeo\n",
-	"from openeo.processes import lt\n",
+	`from openeo import processes as ${earthObsrProcessos}\n`,
 	"connection = openeo.connect(url=\"openeo.dataspace.copernicus.eu\")\n",
     "connection.authenticate_oidc()");
 	return cellaImportOpenEO;
@@ -5569,6 +5624,35 @@ function creaCellaMarkdown(text)
 	markdownCell.id = generaIdCella();
 	markdownCell.source = [text];
 	return markdownCell;
+}
+
+function creaConnexioOpenEO()
+{
+	let connexioOpenEO = [];
+	connexioOpenEO.push(`eoconn = openeo.connect(openeo.dataspace.copernicus.eu/)\n`);
+	connexioOpenEO.push(`eoconn.authenticate_oidc()\n`);
+	return connexioOpenEO;
+}
+/**
+ * 
+ * @param {*} ambit Array de 4 valors decimals: [5.0, 51.2, 5.1, 51.3]
+ * @param {*} any Format aaaa
+ * @param {*} mesDiaInici Format mm-DD 
+ * @param {*} mesDataFinal Format mm-DD
+ * @param {*} bandes Array amb nom de bandes: ["B04", "B08", "SCL"]
+ */
+function lecturaSentienl2L2AOpenEO(ambit, any, mesDiaInici, mesDataFinal, maxCobNuvols = 20, bandes)
+{
+	const fDataInicial = `f\"\{${any}\}-${mesDiaInici}\"`, fDataFinal = `f\"\{${any}\}-${mesDataFinal}\"`;
+	let lecturaSentinel = [];
+	lecturaSentinel.push("s2_bands = eoconn.load_collection(\n");
+	s2_bands = eoconn.load_collection(
+		"SENTINEL2_L2A",
+		temporal_extent=[fDataInicial, fDataFinal],
+		spatial_extent=dict(zip(["west", "south", "east", "north"], ambit)),
+		bands=bandes,
+		max_cloud_cover=maxCobNuvols,
+	)	
 }
 
 function transformaAOperacionsOpenEO(i_capa, condicio, estilCapaPerCalcul, notebook)
@@ -5597,28 +5681,28 @@ function transformaAOperacionsOpenEO(i_capa, condicio, estilCapaPerCalcul, noteb
 			switch (condicio.operador)
 			{
 				case "==":
-					operacioOpenEo = "eq(";
+					operacioOpenEo = `${earthObsrProcessos}.eq(`;
 					break;
 				case "!=":
-					operacioOpenEo = "neq(";
+					operacioOpenEo = `${earthObsrProcessos}.neq(`;
 					break;
 				case "<":
-					operacioOpenEo = "lt(";
+					operacioOpenEo = `${earthObsrProcessos}.lt(`;
 					break;
 				case ">":
-					operacioOpenEo = "gt(";
+					operacioOpenEo = `${earthObsrProcessos}.gt(`;
 					break;
 				case "<=":
-					operacioOpenEo = "lte(";
+					operacioOpenEo = `${earthObsrProcessos}.lte(`;
 					break;
 				case ">=":
-					operacioOpenEo = "gte(";
+					operacioOpenEo = `${earthObsrProcessos}.gte(`;
 					break;
 			}
 		}
 		else
 		{
-			operacioOpenEo = "neq(";// falte el valor null, però hauria d'ocupar l'argument "y"
+			operacioOpenEo = `${earthObsrProcessos}.neq(`;// falte el valor null, però hauria d'ocupar l'argument "y"
 		}	
 
 		if (condicio.capa_clau)
