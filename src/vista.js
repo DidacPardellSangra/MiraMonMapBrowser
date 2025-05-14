@@ -17,7 +17,7 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2024 Xavier Pons
+    Copyright 2001, 2025 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
     amb l'ajut de Núria Julià (n julia at creaf uab cat)
@@ -688,7 +688,7 @@ function EscriuCoordenadesAFinestraFeedbackAmbScope()
 	ResetCoordsFB();
 }
 
-//posem en blanc la variable Coord per la propera vegada que es defineixi un envoluant
+//posem en blanc la variable Coord per la propera vegada que es defineixi un envolupant
 function ResetCoordsFB () 
 {
 		CoordsFB.x1='';

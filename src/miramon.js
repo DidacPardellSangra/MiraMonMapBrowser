@@ -552,6 +552,9 @@ function CompletaDefinicioCapa(capa, capa_vola)
 
 	if (!capa.editable)
 		capa.editable="no";
+	
+	if(typeof capa.ForcaGetFeatureInfo==="undefined" || capa.ForcaGetFeatureInfo==null)
+		capa.ForcaGetFeatureInfo=false;
 
 	//Evito haver de posar el nom i la descripció del video si la capa és animable sola.
 	if (capa.animable && capa.AnimableMultiTime && capa.data && capa.data.length>1)
@@ -1989,6 +1992,14 @@ function InstalaLectorMapes()
     var instalaWindow=window.open(GetMessage("installerMMRExe", "urls"));
     ShaObertPopUp(instalaWindow);
 }
+
+function DescarregaMiraMon()
+{
+	ComprovaCalTancarFeedbackAmbScope();
+    var instalaWindow=window.open(GetMessage("instMMZip", "urls"));
+    ShaObertPopUp(instalaWindow);
+}
+
 
 function DonaAreaCella(env, costat, crs)
 {
@@ -3665,24 +3676,24 @@ function CanviaDimensionsExtraDeCapes(layerdims, param_name_dim_extra)
 									}
 								}
 								if (i_valor==clau_valor.valor.length)
-									alert("La dimensio de la capa no suporta el valor solicitat" + " " + capa_visible[j] + " " +
+									alert("La dimensió de la capa no suporta el valor solicitat" + " " + capa + " " +
 										GetMessage("indicatedAt") + " " +  param_name_dim_extra);
 								break;
 							}
 						}
 						if (i_param==capa.dimensioExtra.length)
-							alert("La capa no te la dimensio extra solicidada" + " " + capa_visible[j] + " " +
+							alert("La capa no té la dimensió extra solicidada" + " " + capa + " " +
 								GetMessage("indicatedAt") + " " +  param_name_dim_extra);
 					}
 				}
 				else
-					alert("La capa no te dimensions" + " " + capa_visible[j] + " " +
+					alert("La capa no té dimensions" + " " + capa + " " +
 						GetMessage("indicatedAt") + " " +  param_name_dim_extra);
 				break;
 			}
 		}
 		if (i==ParamCtrl.capa.length)
-			alert(GetMessage("CannotFindLayer") + " " + capa_visible[j] + " " +
+			alert(GetMessage("CannotFindLayer") + " " + ly_dims.ly + " " +
 					GetMessage("indicatedAt") + " " +  param_name_dim_extra);
 	}
 	return (hihacanvis) ? 0 : 1;
@@ -4129,6 +4140,11 @@ function RepintaMapesIVistes()
 		SeleccionaRadialPuntCentralConsultesTipiques();
 		PosaAGrisRetallPerObjecteConsultesTipiques();
 	}
+	// Si el llistat de Storymaps és visible es repintarà.
+	if (getFinestraLayer(window, "triaStoryMap").style.visibility=="visible")
+	{
+		RefrescaFinestraTriaStoryMap(window, "triaStoryMap");
+	}
 }
 
 function ChangeSizeMiraMonMapBrowser()
@@ -4226,6 +4242,66 @@ var i_estil_nou=capa.estil.length, estil;
 	return i_estil_nou;
 }
 
+function BuscaIMarcaEstilCapa(i_capa, capa_visible, estil_capa)
+{
+	if (estil_capa)
+	{
+		var capa=ParamCtrl.capa[i_capa];
+		if (capa.estil && capa.estil.length>1)
+		{
+			//Si a la part del final posa ":SEMITRANSPARENT"
+			if (estil_capa.toUpperCase()=="SEMITRANSPARENT")
+			{
+				if (capa.visible!="no")
+					CanviaEstatVisibleISiCalConsultableIDescarregableCapa(i_capa, "semitransparent");
+			}
+			else
+			{
+				if (estil_capa.length>16 && estil_capa.substring(estil_capa.length-16, estil_capa.length).toUpperCase()==":SEMITRANSPARENT")
+				{
+					if (capa.visible!="no")
+						CanviaEstatVisibleISiCalConsultableIDescarregableCapa(i_capa, "semitransparent");
+					estil_capa=estil_capa.substring(0, estil_capa.length-16);
+				}
+				
+				let i_estil;
+				
+				for (i_estil=0; i_estil<capa.estil.length; i_estil++)
+				{
+					if (capa.estil[i_estil].id==estil_capa)
+					{
+						capa.i_estil=i_estil;
+						break;
+					}
+				}
+				if (i_estil==capa.estil.length)
+				{
+					if (estil_capa!=null && estil_capa!="")  //si es blanc vol dir l'estil per defecte
+						alert(GetMessage("CannotFindStyle") + " " + estil_capa + " " + GetMessage("ForLayer") + " " + capa_visible);
+				}
+			}
+		}
+		else
+		{
+			//Si és un servidor de MiraMon només pot dir semitransparent.
+			if (estil_capa.toUpperCase()=="SEMITRANSPARENT")
+			{
+				if (capa.visible!="no")
+					CanviaEstatVisibleISiCalConsultableIDescarregableCapa(i_capa, "semitransparent");
+
+			}
+			else
+			{
+				if (estil_capa!=null && estil_capa!="" && capa.estil[0].id!=estil_capa)
+					alert(GetMessage("CannotFindStyle") + " " + estil_capa + " " + GetMessage("ForLayer") + " " + capa_visible);
+			}
+		}
+	}
+	return;
+}
+
+// Per compatibilitat descendent a les story maps faig la omparació entre ids però si no ho trobo amb els noms 
+// ja que abans el id era el nom de la capa
 function FesVisiblesNomesAquestesCapesAmbEstils(layers, styles, param_name_layers)
 {
 var capa_visible=layers.split(","), capa_estil=styles ? styles.split(",") : null;
@@ -4264,54 +4340,7 @@ var capa, j, i, i_estil;
 					continue;
 				}
 				if (capa_estil && capa_estil[j])
-				{
-					if (capa.estil && capa.estil.length>1)
-					{
-					    //Si a la part del final posa ":SEMITRANSPARENT"
-					    if (capa_estil[j].toUpperCase()=="SEMITRANSPARENT")
-					    {
-						    if (capa.visible!="no")
-							    CanviaEstatVisibleISiCalConsultableIDescarregableCapa(i, "semitransparent");
-					    }
-					    else
-					    {
-						    if (capa_estil[j].length>16 && capa_estil[j].substring(capa_estil[j].length-16, capa_estil[j].length).toUpperCase()==":SEMITRANSPARENT")
-						    {
-							    if (capa.visible!="no")
-								    CanviaEstatVisibleISiCalConsultableIDescarregableCapa(i, "semitransparent");
-							    capa_estil[j]=capa_estil[j].substring(0, capa_estil[j].length-16);
-						    }
-						    for (i_estil=0; i_estil<capa.estil.length; i_estil++)
-						    {
-							    if (capa.estil[i_estil].id==capa_estil[j])
-							    {
-								    capa.i_estil=i_estil;
-								    break;
-							    }
-						    }
-						    if (i_estil==capa.estil.length)
-						    {
-							    if (capa_estil[j]!=null && capa_estil[j]!="")  //si es blanc vol dir l'estil per defecte
-								    alert(GetMessage("CannotFindStyle") + " " + capa_estil[j] + " " + GetMessage("ForLayer") + " " + capa_visible[j]);
-						    }
-					    }
-					}
-					else
-					{
-						//Si és un servidor de MiraMon només pot dir semitransparent.
-						if (capa_estil[j].toUpperCase()=="SEMITRANSPARENT")
-						{
-							if (capa.visible!="no")
-								CanviaEstatVisibleISiCalConsultableIDescarregableCapa(i, "semitransparent");
-
-						}
-						else
-						{
-							if (capa_estil[j]!=null && capa_estil[j]!="" && capa.estil[0].id!=capa_estil[j])
-								alert(GetMessage("CannotFindStyle") + " " + capa_estil[j] + " " + GetMessage("ForLayer") + " " + capa_visible[j]);
-					    }
-					}
-				}
+					BuscaIMarcaEstilCapa(i, capa_visible[j], capa_estil[j]);
 
 				if (capa.descarregable=="ara_no")
 					capa.descarregable="si";
@@ -4319,8 +4348,33 @@ var capa, j, i, i_estil;
 			}
 		}
 		if (i==ParamCtrl.capa.length)
-			alert(GetMessage("CannotFindLayer") + " " + capa_visible[j] + " " +
+		{
+			for (i=0; i<ParamCtrl.capa.length; i++)
+			{
+				capa=ParamCtrl.capa[i];
+				if (capa_visible[j]==capa.nom)
+				{
+					if (capa.visible=="ara_no")
+						CanviaEstatVisibleISiCalConsultableIDescarregableCapa(i, "si");
+					else
+					{
+						alert(GetMessage("Layer") + " " + capa_visible[j] + " " +
+							GetMessage("indicatedAt") + " " + param_name_layers +  " " +
+							GetMessage("cannotBeActivated") + ".");
+						continue;
+					}
+					if (capa_estil && capa_estil[j])
+						BuscaIMarcaEstilCapa(i, capa_visible[j], capa_estil[j]);
+
+					if (capa.descarregable=="ara_no")
+						capa.descarregable="si";
+					break;
+				}
+			}
+			if (i==ParamCtrl.capa.length)
+				alert(GetMessage("CannotFindLayer") + " " + capa_visible[j] + " " +
 					GetMessage("indicatedAt") + " " +  param_name_layers);
+		}
 	}
 }
 
@@ -4978,7 +5032,7 @@ var i, j, l, titolFinestra, div=document.getElementById(ParamCtrl.containerName)
 	createFinestraLayer(window, "editarVector", GetMessageJSON("InsertNewPoint", "miramon"), boto_tancar, 420, 150, 500, 320, "nWSeC", {scroll: "ara_no", visible: false, ev: null, resizable:true}, null);
 	//La següent finesta es fa servir pels missatges de les transaccions però, s'hauria de resoldre bé i fer servir de manera general per qualsevol missatge d'error emergent
 	createFinestraLayer(window, "misTransaccio", GetMessageJSON("ResultOfTheTransaction", "miramon"), boto_tancar, 420, 150, 300, 300, "nWSeC", {scroll: "ara_no", visible: false, ev: null, resizable:true}, null);
-	createFinestraLayer(window, "taulaCapaVectorial", GetMessageJSON("ElementsVectorialTable", "vector"), boto_copiar|boto_tancar, 420, 150, 500, 320, "nWSeC", {scroll: "ara_no", visible: false, ev: null, resizable:true}, null);
+	createFinestraLayer(window, "taulaCapaVectorial", GetMessageJSON("ElementsVectorialTable", "vector"), boto_copiar|boto_tancar, 420, 150, 500, 320, "nWSeC", {scroll: "ara_no", visible: false, ev: null, resizable:true, minWidth:"840px"}, null);
 	createFinestraLayer(window, "creaStoryMap", GetMessageJSON("NewStorymap", "storymap"), boto_tancar, 420, 150, 750, 500, "nWC", {scroll: "ara_no", visible: false, ev: false, resizable:true, minWidth:"237px", minHeight:"107px"}, null);
 
 	if (ComprovaConsistenciaParamCtrl(ParamCtrl))
@@ -5424,8 +5478,19 @@ var elem, rect;
 function ProcessMessageMiraMonMapBrowser(event)
 {
 	if (typeof event.data !== "string" || event.data.substring(0, 10)!="CommandMMN")
+	{
+		try {
+			var json=JSON.parse(event.data);
+		}
+		catch{
+			return;
+		}
+		if (json.msg=="Tapis is listening") 
+		{
+			EnviaGeoJSONTAPIS();
+		}  
 		return;
+	}
 	eval(event.data);
 	RepintaMapesIVistes();
 }
-

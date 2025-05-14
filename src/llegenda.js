@@ -17,7 +17,7 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2024 Xavier Pons
+    Copyright 2001, 2025 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat) 
     amb l'ajut de Núria Julià (n julia at creaf uab cat)
@@ -127,7 +127,7 @@ var cdns=[];
 
 	var ncol_items=estil.ncol ? estil.ncol : 1;
 	var salt_entre_columnes=Math.floor(estil.ItemLleg.length/ncol_items)+((estil.ItemLleg.length%ncol_items!=0) ? 1 : 0);
-	cdns.push("<TABLE border=\"0\" cellspacing=\"0\" cellpadding=\"0\">");
+	cdns.push("<table border=\"0\" cellspacing=\"0\" cellpadding=\"0\">");
 	for (var j=0; j<salt_entre_columnes; j++)
 	{
 		cdns.push("<tr><td valign=\"middle\" width=\"4\" height=\"1\"></td>");
@@ -160,7 +160,7 @@ var cdns=[];
 		}
 		cdns.push("</tr>");
 	}
-	cdns.push("</TABLE>");
+	cdns.push("</table>");
 	return cdns.join("");
 }
 
@@ -1699,7 +1699,7 @@ function CanviaEstatCapa(i, estat)
 	{
 		var capa=ParamCtrl.capa[i];
 		CanviaEstatVisibleCapaLlegenda(document.getElementById("v_ll_capa"+i), i);
-		if ((capa.estil && capa.estil.length>1) || 
+		if (capa.LlegDesplegada || (capa.estil && capa.estil.length>1) || 
 			(capa.grup && ParamCtrl.LlegendaGrupsComARadials) ||
 			capa.AnimableMultiTime || capa.dimensioExtra)
 			CreaLlegenda();

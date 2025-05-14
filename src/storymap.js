@@ -17,7 +17,7 @@
     MiraMon Map Browser can be updated from
     https://github.com/grumets/MiraMonMapBrowser.
 
-    Copyright 2001, 2024 Xavier Pons
+    Copyright 2001, 2025 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat)
     amb l'ajut de Alba Brobia (a brobia at creaf uab cat) i Dídac Pardell
@@ -57,11 +57,11 @@ const dialegCaractId = "caractDialeg", dialegMidesId = "midesDialeg", dialegAler
 // Dialeg Mida Imatges identificadors
 const labelWidthId = "labelWidth", inputWidthId = "widthMesure", labelHeightId = "labelHeight", inputHeightId = "heightMesure", confirmImageBtnId = "confirmImageBtn", chboxProportionalId = "chboxProportional", selectSizeUnitId = "selectSizeUnit", textMidesImatgeId = "textMidesImatge";
 // Dialeg Característiques checkbox identificadors i noms
-const chBoxTempsId = "chboxDate", chboxTempsName = "date", chBoxCapesStyleId = "chboxLayerStyle", chboxCapesStyleName = "layerStyle",  chBoxPosZoomId = "chboxPosZoom", chboxPosZoomName = "positionZoom", confirmCaractBtnId = "confirmCaractBtn", chboxCapesName = "layers", chboxEstilsName = "styles", chboxZoomName = "zoom", chboxCoordName = "coordinates", formCheckboxesId = "formCheckboxes";
+const chBoxTempsId = "chboxDate", chboxTempsName = "date", chBoxCapesStyleId = "chboxLayerStyle",  chboxCapesStyleName = "layerStyle", chBoxDimensionsId = "chboxDimension",  chboxDimensionsName = "dimension",chBoxPosZoomId = "chboxPosZoom", chboxPosZoomName = "positionZoom", confirmCaractBtnId = "confirmCaractBtn", chboxCapesName = "layers", chboxEstilsName = "styles", chboxZoomName = "zoom", chboxCoordName = "coordinates", formCheckboxesId = "formCheckboxes";
 const pixelUnit = "px", percentageUnit = "%";
 const limitsMidesImatge = {};
 var resultatMidesImatge = {};
-var resultatCaract = {[chboxCapesName]: {}, [chboxEstilsName]: {}, [chboxZoomName]: {}, [chboxCoordName]: {}, [chboxTempsName]:{}};
+var resultatCaract = {[chboxCapesName]: {}, [chboxEstilsName]: {}, [chboxZoomName]: {}, [chboxCoordName]: {}, [chboxTempsName]:{}, [chboxDimensionsName]:{}};
 // NOM per a les imatges que impliquen una acció de mapa.
 const nomPuntSincr = "sincrPoint";
 // IDENTIFICADOR per a les imatges que impliquen una acció de mapa.
@@ -70,15 +70,15 @@ const idImgSvgAccioMapa = "id_storymap_mm_action_";
 const idiomesTiny = {cat: 'ca', spa: 'es', eng: 'en', cze: 'cs', ger: 'de', fre: 'fr_FR'};
 let arrayIdsImgAccions = [];
 const identificadorDivAccioMapa = "AccioMapa_";
-var contadorAccionsMapa = 0;
+var contadorAccionsMapa = -1;
 const indentificadorSelectorControls = "controls";
-const controlScroll = "scroll", controlManual = "manual";
 const divRelatId = "divRelat";
 const ancoraRelat = "ancoraRelat"; 
 const confirmNoInsercioId = "confirmNoInsercio";
 const paragrafContinuacioId = "pContinuacio";
 const missatgeAvisImatgeId = "missatgeAvisImatge";
 const min_width_finestra_storymap = "500px", min_height_finestra_storymap = "400px";
+const fontImatgesUsuari = "data:image/jpeg;";
 IncludeScript("tinymce/js/tinymce/tinymce.min.js");
 
 // Especificitat de la funció creaFinestraLayer per a l'Storymap.
@@ -124,7 +124,7 @@ function TancaFinestra_triaStoryMap()
 function TancaFinestra_visualitzaStoryMap()
 {
 	indexStoryMapActiu=null;
-	contadorAccionsMapa = 0;
+	contadorAccionsMapa = -1;
 }
 
 //Omple la finestra amb el llistat d'històries (i mostra la imatge de pre-visualització de la història).
@@ -153,18 +153,33 @@ var cdns=[], i_story=0, ncol=2, nstory=0, i_real_story=[], newStory={"desc": Get
 	let indexSeg = 0;
 	while (nstory < ParamCtrl.StoryMap.length)
 	{
-		if (ParamCtrl.StoryMap[nstory].EnvTotal && !EsEnvDinsAmbitActual(ParamCtrl.StoryMap[nstory].EnvTotal))
+		if (ParamCtrl.StoryMap[nstory].EnvTotal)
 		{
-			nstory++;
-			continue;
+			if (typeof ParamCtrl.StoryMap[nstory].EnvTotal==="object" && Array.isArray(ParamCtrl.StoryMap[nstory].EnvTotal))
+			{
+				for(var i_crs=0; i_crs<ParamCtrl.StoryMap[nstory].EnvTotal.length; i_crs++)
+				{
+					if (!EsEnvDinsAmbitActual(ParamCtrl.StoryMap[nstory].EnvTotal[i_crs]))
+					{
+						nstory++;
+						break;
+					}
+				}
+				if(i_crs<ParamCtrl.StoryMap[nstory].EnvTotal.length)
+					continue;
+			}
+			else if (!EsEnvDinsAmbitActual(ParamCtrl.StoryMap[nstory].EnvTotal))
+			{
+				nstory++;
+				continue;
+			}
 		}
-			
 		i_real_story[indexSeg]=nstory;  // Ens quedem els índex que correpsonen a Stories dins l'àmbit del mapa.
 		indexSeg++;
 		nstory++;
 	}
 	cdns.push("<br><button style='position:relative; right:-25px;' onclick='DemanaStorymapsNimmbus(\"", name, "\")'>",
-				GetMessage("RetrieveStorymap", "storymap"), "</button>", "<br><br>",
+				GetMessage("RetrieveOtherStories", "storymap"), "</button>", "<br><br>",
 				GetMessage("SelectStory", "storymap"), ":" ,
 				"<br><table class=\"Verdana11px\">");
 
@@ -192,12 +207,28 @@ var cdns=[], i_story=0, ncol=2, nstory=0, i_real_story=[], newStory={"desc": Get
 	indexStoryMapActiu=-1;
 }
 
+// Per un canvi d'àmbit es refresca el contingut del llistat de relats.
+function RefrescaFinestraTriaStoryMap(win, name)
+{
+	let finestraTriaRelats = getFinestraLayer(win, name);
+
+	if (finestraTriaRelats)
+	{
+		// Netegem els continguts prèvis del div finestra.
+		while (finestraTriaRelats.firstChild) {
+			finestraTriaRelats.removeChild(finestraTriaRelats.firstChild);
+		}
+	}
+
+	OmpleFinestraTriaStoryMap(win, name);
+}
+
 function DemanaStorymapsNimmbus(name)
 {
 	const urlIdNavegador = ParamCtrl.ServidorLocal;
 	const urlServidor = new URL(urlIdNavegador);
 	const elem = getFinestraLayer(window, name);
-	GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv(elem, "triaStoryMap_finestra", urlServidor.host, urlIdNavegador,
+	GUFShowPreviousFeedbackWithReproducibleUsageInHTMLDiv(elem, "triaStoryMap_finestra", urlServidor.host, urlServidor.href.indexOf("?") != -1 ? (urlServidor.href.slice(0, urlServidor.href.indexOf("?"))).replace("https","http") : urlServidor.href.replace("https","http"),
 	{ru_platform: encodeURI(ToolsMMN), ru_version: VersioToolsMMN.Vers+"."+VersioToolsMMN.SubVers,
 		ru_schema: encodeURIComponent(config_schema_storymap) /*, ru_sugg_app: location.href -> no cal passar-ho perquè s'omple per defecte*/},
 	ParamCtrl.idioma, DonaAccessTokenTypeFeedback(urlIdNavegador) /*access_token_type*/, "AdoptaStorymap"/*callback_function*/, null);
@@ -286,33 +317,32 @@ function TancaICreaEditaStoryMap(i_relat = "nou")
 		}
 
 		if (isFinestraLayer(window, "creaStoryMap"))
-			{
-				const novaStoryMapFinestra = getFinestraLayer(window, "creaStoryMap");
-				novaStoryMapFinestra.replaceChildren();
-				const beginingStoryMapContent = ["<br><br><label style='margin:0 5px' for='title'>", GetMessage('Title') + ":", "</label><input type='text' id='", inputStoryTitolId, "' name='title' minlength='1' size='25' value='", (i_relat != "nou" ? storyToEdit.desc : ""), "'/><br><br>",
-								"<label style='margin: 0 5px;'>", GetMessage('StorymapThumbnailImage', 'storymap') + "(JPEG ",GetMessage("or")," PNG): ", "</label>",
-								"<button class=\"Verdana11px\" onclick=\"document.getElementById('",inputThumbnailId,"').click()\">"+GetMessage("SelectImage", "storymap")+"</button>",
-								"<input id='", inputThumbnailId, "' type='file' align='center' accept='.jpg,.jpeg,.png' style='display:none' onChange='CarregaImatgeStoryMap(this)'/><br><br>",												
-								"<img id='", imageThumbnailId, "' alt='", GetMessage("StorymapThumbnailImage", "storymap"), "' title='", GetMessage("StorymapThumbnailImage", "storymap"), "' style='visibility:", (i_relat != "nou" && storyToEdit.srcData ? "visible" : "hidden"),"; padding: 0 10px;' ", (i_relat != "nou" && storyToEdit.srcData ? "src='" + storyToEdit.srcData + "'" : ""),"/>"];
-				const botoEsborrar = document.createElement("input")
-				botoEsborrar.setAttribute("type", "button");
-				botoEsborrar.setAttribute("id", botoBorraThumbnailId);
-				botoEsborrar.setAttribute("style", "display: " + (i_relat != "nou" && storyToEdit.srcData ? "inline" : "none"));
-				botoEsborrar.setAttribute("value", GetMessage("RemoveImage", "storymap"));
-				botoEsborrar.addEventListener("click", esborraImatgePortada);
-				const inputBtnNext = document.createElement("input");
-				inputBtnNext.setAttribute("type", "button");
-				inputBtnNext.setAttribute("class", "buttonDialog");
-				inputBtnNext.setAttribute("value", GetMessage("Next"));
-				inputBtnNext.addEventListener("click", comprovaTitol);
-								
-				novaStoryMapFinestra.insertAdjacentHTML("afterbegin", beginingStoryMapContent.join(""));
-				novaStoryMapFinestra.insertAdjacentElement("beforeend", botoEsborrar);
-				novaStoryMapFinestra.insertAdjacentElement("beforeend", document.createElement("br"));
-				novaStoryMapFinestra.insertAdjacentElement("beforeend", inputBtnNext);
-			}
-		
-			ObreFinestra(window, "creaStoryMap");
+		{
+			const novaStoryMapFinestra = getFinestraLayer(window, "creaStoryMap");
+			novaStoryMapFinestra.replaceChildren();
+			const beginingStoryMapContent = ["<br><br><label style='margin:0 5px' for='title'>", GetMessage('Title') + ":", "</label><input type='text' id='", inputStoryTitolId, "' name='title' minlength='1' size='25' value='", (i_relat != "nou" ? storyToEdit.desc : ""), "'/><br><br>",
+							"<label style='margin: 0 5px;'>", GetMessage('StorymapThumbnailImage', 'storymap') + "(JPEG ",GetMessage("or")," PNG): ", "</label>",
+							"<button class=\"Verdana11px\" onclick=\"document.getElementById('",inputThumbnailId,"').click()\">"+GetMessage("SelectImage", "storymap")+"</button>",
+							"<input id='", inputThumbnailId, "' type='file' align='center' accept='.jpg,.jpeg,.png' style='display:none' onChange='CarregaImatgeStoryMap(this)'/><br><br>",												
+							"<img id='", imageThumbnailId, "' alt='", GetMessage("StorymapThumbnailImage", "storymap"), "' title='", GetMessage("StorymapThumbnailImage", "storymap"), "' style='visibility:", (i_relat != "nou" && storyToEdit.srcData ? "visible" : "hidden"),"; padding: 0 10px;' ", (i_relat != "nou" && storyToEdit.srcData ? "src='" + storyToEdit.srcData + "'" : ""),"/>"];
+			const botoEsborrar = document.createElement("input")
+			botoEsborrar.setAttribute("type", "button");
+			botoEsborrar.setAttribute("id", botoBorraThumbnailId);
+			botoEsborrar.setAttribute("style", "display: " + (i_relat != "nou" && storyToEdit.srcData ? "inline" : "none"));
+			botoEsborrar.setAttribute("value", GetMessage("RemoveImage", "storymap"));
+			botoEsborrar.addEventListener("click", esborraImatgePortada);
+			const inputBtnNext = document.createElement("input");
+			inputBtnNext.setAttribute("type", "button");
+			inputBtnNext.setAttribute("class", "buttonDialog");
+			inputBtnNext.setAttribute("value", GetMessage("Next"));
+			inputBtnNext.addEventListener("click", comprovaTitol);
+							
+			novaStoryMapFinestra.insertAdjacentHTML("afterbegin", beginingStoryMapContent.join(""));
+			novaStoryMapFinestra.insertAdjacentElement("beforeend", botoEsborrar);
+			novaStoryMapFinestra.insertAdjacentElement("beforeend", document.createElement("br"));
+			novaStoryMapFinestra.insertAdjacentElement("beforeend", inputBtnNext);
+		}		
+		ObreFinestra(window, "creaStoryMap");
 	} 
 	else
 	{
@@ -560,7 +590,7 @@ function ActualitzaTextMidesImatge(imatge)
  */
 function CreaDialegSincronitzarAmbMapa()
 {
-	const dialogHtml = ["<form id='", formCheckboxesId,"'><p>" + GetMessage("SelectMapFeatures", "storymap") + "</p><div class='horizontalSpreadElements'><p><input type='checkbox' id='", chBoxPosZoomId, "' name='", chboxPosZoomName,"' checked><label for='", chBoxPosZoomId, "'>" + GetMessage("Position&Zoom", "storymap") + "</label></p><p><input type='checkbox' id='", chBoxCapesStyleId, "' name='", chboxCapesStyleName,"' checked><label for='", chBoxCapesStyleId, "'>" + GetMessage("Layers&Styles", "storymap") + "</label></p><p><input type='checkbox' id='", chBoxTempsId, "' name='", chboxTempsName,"' checked><label for='", chBoxTempsId, "'>" + GetMessage("Date") + "</label></p></div><div class= 'horizontalSpreadElements'><button id='", confirmCaractBtnId, "' formmethod='dialog' value='default'>" + GetMessage("OK") + "</button><button value='cancel' formmethod='dialog'>" + GetMessage("Cancel") + "</button></div></form>"];
+	const dialogHtml = ["<form id='", formCheckboxesId,"'><p>" + GetMessage("SelectMapFeatures", "storymap") + "</p><div class='horizontalSpreadElements' style='margin:0 0 2%;'><input type='checkbox' id='", chBoxPosZoomId, "' name='", chboxPosZoomName,"' checked><label for='", chBoxPosZoomId, "'>" + GetMessage("Position&Zoom", "storymap") + "</label><input type='checkbox' id='", chBoxCapesStyleId, "' name='", chboxCapesStyleName,"' checked><label for='", chBoxCapesStyleId, "'>" + GetMessage("Layers&Styles", "storymap") + "</label><input type='checkbox' id='", chBoxDimensionsId, "' name='", chboxDimensionsName,"' checked><label for='", chBoxDimensionsId, "'>" + GetMessage("Dimensions", "storymap") + "</label><input type='checkbox' id='", chBoxTempsId, "' name='", chboxTempsName,"' checked><label for='", chBoxTempsId, "'>" + GetMessage("Date") + "</label></div><div class= 'horizontalSpreadElements' style='margin:3% 0 0;'><button id='", confirmCaractBtnId, "' formmethod='dialog' value='default'>" + GetMessage("OK") + "</button><button value='cancel' formmethod='dialog'>" + GetMessage("Cancel") + "</button></div></form>"];
 
 	return CreaDialog(dialegCaractId, dialogHtml.join(""));
 }
@@ -1005,7 +1035,7 @@ function MostraDialogCaracteristiquesNavegador(ultimElemId)
 		caractDialog.addEventListener("close", (event) => {
 			
 			if (event.target.returnValue != "")
-			{	
+			{
 				let resultatCaractUsuari = "";
 				try
 				{
@@ -1033,7 +1063,8 @@ function MostraDialogCaracteristiquesNavegador(ultimElemId)
 				{
 					const capesVisiblesIds = [];
 					const estilsCapesIds = [];
-					ParamCtrl.capa.forEach(capa => { 
+					
+					ParamCtrl.capa.forEach((capa) => { 
 						if (capa.visible=="si")
 						{
 							capesVisiblesIds.push(capa.id);
@@ -1048,9 +1079,39 @@ function MostraDialogCaracteristiquesNavegador(ultimElemId)
 					{
 						resultatCaractUsuari[chboxEstilsName]["attribute"] = {name: "data-mm-styles", value: estilsCapesIds.toString()};
 					}
+					
 					hiHaCheckboxSeleccionat = true;
 				}
 				
+				if (resultatCaractUsuari[chboxDimensionsName]["status"])
+				{
+					const dimensionsExtra=[];
+					ParamCtrl.capa.forEach((capa) => { 
+						if (capa.visible=="si" && capa.dimensioExtra && capa.dimensioExtra.length > 0)
+						{
+							let dimensio, cdns;
+							cdns = `{"ly":"${capa.id}","dims":{`;
+							for (let i=0; i<capa.dimensioExtra.length; i++)
+							{
+								dimensio = capa.dimensioExtra[i];
+								cdns += `"${dimensio.clau.nom}":"${dimensio.valor[dimensio.i_valor].nom}"`;
+								
+								if (i!=capa.dimensioExtra.length-1)
+								{
+									cdns += ",";
+								}
+							}
+							cdns += "}}";
+							dimensionsExtra.push(cdns);
+						}
+					});
+					
+					if (dimensionsExtra.length > 0)
+					{
+						resultatCaractUsuari[chboxEstilsName]["attribute"] = {name: "data-mm-extradims", value: dimensionsExtra.toString()};
+					}
+				}
+
 				if (resultatCaractUsuari[chboxTempsName]["status"])
 				{
 					let dataResultat = new Date(0); // Data inicial en milisegons, which is 1970-01-01T00:00:00.000Z .
@@ -1078,7 +1139,8 @@ function MostraDialogCaracteristiquesNavegador(ultimElemId)
 				if (hiHaCheckboxSeleccionat) 
 				{
 					let divResultatCaract = document.createElement("div");
-		
+					divResultatCaract.setAttribute("data-mm-crs", ParamCtrl.ImatgeSituacio[ParamInternCtrl.ISituacio].EnvTotal.CRS);
+
 					Object.keys(resultatCaractUsuari).forEach((caracteristica) => {
 						if(resultatCaractUsuari[caracteristica]["attribute"])
 						{
@@ -1291,13 +1353,6 @@ function FinalitzarStoryMap(estemEditant = false)
 	{
 		paragrafAutomatic.remove();
 	}
-	// Identifiquem cada <div> amb atributs d'acció al mapa.
-	const arrayImgsAccions = tinyEditorBody.querySelectorAll("div[data-mm-center],div[data-mm-zoom],div[data-mm-layers],div[data-mm-styles],div[data-mm-time],div[data-mm-sels],div[data-mm-diags],div[data-mm-extradims],div[data-mm-crs]");
-	arrayImgsAccions.forEach((divElement) => { 
-		divElement.setAttribute("id", identificadorDivAccioMapa+contadorAccionsMapa);
-		contadorAccionsMapa++;
-	});
-	contadorAccionsMapa = 0;
 
 	const cdns = "<html>" + ((novaStoryMap.titol && novaStoryMap.titol != "") ? ("<h1 id='" + h1TitleStorymap + "'>"+ novaStoryMap.titol + "</h1>") : "") + tinyEditor.getContent({format: "html"}) + "</html>";
 	novaStoryMap.relat = cdns;
@@ -1381,7 +1436,7 @@ function CarregaStoryMap(text_html, i_story)
 {
 const relatACarregar = ParamCtrl.StoryMap[i_story];
 
-	contadorAccionsMapa= 0;
+	contadorAccionsMapa= -1;
 	const finestraRelat = getFinestraLayer(window, "storyMap");
 	
 	// Eliminem els nodes anidats a la finestra de lectura de relats així evitar tenir elements repretits de l'anterior visualitsació 
@@ -1401,20 +1456,20 @@ const relatACarregar = ParamCtrl.StoryMap[i_story];
 				(relatACarregar.Ample) ? relatACarregar.Ample : rect.ample,
 				(relatACarregar.Alt) ? relatACarregar.Alt : rect.alt);
 	}
-
+	
 	// Crear el marc per al relat de mapes. 
 	let divRelat = document.createElement("div");
 	divRelat.setAttribute("id", divRelatId);
 	divRelat.setAttribute("style", "overflow-x: hidden; overflow-y: auto; padding: 0 3%; height: 92%;");
 	divRelat.addEventListener("scroll", ExecutaAttributsStoryMapVisibleEvent);
-	divRelat.insertAdjacentHTML("afterbegin", text_html);
+	divRelat.insertAdjacentHTML("afterbegin", RemoveBaseHTMLTag(text_html));
 	
 	/* 
 	*	Tot canvi que hi hagi entre les nodesfills del relat volem estar-ne al corrent 
 	*	i així saber quan ja hi son les imatges d'acció de mapa i poder obtenir-ne els seus Ids.
 	*/
 	const mutationObserver = new MutationObserver(function(changes, observer) {
-		const imgAccio = document.querySelectorAll(`img[id^=${idImgSvgAccioMapa}`);
+		const imgAccio = document.querySelectorAll(`img[id^=${idImgSvgAccioMapa}]`);
 		if(imgAccio && changes[0].target.contains(imgAccio[0]))
 		{
 			// Quan la imatge en blanc ja està inclosa en el DOM fem el càlcul de les alçades.
@@ -1438,9 +1493,10 @@ const relatACarregar = ParamCtrl.StoryMap[i_story];
 	previBoto.setAttribute("name", "controlAccio");
 	previBoto.setAttribute("value", GetMessage("Previous"));
 	previBoto.addEventListener("click", function () {
-		contadorAccionsMapa--;
-		if (contadorAccionsMapa >= 0)
+		if (contadorAccionsMapa > 0)
 		{
+			contadorAccionsMapa--;
+			
 			const idImatge = arrayIdsImgAccions[contadorAccionsMapa];
 			let ancoraNavegacio= document.querySelector("a[name='" + ancoraRelat + "']")
 			if (ancoraNavegacio)
@@ -1452,11 +1508,12 @@ const relatACarregar = ParamCtrl.StoryMap[i_story];
 			{
 				ancoraNavegacio = document.createElement("a");
 				ancoraNavegacio.setAttribute("href", "#" + idImatge);
+				ancoraNavegacio.setAttribute("name", ancoraRelat);
+				ancoraNavegacio.setAttribute("display", "none");
+				finestraRelat.appendChild(ancoraNavegacio);
 				ancoraNavegacio.click();
 			}
 		}
-		if (contadorAccionsMapa < 0)
-			contadorAccionsMapa = 0;
 	});
 
 	let seguentBoto = document.createElement("input");
@@ -1467,9 +1524,11 @@ const relatACarregar = ParamCtrl.StoryMap[i_story];
 	seguentBoto.setAttribute("name", "controlAccio");
 	seguentBoto.setAttribute("value", GetMessage("Next"));
 	seguentBoto.addEventListener("click", function () {
-		contadorAccionsMapa++;
-		if (contadorAccionsMapa < arrayIdsImgAccions.length)
+		
+		if (contadorAccionsMapa < arrayIdsImgAccions.length-1)
 		{
+			contadorAccionsMapa++;
+
 			const idImatge = arrayIdsImgAccions[contadorAccionsMapa];
 			let ancoraNavegacio= document.querySelector("a[name='" + ancoraRelat + "']")
 			if (ancoraNavegacio)
@@ -1481,11 +1540,12 @@ const relatACarregar = ParamCtrl.StoryMap[i_story];
 			{
 				ancoraNavegacio = document.createElement("a");
 				ancoraNavegacio.setAttribute("href", "#" + idImatge);
+				ancoraNavegacio.setAttribute("name", ancoraRelat);
+				ancoraNavegacio.setAttribute("display", "none");
+				finestraRelat.appendChild(ancoraNavegacio);
 				ancoraNavegacio.click();
 			}
 		}
-		if (contadorAccionsMapa == arrayIdsImgAccions.length)
-			contadorAccionsMapa--;
 	});
 
 	
@@ -1551,8 +1611,11 @@ function RecuperarIdsImatgesAccions(textHtml)
 		for(contadorAccionsTransformades=0; contadorAccionsTransformades < arrayDivAccions.length; contadorAccionsTransformades++)
 		{	
 			divAccio = domFromText.getElementById(identificadorDivAccioMapa+contadorAccionsTransformades);
-			imgAccio = divAccio.querySelector(`img[id^=${idImgSvgAccioMapa}]`);
-			arrayIdsImgAccions.push(imgAccio.id);
+			if (divAccio)
+			{
+				imgAccio = divAccio.querySelector(`img[id^=${idImgSvgAccioMapa}]`);
+				arrayIdsImgAccions.push(imgAccio.id);
+			}
 		}
 	}	
 }
@@ -1647,16 +1710,17 @@ function isElemScrolledIntoViewDiv(el, div, partial)
 	//return (elemTop >= 0) && (elemBottom <= window.innerHeight);
 	return rect_div.top <= rect_el.top && rect_div.bottom >= rect_el.bottom;
 }
-
+var iAccio = 0;
 function AfegeixMarkerStoryMapVisible()
 {
 	var div=getFinestraLayer(window, "storyMap");
-	AfegeixMarkerANodesFillsStoryMapVisible(div, div.childNodes, 0);
+	iAccio = 0;
+	AfegeixMarkerANodesFillsStoryMapVisible(div, div.childNodes);
 }
 
 const imgRelatAccio = "storymap_mm_action";
 //Els tags "vendor specific" han de començar per "data-" https://www.w3schools.com/tags/att_data-.asp
-function AfegeixMarkerANodesFillsStoryMapVisible(div, nodes, i_mm)
+function AfegeixMarkerANodesFillsStoryMapVisible(div, nodes)
 {
 var node, attribute;
 
@@ -1676,11 +1740,12 @@ var node, attribute;
 					attribute.name=="data-mm-time" || attribute.name=='data-mm-sels' || attribute.name=='data-mm-diags' || attribute.name=='data-mm-diags' || 
 					attribute.name=='data-mm-extradims')
 				{
-					//Afegir el simbol dins
-					// Create a text node:
+					// Afegim un Id per al Div que conté el paràgraf afectat per l'acció:
+					node.setAttribute("id", identificadorDivAccioMapa+iAccio);
+					// Afegim la imatge d'acció:
 					var divNode = document.createElement("span");
-					divNode.innerHTML=DonaTextImgGifSvg(idImgSvgAccioMapa + i_mm, imgRelatAccio, "storymap_action", 14, GetMessage("ActionOnMap", "storymap"), null);
-					i_mm++;
+					divNode.innerHTML=DonaTextImgGifSvg(idImgSvgAccioMapa + iAccio, imgRelatAccio, "storymap_action", 14, GetMessage("ActionOnMap", "storymap"), null);
+					iAccio++;
 					node.insertBefore(divNode, node.children[0]);
 					break;
 				}
@@ -1688,11 +1753,9 @@ var node, attribute;
 		}
 		if (node.childNodes && node.childNodes.length)
 		{
-			if (AfegeixMarkerANodesFillsStoryMapVisible(div, node.childNodes, i_mm))
-				return true;
+			AfegeixMarkerANodesFillsStoryMapVisible(div, node.childNodes);
 		}
 	}
-	return false;
 }
 
 /*Arguments variables. Com a parametres te una llista de 'data-mm-????' i els seu valor, 'data-mm-????' i els seu valor, ...
@@ -1916,7 +1979,7 @@ function ExecutaAttributsStoryMapVisibleEvent(event)
 
 function ExecutaAttributsStoryMapVisible()
 {
-	var div=getFinestraLayer(window, "storyMap")
+	var div=getFinestraLayer(window, "storyMap");
 	RecorreNodesFillsAttributsStoryMapVisible(div, div.childNodes);
 	timerExecutaAttributsStoryMapVisible=null;
 }
@@ -1948,13 +2011,12 @@ function CompartirStorymap(i_story)
 
 var imgSvgIconaSincroMapa;
 
-function CreaImatgeMarcadorSincronismeMapa(divRef, indexImatge)
+function CreaImatgeMarcadorSincronismeMapa(divRef)
 {
 	if (!ParamCtrl.BarraEstil || !ParamCtrl.BarraEstil.colors)
 	{
 		var cdns=[];
-		cdns.push("<img align=\"absmiddle\" src=\"", AfegeixAdrecaBaseSRC("storymap_action.gif"), "\" ",
-			"id=\"", idImgSvgAccioMapa, indexImatge, "\" name=\"", nomPuntSincr, "\" ",
+		cdns.push("<img align=\"absmiddle\" src=\"", AfegeixAdrecaBaseSRC("storymap_action.gif"), "\" name=\"", nomPuntSincr, "\" ",
 			"width=\"", (ParamCtrl.BarraEstil && ParamCtrl.BarraEstil.ncol) ? ParamCtrl.BarraEstil.ncol : 23, "\" ",
 			"height=\"", (ParamCtrl.BarraEstil && ParamCtrl.BarraEstil.nfil) ? ParamCtrl.BarraEstil.nfil : 22, "\" ", "alt=\"", GetMessage("SyncWithMap", "storymap"), "\" title=\"", GetMessage("SyncWithMap", "storymap"), "\" >");
 		divRef.insertAdjacentHTML("afterbegin", cdns.join(""));
@@ -1964,7 +2026,6 @@ function CreaImatgeMarcadorSincronismeMapa(divRef, indexImatge)
 		if (imgSvgIconaSincroMapa)
 		{
 			const svgClone = imgSvgIconaSincroMapa.cloneNode(true);
-			svgClone.setAttribute('id', idImgSvgAccioMapa + indexImatge);
 			divRef.insertAdjacentElement("afterbegin", svgClone);
 		}
 		else
@@ -1991,7 +2052,6 @@ function CreaImatgeMarcadorSincronismeMapa(divRef, indexImatge)
 				*/
 				const imgDeSvg = document.createElement("img");
 				imgDeSvg.setAttribute("src", "data:image/svg+xml;UTF8," + encodeURI(svg.outerHTML));
-				imgDeSvg.setAttribute('id', idImgSvgAccioMapa + indexImatge);
 				imgDeSvg.setAttribute('name', nomPuntSincr);
 				imgSvgIconaSincroMapa = imgDeSvg;
 				divRef.insertAdjacentElement("afterbegin", imgDeSvg);

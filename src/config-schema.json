@@ -908,12 +908,21 @@
 						"format": "uri"
 					},
 					"url": {
-						"description": "Adreça i nom del fitxer que conté el relat (storymap) en format HTML. Els relats poden contenir elements (tags) html amb atributs que controlen el mapa. Aquests són els atributs possibles (algunes comentes han de ser dobles però no ho puc posar aquí):   (1) data-mm-center='{'x': `number`, 'y': `number`}'  (2) data-mm-zoom=`number`   (3)   data-mm-crs=`crs_name` (4) data-mm-time='{'year': `number`..., 'second': `number`}'  (5) data-mm-layers='`IdCapa1`,`IdCapa2`,...'   (6) data-mm-styles='`styleId1`,`styleId2`...',    (7) data-mm-sels='{'ly': `NomCapa`, 'q': `FormulaConsulta`, 'id': `IdEstilNou`}, '{'ly': , 'q': , 'name': }, ...' (si la `FormulaConsulta` necessita cometes aquestes poden ser una dieresis (¨))  (8) data-mm-diags={'ly': '`IdCapa1`', 'stl': '`IdStyle1`', 'type': '`veure diagrama.tipus`', 'stat': '`veure diagrama.stat`', 'order': '`veure diagrama.order`'}, {'ly': , 'style': , 'type': , 'stat': , 'order': }, ... (es tanquen tots els diagrames no indicats i si no hi ha el paramentre data-mm-diags, es tanquen tots els histogrames; IdCapa* ha de ser una capa d'arrays binaris) (6) data-mm-extradims={'ly': , 'dims': {`clau`: `valor`}}, {'ly': , 'dims': {`clau`: `valor`}}, ... Es també possible posar botons que tinguin onClick='ExecuteDataMMAttributes('data-mm-center', '{'x': `number`, 'y': `number`}', ...)",
+						"description": "Adreça i nom del fitxer que conté el relat (storymap) en format HTML. Els relats poden contenir elements (tags) html amb atributs que controlen el mapa. Aquests són els atributs possibles (algunes comentes han de ser dobles però no ho puc posar aquí):   (1) data-mm-center='{'x': `number`, 'y': `number`}'  (2) data-mm-zoom=`number`   (3)   data-mm-crs=`crs_name` (4) data-mm-time='{'year': `number`..., 'second': `number`}'  (5) data-mm-layers='`IdCapa1`,`IdCapa2`,...'   (6) data-mm-styles='`styleId1`,`styleId2`...',    (7) data-mm-sels='{'ly': `NomCapa`, 'q': `FormulaConsulta`, 'id': `IdEstilNou`}, '{'ly': , 'q': , 'name': }, ...' (si la `FormulaConsulta` necessita cometes aquestes poden ser una dieresis (¨))  (8) data-mm-diags={'ly': '`IdCapa1`', 'stl': '`IdStyle1`', 'type': '`veure diagrama.tipus`', 'stat': '`veure diagrama.stat`', 'order': '`veure diagrama.order`'}, {'ly': , 'style': , 'type': , 'stat': , 'order': }, ... (es tanquen tots els diagrames no indicats i si no hi ha el paramentre data-mm-diags, es tanquen tots els histogrames; IdCapa* ha de ser una capa d'arrays binaris) (6) data-mm-extradims={'ly': , 'dims': {`clau`: `valor`}}, {'ly': , 'dims': {`clau`: `valor`, `clau2`: `valor2`}}, ... Es també possible posar botons que tinguin onClick='ExecuteDataMMAttributes('data-mm-center', '{'x': `number`, 'y': `number`}', ...)",
 						"$ref": "config_attributes_metaschema.json#/definitions/StringOCadenaLang" 
 					},
 					"EnvTotal": {
-						"description": "Envolupant associada a la història. Si el navegador està en un àmbit fora de la envolupant, la història no s'inclou a la llista de les disponibles. No implementat encara",
-						"$ref": "#/definitions/envolupantCRS_2D" 
+						"description": "Envolupant associada a la història. Si el navegador està en un àmbit fora de la envolupant, la història no s'inclou a la llista de les disponibles. Pot ser un únic objecte o un array d'envolupants si el relat es passeja per diversos àmbits amb diversos CRS. Només s'usa pels relats predefinits al config i no als que es puguin crear durant la sessió de navegació (en aquest cas estan disponibles sempre).",
+						"oneOf":[{
+							"type": "null"
+						},{
+							"$ref": "#/definitions/envolupantCRS_2D" 
+						},{
+							"type": "array",
+							"items": {
+								"$ref": "#/definitions/envolupantCRS_2D" 
+							}
+						}]
 					},
 					"Ample": {
 						"description": "Ample de la caixa que conté la història. Opcional; si no hi és val 500",
@@ -1680,9 +1689,13 @@
 						"description": "Costat màxim dels nivells de zoom suportats per la capa. Opcional. Si no s'indica s'assumeix el zoom més gran",
 						"type": "number",
 						"minimum": 0
-					},														
+					},	
+					"ForcaGetFeatureInfo" : {
+						"description": "Forçar la petició de GetFeatureInfo en capes binaries WMS o WMTS en format application/x-img on és vol una consulta més complexa i que s'obtingui a partir de la petició GetFeatureInfo. Per defecte és false.",
+						"type" : "boolean"
+					},
 					"FormatConsulta": { 
-						"description": "Format en que s'ha de demanar la capa al servidor per a la consulta per localització. És un format MIME excepte per wmts-rest que és l'extensió del fitxer amb punt o sense. Si la capa no és consultable es deixa a null. No aplica per a capes digitalitzades",
+						"description": "Format en que s'ha de demanar la capa al servidor per a la consulta per localització. És un format MIME excepte per wmts-rest que és l'extensió del fitxer amb punt o sense. Si la capa no és consultable es deixa a null. No aplica per a capes digitalitzades ni per capes amb dades binàries si no és que s'ha indicat el flag ForcaGetFeatureInfo",
 						"type": ["string", "null"]
 					},
 					"grup":	{ 

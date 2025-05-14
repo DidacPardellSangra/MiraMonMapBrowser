@@ -1,4 +1,4 @@
-/* 
+﻿/* 
     This file is part of NiMMbus system. NiMMbus is a solution for 
     storing geospatial resources on the MiraMon private cloud. 
     MiraMon is a family of GIS&RS products developed since 1994 
@@ -22,7 +22,7 @@
     The NiMMbus JavaScript Client can be updated from
     https://github.com/grumets/NiMMbus.
 
-    Copyright 2014, 2024 Xavier Pons
+    Copyright 2014, 2025 Xavier Pons
 
     Aquest codi JavaScript ha estat idea de Joan Masó Pau (joan maso at uab cat) 
     amb l'ajut de l'Alaitz Zabala (alaitz zabala at uab cat)
@@ -89,7 +89,7 @@ function GUFCreateFeedbackWithReproducibleUsage(targets, reprod_usage, lang, acc
 	if (reprod_usage.ru_platform)
 		reprod_usage.ru_platform = escapeWin1252(reprod_usage.ru_platform);
 	if (reprod_usage.ru_schema)
-		reprod_usage.ru_schema = escapeWin1252Component(reprod_usage.ru_schema);
+		reprod_usage.ru_schema = escapeWin1252(reprod_usage.ru_schema);
 	if (typeof reprod_usage.ru_sugg_app === "undefined")
 		reprod_usage.ru_sugg_app = escapeWin1252(location.href);
 	else if (reprod_usage.ru_sugg_app)
@@ -149,7 +149,7 @@ function GUFGetURLPreviousFeedbackWithReproducibleUsage(code, codespace, reprod_
 		if (i_cond>1)
 			url+="&RSC_NXS_"+ (i_cond-1) + "=AND";
 	
-		url+="&RSC_FLD_" + i_cond + "=RU_SUGG_APP&RSC_VL_" + i_cond + "=" + /*encodeURI(*/intern_sugg_app/*)*/ + "&RSC_OPR_" + i_cond + "=EQ";	 //no needed			
+		url+="&RSC_FLD_" + i_cond + "=RU_SUGG_APP&RSC_VL_" + i_cond + "=" + escapeWin1252(intern_sugg_app) + "&RSC_OPR_" + i_cond + "=EQ";
 		i_cond++;
 	}
 
@@ -576,23 +576,7 @@ var cdns=[];
 	var owc=ParseOWSContextAtom(root);
 	if (owc.properties.totalResults==0 || !owc.features)
 	{
-		cdns.push(GUFDonaCadenaLang({"cat":"No hi ha cap valoració prèvia", 
-					"spa":"No hay ninguna valoración previa", 
-					"eng":"There is no previous user feedback", 
-					"fre":"Il n'y a pas encore de commentaires des utilisateurs"}, extra_param.lang)); 
-
-		if (extra_param.rsc_type != "")
-			cdns.push(GUFDonaCadenaLang({"cat":" sobre la", 
-						"spa":" sobre la", 
-						"eng":" on the", 
-						"fre":" sur la"}, extra_param.lang), 
-						" ", extra_param.rsc_type, " ");
-
-		cdns.push(GUFDonaCadenaLang({"cat":"encara", 
-					"spa":"todavía", 
-					"eng":"yet", 
-					"fre":"encore"}, extra_param.lang));
-		document.getElementById(extra_param.div_id).innerHTML=cdns.join("");
+		document.getElementById(extra_param.div_id).innerHTML= MissatgeSenseElementsRetornats(extra_param);
 		return;
 	}
 
@@ -646,6 +630,48 @@ var cdns=[];
 		if (type=="FEEDBACK" && owc.features[i].properties && owc.features[i].properties.links && owc.features[i].properties.links.alternates && owc.features[i].properties.links.alternates.length && owc.features[i].properties.links.alternates[0].href)
 			loadFile(owc.features[i].properties.links.alternates[0].href, "text/xml", GUFCarregaFeedbackAnteriorCallback, function(xhr, extra_param) { alert(extra_param.url + ": " + xhr ); }, {url: owc.features[i].properties.links.alternates[0].href, div_id: extra_param.div_id + "_" + i, lang: extra_param.lang, esRU: extra_param.callback_function});
 	}
+}
+
+function MissatgeSenseElementsRetornats(elements)
+{
+	let missatge = [];
+	let lang = elements.lang
+
+	if (elements.callback_function == "AdoptaEstil")
+	{
+		missatge.push(GUFDonaCadenaLang({"cat":"No hi ha cap estil prèvi", 
+			"spa":"No hay ningun estilo previo", 
+			"eng":"There is no previous user style", 
+			"fre":"Il n'y a pas encore de style des utilisateurs"}, lang));
+	}
+	else if (elements.callback_function == "AdoptaStorymap")
+	{
+		missatge.push(GUFDonaCadenaLang({"cat":"No hi ha cap relat prèvi", 
+			"spa":"No hay ninguna relato previo", 
+			"eng":"There is no previous user storymap", 
+			"fre":"Il n'y a pas encore de carte de l'histoire des utilisateurs"}, lang));
+	}
+	else
+	{
+		missatge.push(GUFDonaCadenaLang({"cat":"No hi ha cap valoració prèvia", 
+			"spa":"No hay ninguna valoración previa", 
+			"eng":"There is no previous user feedback", 
+			"fre":"Il n'y a pas encore de commentaires des utilisateurs"}, lang));
+	}
+
+	if (typeof elements.rsc_type !== "undefined" && elements.rsc_type != "")
+		missatge.push(GUFDonaCadenaLang({"cat":" sobre la", 
+					"spa":" sobre la", 
+					"eng":" on the", 
+					"fre":" sur la"}, lang), 
+					" ", elements.rsc_type);
+
+	missatge.push(GUFDonaCadenaLang({"cat":" encara", 
+				"spa":" todavía", 
+				"eng":" yet", 
+				"fre":" encore"}, lang));
+
+	return missatge.join("");
 }
 
 function ConstrueixURLDesdeIdentifierSiDOIoNiMMbus(identifier, lang, es_id_fb_item)
