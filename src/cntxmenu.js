@@ -641,21 +641,27 @@ function seleccioServidorOpenEO()
 		loadJSON("servidors.json",
 			function(servidorsOpenEO, extra_param) {
 				ServidorsOpenEO=servidorsOpenEO;
-				if (typeof dialeg === "undefined")
+				if (!dialeg)
 					dialeg = creaDialegSelectorServidors();
+
+				if (typeof elementAncla !== "undefined" && !elementAncla.contains(dialeg))
+					elementAncla.appendChild(dialeg);
+
+				dialeg.showModal();
+
 			},
 			function(xhr) { alert(xhr); },
 			null);
 	}
-	else if (typeof dialeg === "undefined")
+	else if (!dialeg)
 		dialeg = creaDialegSelectorServidors();
 
-	if (typeof dialeg !== "undefined")
+	if (dialeg && typeof dialeg !== "undefined")
 	{
 		if (typeof elementAncla !== "undefined" && !elementAncla.contains(dialeg))
 			elementAncla.appendChild(dialeg);
 
-		dialeg.show();
+		dialeg.showModal();
 	}		
 }
 
