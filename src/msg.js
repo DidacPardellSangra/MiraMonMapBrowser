@@ -3609,6 +3609,22 @@ var MessageLang=
       "fre": "Les actions de carte imbriquées ne sont pas prises en charge",
       "cze": "Nepřipouští vnořené akce mapy",
       "ger": "Nicht zugelassen für verschachtelte Kartenaktionen"
+    },
+    "FromBrowser": {
+      "cat": "Del navegador",
+      "spa": "Del navegador",
+      "eng": "From browser",
+      "fre": "Depuis browser",
+      "cze": "z prohlížeče",
+      "ger": "Von Browser"
+    },
+    "FromUsers": {
+      "cat": "Dels usuaris",
+      "spa": "De los usuarios",
+      "eng": "From users",
+      "fre": "Des utilisateurs",
+      "cze": "od uživatelů",
+      "ger": "Von Nutzern"
     }
   },
   "tresD": {
