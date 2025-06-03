@@ -38,4 +38,22 @@
 
 "use strict"
 
+const urlPlataformes = "https://hub.openeo.org/api/backends";
+const detailsGrouped = "details=grouped"
+
 var ServidorsOpenEO = null;  //servidors de servidors.json
+/**
+ * Otenir informació i urls de les plataformes que disposen d'entorn jupiter notebook amb productes de teledetecció.
+ */
+function ObtindreProveidors()
+{
+    loadFile(urlPlataformes+ "?" +detailsGrouped, "application/json", function(proveidors, extraparam) {
+        console.log("que hi tenim!?");
+    }, function(xhr) { alert(xhr); },
+			null);
+}
+
+function ObtindreColleccions(servidor)
+{
+
+}

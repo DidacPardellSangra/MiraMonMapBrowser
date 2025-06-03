@@ -2,7 +2,7 @@
     "servidors":[
         {
             "nom": "Copernicus Dataspace Ecosystem", 
-            "url": "openeo.dataspace.copernicus.eu/",
+            "url": "openeo.dataspace.copernicus.eu/openeo/1.2",
             "collections": {
                 "S3OL1B":{
                     "id":"SENTINEL3_OLCI_L1B",
@@ -250,6 +250,181 @@
                         "SLNFlags":"SLN_flags",
                         "SLOFlags":"SLO_flags",
                         "SYNFlags":"SYN_flags"
+                    }
+                },
+                "S3SLSTRL2LST":{
+                    "id":"SENTINEL3_SLSTR_L2_LST",
+                    "bands":{
+                        "LST":"LST",
+                        "LST_uncertainty":"LST_uncertainty",
+                        "exception":"exception",
+                        "confidence_in":"confidence_in",
+                        "sunAzimuthAngles":"sunAzimuthAngles",
+                        "sunZenithAngles":"sunZenithAngles",
+                        "viewAzimuthAngles":"viewAzimuthAngles",
+                        "viewZenithAngles":"viewZenithAngles"
+                    }
+                },
+                "S1GLOBALMOS":{
+                    "id":"SENTINEL1_GLOBAL_MOSAIC",
+                    "bands":{
+                    }
+                }
+            }
+        },
+        {
+            "nom": "Sentinel Hub", 
+            "url": "https://openeo.sentinel-hub.com/production",
+            "collections": {
+                "SENTINEL2_L2A_MOSAIC_120":{
+                    "id":"SENTINEL2_L2A_MOSAIC_120",
+                    "bands":{
+                        "B01":"B01",
+                        "B02":"B02",
+                        "B03":"B03",
+                        "B04":"B04",
+                        "B05":"B05",
+                        "B06":"B06",
+                        "B07":"B07",
+                        "B08":"B08",
+                        "B8A":"B8A",
+                        "B09":"B09",
+                        "B11":"B11",
+                        "B12":"B12",
+                        "QM":"QM",
+                        "dataMask":"dataMask"
+                    }
+                },
+                "COPERNICUS_30":{
+                    "id":"COPERNICUS_30",
+                    "bands":{
+                        "DEM":"DEM",
+                        "dataMask":"dataMask"
+                    }
+                },
+                "MAPZEN_DEM":{
+                    "id":"MAPZEN_DEM",
+                    "bands":{
+                        "DEM":"DEM",
+                        "dataMask":"dataMask"
+                    }
+                },
+                "SENTINEL1_GRD":{
+                    "id":"SENTINEL1_GRD",
+                    "bands":{
+                        "VV":"VV",
+                        "VH":"VH",
+                        "HH":"HH",
+                        "HV":"HV",
+                        "dataMask":"dataMask"
+                    }
+                },
+                "ALOS_PALSAR2_RICE_PADDY_FIELD_MAPPP10MS2":{
+                    "id":"ALOS_PALSAR2_RICE_PADDY_FIELD_MAP",
+                    "bands":{
+                        "RF":"RF"
+                    }
+                },
+                "ALOS_PALSAR2_AGRICULTURE":{
+                    "id":"ALOS_PALSAR2_AGRICULTURE",
+                    "bands":{
+                        "HH": "HH",
+                        "HV": "HV"
+                    }
+                },
+                "ALOS_PALSAR2_L2_1_3M":{
+                   "id":"ALOS_PALSAR2_L2_1_3M",
+                    "bands":{
+                        "HH": "HH"
+                    } 
+                },
+                "ALOS_PALSAR2_L2_1_10M":{
+                   "id":"ALOS_PALSAR2_L2_1_10M",
+                    "bands":{
+                        "HH":"HH",
+                        "HV":"HV"
+                    } 
+                },
+                "CAMS_GLC":{
+                    "id":"CAMS_GLC",
+                    "bands":{
+                        "QFLAG":"QFLAG",
+                        "PPI":"PPI"
+                    }
+                },
+                "CNR_CHL":{
+                    "id":"CNR_CHL",
+                    "bands":{
+                        "chl":"chl"
+                    }
+                },
+                "CNES_LAND_COVER_MAP":{
+                    "id":"CNES_LAND_COVER_MAP",
+                    "bands":{
+                        "OCS":"OCS",
+                        "OCS_Confidence":"OCS_Confidence",
+                        "OCS_Validity":"OCS_Validity"
+                    }
+                },
+                "SENTINEL_5P_CO_T3D_AVERAGE":{
+                    "id":"SENTINEL_5P_CO_T3D_AVERAGE",
+                    "bands":{
+                        "co":"co"
+                    }
+                },
+                "E12C_MOTORWAY":{
+                    "id":"E12C_MOTORWAY",
+                    "bands":{
+                        "MotorwayActivity":"MotorwayActivity"
+                    }
+                },
+                "E12D_PRIMARY":{
+                    "id":"E12D_PRIMARY",
+                    "bands":{
+                        "PrimaryRoadsActivity":"PrimaryRoadsActivity"
+                    }
+                },
+                "CDS_2M_TEMP_2020":{
+                    "id":"CDS_2M_TEMP_2020",
+                    "bands":{
+                        "AIR2MT":"AIR2MT"
+                    }
+                },
+                "ESA_WORLDCOVER_10M_2020_V1":{
+                    "id":"ESA_WORLDCOVER_10M_2020_V1",
+                    "bands":{
+                        "Map":"Map",
+                        "dataMask":"dataMask"
+                    }
+                },
+                "GLOBAL_SURFACE_WATER":{
+                    "id":"GLOBAL_SURFACE_WATER",
+                    "bands":{
+                        "change":"change",
+                        "extent":"extent",
+                        "occurrence":"occurrence",
+                        "recurrence":"recurrence",
+                        "seasonality":"seasonality",
+                        "transitions":"transitions"
+                    }
+                },
+                "NASA_HARMONIZED_LANDSAT_SENTINEL":{
+                    "id":"NASA_HARMONIZED_LANDSAT_SENTINEL",
+                    "bands":{
+                        "CoastalAerosol":"CoastalAerosol",
+                        "Blue":"Blue",
+                        "Green":"Green",
+                        "Red":"Red",
+                        "NIR_Narrow":"NIR_Narrow",
+                        "SWIR1":"SWIR1",
+                        "SWIR2":"SWIR2",
+                        "Cirrus":"Cirrus",
+                        "QA":"QA",
+                        "VAA":"VAA",
+                        "VZA":"VZA",
+                        "SAA":"SAA",
+                        "SZA":"SZA",
+                        "dataMask":"dataMask"
                     }
                 },
                 "S3SLSTRL2LST":{

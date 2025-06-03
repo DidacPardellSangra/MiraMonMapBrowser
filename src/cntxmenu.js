@@ -648,13 +648,17 @@ function seleccioServidorOpenEO()
 					elementAncla.appendChild(dialeg);
 
 				dialeg.showModal();
-
+				ObtindreProveidors();
 			},
 			function(xhr) { alert(xhr); },
 			null);
+		
 	}
 	else if (!dialeg)
+	{
 		dialeg = creaDialegSelectorServidors();
+		ObtindreProveidors();
+	}
 
 	if (dialeg && typeof dialeg !== "undefined")
 	{
